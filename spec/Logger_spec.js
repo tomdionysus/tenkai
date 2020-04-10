@@ -36,40 +36,4 @@ describe('Logger', () => {
 	// 		expect(x2.log).not.toHaveBeenCalled()
 	// 	})
 	// })
-
-	describe('stringToLogLevel', () => {
-		it('should parse debug', () => {
-			expect(Logger.stringToLogLevel('debug')).toEqual(Logger.Debug)
-		})
-		it('should parse info', () => {
-			expect(Logger.stringToLogLevel('info')).toEqual(Logger.Info)
-		})
-		it('should parse warn', () => {
-			expect(Logger.stringToLogLevel('warn')).toEqual(Logger.Warn)
-		})
-		it('should parse error', () => {
-			expect(Logger.stringToLogLevel('error')).toEqual(Logger.Error)
-		})
-		it('should parse unknown', () => {
-			expect(Logger.stringToLogLevel('unknown')).toEqual(Logger.Unknown)
-		})
-	})
-
-	describe('logLevelToString', () => {
-		it('should parse Logger.Debug', () => {
-			expect(Logger.logLevelToString(Logger.Debug)).toEqual('debug')
-		})
-		it('should parse Logger.Info', () => {
-			expect(Logger.logLevelToString(Logger.Info)).toEqual('info')
-		})
-		it('should parse Logger.Warn', () => {
-			expect(Logger.logLevelToString(Logger.Warn)).toEqual('warn')
-		})
-		it('should parse Logger.Error', () => {
-			expect(Logger.logLevelToString(Logger.Error)).toEqual('error')
-		})
-		it('should parse Logger.Unknown', () => {
-			expect(Logger.logLevelToString(Logger.Unknown)).toEqual('unknown')
-		})
-	})
 })
