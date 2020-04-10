@@ -4,7 +4,7 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "node index.js",
-		"test": "node node_modules/istanbul/lib/cli.js cover -x 'spec/**' node_modules/jasmine/bin/jasmine.js"
+		"test": "nyc --reporter=lcov --exclude=spec node_modules/jasmine/bin/jasmine.js"
 	},
 	"author": "Tom Cully",
 	"private": true,
@@ -17,10 +17,9 @@
 		"uuid": "^3.4.0"
 	},
 	"devDependencies": {
-		"esdoc": "^1.1.0",
-		"esdoc-standard-plugin": "^1.0.0",
+		"nyc": "^15.0.1",
 		"eslint": "^5.16.0",
-		"istanbul": "0.4.5",
-		"jasmine": "2.8.0"
+		"jasmine": "2.8.0",
+		"jsdoc": "^3.6.4"
 	}
 }
