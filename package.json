@@ -4,21 +4,21 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "node index.js",
-		"test": "node node_modules/istanbul/lib/cli.js cover -x 'spec/**' node_modules/jasmine/bin/jasmine.js"
+		"test": "node node_modules/istanbul/lib/cli.js cover -x 'spec/**' node_modules/jasmine/bin/jasmine.js",
 	},
 	"author": "Tom Cully",
 	"private": true,
 	"repository": "git@github.com:tomdionysus/tenkai.git",
 	"dependencies": {
 		"async": "^2.6.3",
-		"case": "^1.6.2",
-		"jsdom": "^16.2.2",
 		"moment": "^2.24.0",
 		"sprintf-js": "^1.1.2",
 		"underscore": "^1.9.2",
 		"uuid": "^3.4.0"
 	},
 	"devDependencies": {
+		"esdoc": "^1.1.0",
+		"esdoc-standard-plugin": "^1.0.0",
 		"eslint": "^5.16.0",
 		"istanbul": "0.4.5",
 		"jasmine": "2.8.0"

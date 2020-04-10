@@ -1,7 +1,4 @@
 node_modules
 coverage
-upload
+docs
 start.sh
-public/css
-build
-dist
