@@ -2,7 +2,6 @@ module.exports = {
 	APIClient: require('./lib/APIClient'),
 	Asset: require('./lib/Asset'),
 	Audio: require('./lib/Audio'),
-	Character: require('./lib/Character'),
 	GameEngine: require('./lib/GameEngine'),
 	HasMobsMixin: require('./lib/HasMobsMixin'),
 	HasScenesMixin: require('./lib/HasScenesMixin'),
