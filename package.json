@@ -17,9 +17,10 @@
 		"uuid": "^3.4.0"
 	},
 	"devDependencies": {
-		"nyc": "^15.0.1",
+		"coveralls": "^3.0.11",
 		"eslint": "^5.16.0",
 		"jasmine": "2.8.0",
-		"jsdoc": "^3.6.4"
+		"jsdoc": "^3.6.4",
+		"nyc": "^15.0.1"
 	}
 }
