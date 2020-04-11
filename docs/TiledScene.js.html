@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: TiledScene.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: TiledScene.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const Scene = require('./Scene')
+
+/**
+ * TiledScene is the base class for tiled backgrounds.
+ *
+ * @extends Scene
+ * @example
+ &lt;caption>Create a new TiledScene with 16x16 tiles from an {@link Asset}&lt;/caption>
+var mainMapTilesAsset = new Asset({ name: 'mainMapTilesAsset', src: 'assets/mainmap_tileset.png' })
+var scene = new TiledScene({ asset: mainMapTilesAsset, tileWidth: 16, tileHeight: 16, x: 0, y: 0 })
+ */
+class TiledScene extends Scene {
+	/**
+	* Create a new TiledScene with the specified options.
+	* @param {object} options The options for the TiledScene, composed of the properties.
+	* @property {integer} tileWidth The width of each tile in the asset
+	* @property {integer} tileHeight The height of each tile in the asset
+	* @property {integer} perspectiveMode The perspective mode of this TiledScene
+	*/
+	constructor(options = {}) {
+		super(options)
+
+		// The width and height of the layers in the asset
+		this.tileWidth = options.tileWidth || 32
+		this.tileHeight = options.tileHeight || 32
+
+		// The perspective mode for the TiledScene
+		this.perspectiveMode = options.perspectiveMode || TiledScene.PERSPECTIVE_OVERHEAD
+
+		this.redraw()
+	}
+
+	draw(context) {
+		// If we're not marked for a redraw or we're invisible, return
+		if(!this._doredraw || !this.visible) return
+
+		// Save the context params
+		context.save()
+
+		// Reset the origin to our coordinates (so child entities are relative to us)
+		context.translate(this.x, this.y)
+		context.scale(this.scale, this.scale)
+		context.rotate(this.rotate)
+
+		// Ensure Scene sort order
+		if(!this._sceneOrderMap) this.sortScenesZ()
+
+		// Ensure entity sort order
+		if(!this._mobOrderMap) this.sortEntitiesZ()
+
+		// Get all valid z values for layers, scenes and entities
+		var layerKeys = Object.assign({}, this.layers)
+		Object.assign(layerKeys, this._sceneOrderMap)
+		Object.assign(layerKeys, this._mobOrderMap)
+		layerKeys = Object.keys(layerKeys).sort()
+
+		// Draw layers in order, with scenes and entities
+		for(var i in layerKeys) this._drawLayer(context, i)
+
+		// Restore the context params for the next thing being drawn
+		context.restore()
+
+		// Reset the redraw flag
+		this._doredraw = false
+	}
+
+	_drawLayer(context, z) {
+		// Draw the layer
+		var layer = this.layers[z]
+		var mobYOrder = {}
+
+		if(layer) {
+			if (this.perspectiveMode == TiledScene.PERSPECTIVE_ANGLE) {
+				// Now the Entities for this layer
+				var entities = this.getEntitiesAtLayer(z)
+				for(var m in entities) {
+					var mobY = Math.floor((entities[m].y+entities[m].hotspotY) / this.tileHeight)
+					mobYOrder[mobY] = mobYOrder[mobY] || []
+					mobYOrder[mobY].push(entities[m])
+				}
+			}
+
+			for(var y=0; y&lt;layer.length; y++) {
+				for(var x=0; x&lt;layer[y].length; x++) {
+					if(!layer[y][x]) continue
+					context.drawImage(
+						this.asset.element, 
+						layer[y][x][0]*this.tileWidth, 
+						layer[y][x][1]*this.tileHeight, 
+						this.tileWidth, 
+						this.tileHeight,
+						x*this.tileWidth, 
+						y*this.tileHeight,
+						this.tileWidth, 
+						this.tileHeight
+					)
+				}
+				if (this.perspectiveMode == TiledScene.PERSPECTIVE_ANGLE) {
+					for(var m in mobYOrder[y]) mobYOrder[y][m].draw(context)
+				}
+			}
+		}
+
+		if (this.perspectiveMode == TiledScene.PERSPECTIVE_OVERHEAD) {
+			// Now the Entities for this layer
+			this.drawEntities(context, z)
+		}
+
+		// Next draw any subscenes for this layer
+		this.drawScenes(context, z)
+	}
+}
+
+// In PERSPECTIVE_OVERHEAD mode, a TiledScene will simply draw all tile levels, subscenes and entities in order from their z-coordinate
+TiledScene.PERSPECTIVE_OVERHEAD = 1
+// In PERSPECTIVE_ANGLE mode, the TiledScene will draw all tile levels, subscenes and entities in order from their z and y coordinates modified their hotspot y coordinate. 
+TiledScene.PERSPECTIVE_ANGLE = 2
+
+module.exports = TiledScene
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sat Apr 11 2020 22:02:12 GMT+1200 (New Zealand Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

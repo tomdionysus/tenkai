@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Audio.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Audio.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ *  Audio is the base class for game audio, loaded into a HTML5 'audio' tag.
+ */
+class Audio {
+	/**
+	* Create a new Audio with the specified options.
+	* @param {object} options The options object for the Asset - see below
+	* @example
+const { Asset } = require('tenkai')
+
+var asset = new Asset({
+  src: 'music/maintitle.mp3',   // Source file
+  type: 'audio/mpeg',           // MIME type of the asset file
+  startTime: 0,                 // Start offset in ms (optional)
+  endTime: 1040,                // End offset in ms (optional)
+  loop: true                    // Loop the audio continuously (optional, default false)
+})
+	*/
+	constructor(options = {}) {
+		this.src = options.src
+		this.type = options.type
+
+		this.startTime = options.startTime
+		this.endTime = options.endTime
+		this.loop = !!options.loop
+
+		this._callonloaded = null
+	}
+
+	/**
+	* Load the Audio asynchronously from its src and optionally trigger the supplied callback when available. 
+	* @param {function} callback The callback function to invoke when the asset has been loaded
+	* @example
+audio.load((err, au) => {
+  console.log("Audio "+au.name+" Loaded")
+}) 
+	*/
+	load(callback) {
+		this.element = document.createElement('audio')
+		this._callonloaded = callback
+		this.element.oncanplaythrough = this._oncanplaythrough.bind(this)
+		this.element.onloadedmetadata = this._onloadedmetadata.bind(this)
+		this.element.ontimeupdate = this._ontimeupdate.bind(this)
+		var source = document.createElement('source')
+		source.src = this.src
+		source.type = this.type
+		this.element.appendChild(source)
+	}
+
+	/**
+	* Play the audio from the current position.
+	*/
+	play() {
+		this.element.play()
+	}
+
+	/**
+	* Play the audio from the start time index to the end time index and optionally loop.
+	* @param {float} start The start offset in ms (optional)
+	* @param {float} end The end offset in ms (optional)
+	* @param {boolean} start Loop the audio (optional)
+	*/
+	playRange(start = null, end = null, loop = null) {
+		if(start) this.startTime = start
+		if(end) this.endTime = end
+		if(loop) this.loop = loop
+		this.play()
+	}
+
+	/**
+	* Pause the audio at the current position.
+	*/
+	pause() {
+		this.element.pause()
+	}
+
+	/**
+	* Stop the audio and reset it to the beginning
+	*/
+	stop() {
+		this.element.oncanplaythrough = null
+		this.element.pause()
+		this.element.currentTime = '0'
+	}
+
+	/**
+	* Fade out the audio over the given duration then call the optional callback
+	* @param {integer} duration Fade duration in ms
+	* @param {function} callback The callback function to invoke when the fade has completed
+	*/
+	fadeOut(duration = 1000, callback) { 
+		this._fade(0, duration, ()=>{
+			this.pause()
+			if (callback) callback(this)
+		})
+	}
+
+	/**
+	* Fade in the audio over the given duration then call the optional callback
+	* @param {integer} duration Fade duration in ms
+	* @param {function} callback The callback function to invoke when the fade has completed
+	*/
+	fadeIn(duration = 1000, callback) { 
+		this.element.volume = 0
+		this.play()
+		this._fade(1, duration, ()=>{
+			if (callback) callback(this)
+		})
+	}
+
+	_fade(toValue, duration, callback) {
+		if(this._fadeTimeout) clearTimeout(this._fadeTimeout)
+			
+		var dv = (toValue - this.element.volume) / (duration/10)
+		var x = () => {
+			var p = this.element.volume + dv
+			if((dv&lt;0 &amp;&amp; p &lt;= toValue) || (dv>0 &amp;&amp; p >= toValue)) {
+				this.element.volume = toValue
+				if(callback) {
+					delete this._fadeTimeout
+					return callback()
+				}
+			} else {
+				this.element.volume = p
+				this._fadeTimeout = setTimeout(x, 10)
+			}
+		}
+		x()
+	}
+
+	_oncanplaythrough() {
+		if(this._callonloaded) {
+			var x = this._callonloaded
+			this._callonloaded = null
+			x()
+		}
+	}
+	
+	_onloadedmetadata() {
+		this.duration = this.element.duration * 1000
+		if(!this.endTime) this.endTime = this.duration
+		this.element.playbackRate = 1
+		this.element.currentTime = (this.startTime || 0)/1000
+	}
+
+	_ontimeupdate() {
+		if (this.element.currentTime * 1000 >= this.endTime) {
+			if(this.loop) {
+				this.element.currentTime = this.startTime/1000
+			} else {
+    			this.element.pause()
+			}
+  		}
+	}
+}
+
+module.exports = Audio</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sat Apr 11 2020 22:02:12 GMT+1200 (New Zealand Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
