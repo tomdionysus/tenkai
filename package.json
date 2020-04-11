@@ -7,7 +7,7 @@
 		"test": "node node_modules/nyc/bin/nyc.js --reporter=lcov --exclude=spec node_modules/jasmine/bin/jasmine.js",
 		"gendocs": "node node_modules/jsdoc/jsdoc.js lib -d docs"
 	},
-	"author": "Tom Cully",
+	"author": "Tom Cully <tomhughcully@gmail.com>",
 	"private": true,
 	"repository": "git@github.com:tomdionysus/tenkai.git",
 	"dependencies": {
