@@ -1,4 +1,5 @@
 const BackgroundScene = require("../lib/BackgroundScene")
+const ContextMock2D = require("./mocks/ContextMock2D")
 
 describe('Asset', () => {
 	it('should allow New', () => {
@@ -19,20 +20,7 @@ describe('Asset', () => {
 		var x1, context
 		beforeEach(() => {
 			x1 = new BackgroundScene({asset:{element:{width:'WIDTH',height:'HEIGHT'}}})
-			context = {
-				save: ()=>{},
-				translate: ()=>{},
-				scale: ()=>{},
-				rotate: ()=>{},
-				drawImage: ()=>{},
-				restore: ()=>{},
-			}
-			spyOn(context,'save')
-			spyOn(context,'translate')
-			spyOn(context,'scale')
-			spyOn(context,'rotate')
-			spyOn(context,'drawImage')
-			spyOn(context,'restore')
+			context = new ContextMock2D()
 		})
 
 		it('should return immediately if _doredraw is false', () => {
