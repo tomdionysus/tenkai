@@ -9,11 +9,11 @@ module.exports = {
 	GameEngine: require('./lib/GameEngine'),
 
 	// Mixins
-	HasMobsMixin: require('./lib/HasMobsMixin'),
+	HasEntitiesMixin: require('./lib/HasEntitiesMixin'),
 	HasScenesMixin: require('./lib/HasScenesMixin'),
 	
-	// Mobs
-	Mob: require('./lib/Mob'),
+	// Entities
+	Entity: require('./lib/Entity'),
 
 	// Scenes
 	Scene: require('./lib/Scene'),
