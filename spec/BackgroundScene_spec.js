@@ -1,7 +1,7 @@
 const BackgroundScene = require("../lib/BackgroundScene")
 const ContextMock2D = require("./mocks/ContextMock2D")
 
-describe('Asset', () => {
+describe('BackgroundScene', () => {
 	it('should allow New', () => {
 		var x1 = new BackgroundScene()
 		var x2 = new BackgroundScene()
@@ -72,6 +72,15 @@ describe('Asset', () => {
 			expect(context.rotate).toHaveBeenCalledWith(7)
 			expect(context.drawImage).toHaveBeenCalledWith(x1.asset.element, 0, 0, 'WIDTH', 'HEIGHT', 0, 0, 'WIDTH', 'HEIGHT')
 			expect(context.restore).toHaveBeenCalledWith()
+		})
+
+		it('should reset _doredraw', () => {
+			x1.visible = true
+			x1._doredraw = true
+
+			x1.draw(context)
+			
+			expect(x1._doredraw).toBeFalsy()
 		})
 	})
 })
