@@ -19,3 +19,5 @@ npm test
 ```
 
 ## Documentation
+
+Please see [tomdionysus.github.io/tenkai](https://tomdionysus.github.io/tenkai/) for documentation.
