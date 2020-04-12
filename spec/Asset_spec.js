@@ -10,7 +10,6 @@ describe('Asset', () => {
 
 	describe('load', () => {
 		it('should call createElement', () => {
-
 			var ele = { }
 
 			spyOn(document,'createElement').and.returnValue(ele)
