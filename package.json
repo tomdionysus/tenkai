@@ -8,10 +8,10 @@
 		"gendocs": "node node_modules/jsdoc/jsdoc.js lib README.md -d docs"
 	},
 	"author": "Tom Cully <tomhughcully@gmail.com>",
+	"license": "BSD",
 	"repository": "git@github.com:tomdionysus/tenkai.git",
 	"dependencies": {
 		"async": "^2.6.3",
-		"inchjs": "^0.4.1",
 		"moment": "^2.24.0",
 		"sprintf-js": "^1.1.2",
 		"underscore": "^1.9.2",

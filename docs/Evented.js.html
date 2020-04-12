@@ -42,7 +42,7 @@ class Evented {
 	 * Add the given event.
 	 * @param {String[]} The event name to add
 	 */
-	addEvent(event) {
+	defineEvent(event) {
 		this._events[event] = []
 	}
 
@@ -50,7 +50,7 @@ class Evented {
 	 * Remove the given event.
 	 * @param {String[]} The event name to remove
 	 */
-	removeEvent(event) {
+	undefineEvent(event) {
 		delete this._events[event]
 	}
 
@@ -58,16 +58,16 @@ class Evented {
 	 * Add the given events.
 	 * @param {String[]} The event names to add
 	 */
-	addEvents(events) {
-		for(var i in events) this.addEvent(events[i])
+	defineEvents(events) {
+		for(var i in events) this.defineEvent(events[i])
 	}
 
 	/**
 	 * Remove the given events.
 	 * @param {String[]} The event names to remove
 	 */
-	removeEvents(events) {
-		for(var i in events) this.removeEvent(events[i])
+	undefineEvents(events) {
+		for(var i in events) this.undefineEvent(events[i])
 	}
 
 	/**

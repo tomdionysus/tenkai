@@ -23,7 +23,7 @@ describe('Evented', () => {
 
 		it('should not remove unknown handler', () => {
 			var x1 = new Evented()
-			x1.addEvent('test')
+			x1.defineEvent('test')
 
 			var cb = { callback: ()=>{}, callback2: ()=>{} }
 			spyOn(cb,'callback')
@@ -37,7 +37,7 @@ describe('Evented', () => {
 
 		it('should correctly remove valid event', () => {
 			var x1 = new Evented()
-			x1.addEvent('test')
+			x1.defineEvent('test')
 
 			var cb = { callback: ()=>{} }
 			spyOn(cb,'callback')
@@ -50,20 +50,20 @@ describe('Evented', () => {
 		})
 	})
 
-	describe('addEvents', () => {
+	describe('defineEvents', () => {
 		it('should add events', () => {
 			var x1 = new Evented()
-			x1.addEvents(['test','test2'])
+			x1.defineEvents(['test','test2'])
 			expect(x1._events).toEqual({ test: [], test2: [] })
 		})
 	})
 
-	describe('removeEvents', () => {
+	describe('undefineEvents', () => {
 		it('should remove events', () => {
 			var x1 = new Evented()
-			x1.addEvent('test')
-			x1.addEvent('test2')
-			x1.removeEvents(['test'])
+			x1.defineEvent('test')
+			x1.defineEvent('test2')
+			x1.undefineEvents(['test'])
 			expect(x1._events).toEqual({ test2: [] })
 		})
 	})
@@ -100,7 +100,7 @@ describe('Evented', () => {
 
 		it('should call valid event', () => {
 			var x1 = new Evented()
-			x1.addEvent('test')
+			x1.defineEvent('test')
 
 			var cb = { callback: ()=>{} }
 			spyOn(cb,'callback')
@@ -116,7 +116,7 @@ describe('Evented', () => {
 	describe('trigger', () => {
 		it('should not throw on ok event that is not defined', () => {
 			var x1 = new Evented()
-			x1.addEvent('item')
+			x1.defineEvent('item')
 			expect(function(){x1.trigger('item')}).not.toThrow()
 		})
 	})
@@ -129,7 +129,7 @@ describe('Evented', () => {
 
 		it('should return handlers as an array', () => {
 			var x1 = new Evented()
-			x1.addEvent('test')
+			x1.defineEvent('test')
 			var cb = { 
 				callback1() {},
 				callback2() {},
