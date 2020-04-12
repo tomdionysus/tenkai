@@ -93,12 +93,14 @@ class Logger {
 	 * @returns {Integer} The log level value 0-3, or -1 if not found
 	 */
 	static stringToLogLevel(str) {
-		return {
+		const x = {
 			'debug': Logger.Debug,
 			'info': Logger.Info,
 			'warn': Logger.Warn,
 			'error': Logger.Error
-		}[str.toLowerCase()] || -1
+		}
+		str = str.toLowerCase()
+		return (typeof(x[str])=='undefined') ? -1 : x[str]
 	}
 
 	/**
