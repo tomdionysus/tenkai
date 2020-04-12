@@ -146,7 +146,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="HasEntitiesMixin.js.html">HasEntitiesMixin.js</a>, <a href="HasEntitiesMixin.js.html#line4">line 4</a>
+        <a href="jsdoc_CanvasRenderingContext2D.js.html">jsdoc/CanvasRenderingContext2D.js</a>, <a href="jsdoc_CanvasRenderingContext2D.js.html#line1">line 1</a>
     </li></ul></dd>
     
 
@@ -171,17 +171,171 @@
 
             
                 
-<h4 class="name" id="CanvasRenderingContext2D">CanvasRenderingContext2D</h4>
+<h4 class="name" id="Frame">Frame</h4>
 
 
 
 
 <div class="description">
-    The DOM CanvasRenderingContext2D interface.
+    A Frame is a frame definiton in an animation
 </div>
 
 
 
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array.&lt;Integer></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>0</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Tile x-coordinate in the asset in units of tileWidth</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>1</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Tile y-coordinate in the asset in units of tileHeight</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>2</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Delay after this frame (optional)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>3</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">x Delta at this frame (move x pixels) (optional)</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>4</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">y Delta at this frame (move y pixels) (optional)</td>
+        </tr>
+
+    
+    </tbody>
+</table>
 
 
 
@@ -215,19 +369,177 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="HasScenesMixin.js.html">HasScenesMixin.js</a>, <a href="HasScenesMixin.js.html#line4">line 4</a>
+        <a href="jsdoc_Frame.js.html">jsdoc/Frame.js</a>, <a href="jsdoc_Frame.js.html#line1">line 1</a>
     </li></ul></dd>
     
 
     
 
     
-    <dt class="tag-see">See:</dt>
-    <dd class="tag-see">
-        <ul>
-            <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D">https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D</a></li>
-        </ul>
-    </dd>
+
+    
+</dl>
+
+
+
+
+
+
+            
+                
+<h4 class="name" id="Tile">Tile</h4>
+
+
+
+
+<div class="description">
+    A Tile is a tile definition, containing the x and y coordinates of the tile
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">Array.&lt;Integer></span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+    <h5 class="subsection-title">Properties:</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>0</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The x-coordinate</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>1</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Integer</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The x-coordinate</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="jsdoc_Tile.js.html">jsdoc/Tile.js</a>, <a href="jsdoc_Tile.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
     
 
     

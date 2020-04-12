@@ -91,7 +91,9 @@ class Entity {
 		this.redraw()
 	}
 
-	// Mark the entity to be redrawn
+	/**
+	 * Mark the entity to be redrawn
+	 */
 	redraw() {
 		// Mark us for redraw
 		this._doredraw = true
@@ -100,7 +102,10 @@ class Entity {
 		this.redrawEntities()
 	}
 
-	// Draw the entity into the supplied 2DContext
+	/**
+	* Draw the Entity into the given context.
+	* @param {CanvasRenderingContext2D} context The context in which to draw
+	*/
 	draw(context) {
 		// If we're not marked for a redraw or we're invisible, return
 		if(!this._doredraw || !this.visible) return
@@ -138,31 +143,31 @@ class Entity {
 		this._doredraw = false
 	}
 
-	// Add an animation with the specified name and definition (def)
-	// def is an array of the frame format [ tx, ty, dt, dx, dy ]:
-	// * tx - Tile X Coordinate in the asset in units of tileWidth 
-	// * ty - Tile Y Coordinate in the asset in units of tileHeight
-	// * dt - (optional) Delay after this frame
-	// * dx - (optional) x Delta at this frame (move x pixels) 
-	// * dx - (optional) y Delta at this frame (move y pixels) 
+	/**
+	* Add an animation with the specified name and definition (def)
+	* @param {String} name The name of the animation
+	* @param {Frame[]} def An array of Frames, Frame format is an array: [ tx, ty, dt, dx, dy ]:
+	*/
 	addAnimation(name, def) {
 		this._animations[name] = def
 	}
 
-	// Start an animation
-	// animation is an object with the following properties:
-	// * name     - The name of the animation to start, must have been previously defined by addAnimation
-	// * delay    - Default delay for each frame (unless overridden by the dt in the frame)
-	// * frame    - (optional) The starting frame, defaults to 0
-	// * loop     - (optional) Loop the animation (i) indefinitely if 'true' (ii) this number of times.
-	// * dx       - (optional) x Delta at every frame (move x pixels), unless overridden by the dx in the frame
-	// * dy       - (optional) y Delta at every frame (move y pixels), unless overridden by the dy in the frame
-	// * minX     - (optional) Stop the animation when the x is equal or less than this value
-	// * minY     - (optional) Stop the animation when the y is equal or less than this value
-	// * maxX     - (optional) Stop the animation when the x is equal or greater than this value
-	// * maxY     - (optional) Stop the animation when the y is equal or greater than this value
-	// * stopTile - (optional) Set this tile [x,y] when the animation stops
-	// * onStop   - (optional) A function to call when the animation stops, fn(entity) where entity is this entity.
+	/**
+	 * Start an animation
+	 * @param {Object} animation An animation definition:
+	 * @param {String} animation.name The name of the animation to start, must have been previously defined by addAnimation
+	 * @param {Integer} animation.delay Default delay for each frame (unless overridden by the dt in the frame)
+	 * @param {Integer} animation.frame The index of the starting frame (optional, defaults to 0)
+	 * @param {Boolean} animation.loop Loop the animation (i) indefinitely if 'true' (ii) this number of times. (optional)
+	 * @param {Integer} animation.dx x Delta at every frame (move x pixels), unless overridden by the dx in the frame (optional)
+	 * @param {Integer} animation.dy y Delta at every frame (move y pixels), unless overridden by the dy in the frame (optional)
+	 * @param {Integer} animation.minX Stop the animation when the x is equal or less than this value (optional)
+	 * @param {Integer} animation.minY Stop the animation when the y is equal or less than this value (optional)
+	 * @param {Integer} animation.maxX Stop the animation when the x is equal or greater than this value (optional)
+	 * @param {Integer} animation.maxY Stop the animation when the y is equal or greater than this value (optional)
+	 * @param {Tile} animation.stopTile Set this tile [x,y] when the animation stops (optional)
+	 * @param {Function} animation.onStop A function to call when the animation stops, fn(entity) where entity is this entity (optional)
+	 */
 	animateStart(animation) {
 		if(animation) {
 			if(this._currentanimation) this.animateStop(Entity.STOPSTATUS_REPLACED)

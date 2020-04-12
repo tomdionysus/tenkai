@@ -5,7 +5,7 @@
 	"scripts": {
 		"start": "node index.js",
 		"test": "node node_modules/nyc/bin/nyc.js --reporter=lcov --exclude=spec node_modules/jasmine/bin/jasmine.js && nyc report --reporter=text-lcov | coveralls",
-		"gendocs": "node node_modules/jsdoc/jsdoc.js lib README.md -c .jsdoc.js -d docs"
+		"gendocs": "node node_modules/jsdoc/jsdoc.js lib lib/jsdoc README.md -c .jsdoc.js -d docs"
 	},
 	"author": "Tom Cully <tomhughcully@gmail.com>",
 	"license": "BSD",
