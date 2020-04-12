@@ -21,7 +21,7 @@ describe('Evented', () => {
 			expect(function(){x1.unon('bad',()=>{})}).toThrow('unon: no such event bad')
 		})
 
-		it('should not remove alien handler', () => {
+		it('should not remove unknown handler', () => {
 			var x1 = new Evented()
 			x1.addEvent('test')
 
@@ -29,11 +29,10 @@ describe('Evented', () => {
 			spyOn(cb,'callback')
 			
 			x1.on('test',cb.callback)
-
 			x1.unon('test',cb.callback2)
 
 			x1.trigger('test',{ one:1 },4,3)
-			expect(cb.callback).toHaveBeenCalledWith({ one: 1 },4,3)
+			setImmediate(()=>{ expect(cb.callback).toHaveBeenCalledWith({ one: 1 },4,3) })
 		})
 
 		it('should correctly remove valid event', () => {
@@ -44,11 +43,10 @@ describe('Evented', () => {
 			spyOn(cb,'callback')
 			
 			x1.on('test',cb.callback)
-
 			x1.unon('test',cb.callback)
 
 			x1.trigger('test',{ one:1 })
-			expect(cb.callback).not.toHaveBeenCalled()
+			setImmediate(()=>{ expect(cb.callback).not.toHaveBeenCalled() })
 		})
 	})
 
@@ -110,7 +108,7 @@ describe('Evented', () => {
 			x1.on('test',cb.callback)
 
 			x1.trigger('test',{ one:1 },2)
-			expect(cb.callback).toHaveBeenCalledWith({ one: 1 },2)
+			setImmediate(()=>{ expect(cb.callback).toHaveBeenCalledWith({ one: 1 },2) })
 		})
 	})
 
