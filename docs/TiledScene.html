@@ -309,7 +309,374 @@ var scene = new TiledScene({ asset: mainMapTilesAsset, tileWidth: 16, tileHeight
     
 
     
+        <h3 class="subsection-title">Members</h3>
 
+        
+            
+<h4 class="name" id=".PERSPECTIVE_ANGLE"><span class="type-signature">(static) </span>PERSPECTIVE_ANGLE<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    In PERSPECTIVE_ANGLE mode, a TiledScene will draw all tile levels, subscenes and entities in order from their z and y coordinates modified their hotspot y coordinate.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="TiledScene.js.html">TiledScene.js</a>, <a href="TiledScene.js.html#line125">line 125</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id=".PERSPECTIVE_OVERHEAD"><span class="type-signature">(static) </span>PERSPECTIVE_OVERHEAD<span class="type-signature"></span></h4>
+
+
+
+
+<div class="description">
+    In PERSPECTIVE_OVERHEAD mode, a TiledScene will simply draw all tile levels, subscenes and entities in order from their z-coordinate.
+</div>
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="TiledScene.js.html">TiledScene.js</a>, <a href="TiledScene.js.html#line121">line 121</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="draw"><span class="type-signature"></span>draw<span class="signature">(context)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Draw the TiledScene into the given context.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>context</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type"><a href="global.html#CanvasRenderingContext2D">CanvasRenderingContext2D</a></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The context in which to draw</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="Scene.html#draw">Scene#draw</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="TiledScene.js.html">TiledScene.js</a>, <a href="TiledScene.js.html#line37">line 37</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="redraw"><span class="type-signature"></span>redraw<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Mark this scene to be redran.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="Scene.html#redraw">Scene#redraw</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Scene.js.html">Scene.js</a>, <a href="Scene.js.html#line60">line 60</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
     
 
     
@@ -325,13 +692,13 @@ var scene = new TiledScene({ asset: mainMapTilesAsset, tileWidth: 16, tileHeight
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasEventsMixin.html">HasEventsMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasEventsMixin.html">HasEventsMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Logger.html">Logger</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sun Apr 12 2020 14:15:56 GMT+1200 (New Zealand Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sun Apr 12 2020 15:04:30 GMT+1200 (New Zealand Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
