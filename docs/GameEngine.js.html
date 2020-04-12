@@ -29,6 +29,7 @@
             <pre class="prettyprint source linenums"><code>const async = require('async')
 const _ = require('underscore')
 
+const Evented = require('./Evented')
 const Asset = require('./Asset')
 const Audio = require('./Audio')
 const Entity = require('./Entity')
@@ -37,30 +38,32 @@ const HasEntitiesMixin = require('./HasEntitiesMixin')
 const HasScenesMixin = require('./HasScenesMixin')
 
 /**
- *  GameEngine is the base class for the top level container, mapping the game into a browser.
- *  You should extend GameEngine to implement your own game.
+ * GameEngine is the base class for the top level container, mapping the game into a browser.
+ * You should extend GameEngine to implement your own game.
+ * @extends Evented
+ * @mixes HasScenesMixin
+ * @mixes HasEntitiesMixin
+ * @property {!string} targetId The DOM id of the element to target. This element will be replaced with a HTML5 'canvas' element.
+ * @property {boolean} fullscreen Allow the canvas element to occupy the maximum possible space (optional, default false)
+ * @property {boolean} showHUD Show the debug Heads Up Display (HUD)  (optional, default false)
+ * @property {integer} x The viewport x-coordinate in pixels (optional, default 0)
+ * @property {integer} y The viewport y-coordinate in pixels (optional, default 0)
+ * @property {float} scale The current scale (zoom) where 1 = 100% (optional, default 1)
+ * @property {integer} minX The minimum viewport x-coordinate in pixels (optional)
+ * @property {integer} minY The minimum viewport y-coordinate in pixels (optional)
+ * @property {integer} maxX The maximum viewport x-coordinate in pixels (optional)
+ * @property {integer} maxY The maximum viewport y-coordinate in pixels (optional)
+ * @property {float} globalAlpha The global alpha value (0 to 1) for drawing scenes (optional, default 1)
+ * @property {boolean} enableScroll Enable mouse scrolling (optional, default true)
+ * @property {boolean} enableZoom Enable mouse zooming (optional, default true)
+ * @property {integer} width The width of the viewport in pixels (readonly)
+ * @property {integer} height The height of the viewport in pixels (readonly)
  */
-class GameEngine {
+class GameEngine extends Evented {
 	/**
 	* Create a new GameEngine with the specified options.
 	* @param {object} options The options for the GameEngine, composed of the properties.
-	* @property {!string} targetId The DOM id of the element to target. This element will be replaced with a HTML5 'canvas' element.
-	* @property {boolean} fullscreen Allow the canvas element to occupy the maximum possible space (optional, default false)
-	* @property {boolean} showHUD Show the debug Heads Up Display (HUD)  (optional, default false)
-	* @property {integer} x The viewport x-coordinate in pixels (optional, default 0)
-	* @property {integer} y The viewport y-coordinate in pixels (optional, default 0)
-	* @property {float} scale The current scale (zoom) where 1 = 100% (optional, default 1)
-	* @property {integer} minX The minimum viewport x-coordinate in pixels (optional)
-	* @property {integer} minY The minimum viewport y-coordinate in pixels (optional)
-	* @property {integer} maxX The maximum viewport x-coordinate in pixels (optional)
-	* @property {integer} maxY The maximum viewport y-coordinate in pixels (optional)
-	* @property {float} globalAlpha The global alpha value (0 to 1) for drawing scenes (optional, default 1)
-	* @property {boolean} enableScroll Enable mouse scrolling (optional, default true)
-	* @property {boolean} enableZoom Enable mouse zooming (optional, default true)
-	* @property {integer} width The width of the viewport in pixels (readonly)
-	* @property {integer} height The height of the viewport in pixels (readonly)
-	* @mixes HasScenesMixin
-	* @mixes HasEntitiesMixin
+
 	* @example &lt;caption>To create a GameEngine attached to a specified element in HTML5&lt;/caption>
 &lt;div id='game' width="1200" height="960">&lt;/div>
 &lt;script type="text/javascript">
@@ -70,6 +73,8 @@ class GameEngine {
 &lt;/script>
 	*/
 	constructor(options = {}) {
+		super(options)
+		
 		// A GameEngine has a collection of Scenes
 		HasScenesMixin(this, options)
 
@@ -167,8 +172,8 @@ class GameEngine {
 		}
 
 		ael('mousemove', (e) => this._move(e), false)
-		ael('mousedown', (e) => this.mousedown(e), false)
-		ael('mouseup', (e) => this.mouseup(e), false)
+		if(this.onMouseDown) ael('mousedown', (e) => this.onMouseDown(e), false)
+		if(this.onMouseUp) ael('mouseup', (e) => this.onMouseUp(e), false)
 	}
 
 	/**
@@ -261,7 +266,7 @@ class GameEngine {
 		if(!this._sceneOrderMap) this.sortScenesZ()
 
 		// Ensure entity sort order
-		if(!this._mobOrderMap) this.sortEntitiesZ()
+		if(!this._entityOrderMap) this.sortEntitiesZ()
 
 		// Draw all the scenes in z-order
 		this.drawScenes(context)
@@ -272,7 +277,7 @@ class GameEngine {
 		context.restore()
 
 		// HUD
-		if(this.showHUD &amp;&amp; this.clear) { this.drawHUD(context) }
+		if(this.showHUD &amp;&amp; this.clear) { this._draWHUD(context) }
 		
 		this.clear = false
 
@@ -348,36 +353,6 @@ class GameEngine {
 		this.redraw()
 	}
 
-	fadeIn(duration) {
-		if(this.globalAlpha == 1) return
-		this.redraw()
-		var i = 1/(duration/100)
-		this._fadeInterval = setInterval(()=>{
-			this.globalAlpha += i
-			if(this.globalAlpha>1) { 
-				this.globalAlpha = 1
-				clearInterval(this._fadeInterval)
-				this._fadeInterval = null
-			}
-			this.redraw()
-		},100)
-	}
-
-	fadeOut(duration) {
-		if(this.globalAlpha == 0) return
-		this.redraw()
-		var i = 1/(duration/100)
-		this._fadeInterval = setInterval(()=>{
-			this.globalAlpha -= i
-			if(this.globalAlpha&lt;0) { 
-				this.globalAlpha = 0
-				clearInterval(this._fadeInterval)
-				this._fadeInterval = null
-			}
-			this.redraw()
-		},100)
-	}
-
 	// Event Handlers
 	_panZoom(e) {
 		if(e.shiftKey &amp;&amp; this.enableZoom) {
@@ -402,19 +377,24 @@ class GameEngine {
 		}
 
 		// Limits? 
-		if(this.minX) this.x = Math.max(this.minX*this.scale, this.x)
-		if(this.minY) this.y = Math.max(this.minY*this.scale, this.y)
-		if(this.maxX) this.x = Math.min(this.maxX/this.scale, this.x)
-		if(this.maxY) this.y = Math.min(this.maxY/this.scale, this.y)
+		this._enforceScrollLimits()
 
 		// Correct Mouse Coords
 		this._setMouseCoords(e)
 
+		// Redraw Everything
 		this.redraw()
 
 		// Prevent DOM Stuff
 		e.preventDefault()
 		e.stopPropagation()
+	}
+
+	_enforceScrollLimits() {
+		if(this.minX) this.x = Math.max(this.minX*this.scale, this.x)
+		if(this.minY) this.y = Math.max(this.minY*this.scale, this.y)
+		if(this.maxX) this.x = Math.min(this.maxX/this.scale, this.x)
+		if(this.maxY) this.y = Math.min(this.maxY/this.scale, this.y)
 	}
 
 	_move(e) {
@@ -432,7 +412,8 @@ class GameEngine {
 		this.mouseY = (e.y/this.scale)-this.y
 	}
 
-	drawHUD(context) {
+
+	_draWHUD(context) {
 		context.save()
 		context.font='14px Arial'
 		context.fillStyle = 'white'
@@ -449,8 +430,8 @@ class GameEngine {
 		context.restore()
 	}
 
-	mousedown() {}
-	mouseup() {}
+	onMouseDown() {}
+	onMouseUp() {}
 }
 
 module.exports = GameEngine</code></pre>
@@ -463,13 +444,13 @@ module.exports = GameEngine</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="Evented.html">Evented</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sat Apr 11 2020 22:02:12 GMT+1200 (New Zealand Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sun Apr 12 2020 13:32:54 GMT+1200 (New Zealand Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>
