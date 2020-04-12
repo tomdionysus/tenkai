@@ -1,6 +1,6 @@
 {
 	"name": "tenkai",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"main": "index.js",
 	"scripts": {
 		"start": "node index.js",
@@ -22,7 +22,6 @@
 		"eslint": "^5.16.0",
 		"jasmine": "2.8.0",
 		"jsdoc": "^3.6.4",
-		"jsdom": "^16.2.2",
 		"nyc": "^15.0.1"
 	}
 }
