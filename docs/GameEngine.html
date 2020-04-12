@@ -583,7 +583,7 @@ You should extend GameEngine to implement your own game.</div>
 
 
     <ul>
-        <li><a href="Evented.html">Evented</a></li>
+        <li><a href="HasEventsMixin.html">HasEventsMixin</a></li>
     </ul>
 
 
@@ -734,7 +734,7 @@ You should extend GameEngine to implement your own game.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line171">line 171</a>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line176">line 176</a>
     </li></ul></dd>
     
 
@@ -917,149 +917,7 @@ You should extend GameEngine to implement your own game.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line192">line 192</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="defineEvent"><span class="type-signature"></span>defineEvent<span class="signature">(The)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Add the given event.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>The</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;String></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">event name to add</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-overrides">Overrides:</dt>
-    <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Evented.html#defineEvent">Evented#defineEvent</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line17">line 17</a>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line197">line 197</a>
     </li></ul></dd>
     
 
@@ -1103,7 +961,7 @@ You should extend GameEngine to implement your own game.</div>
 
 
 <div class="description">
-    Add the given handler to the event.
+    addEventListener is an alias of <a href="HasEventsMixin.html#on">HasEventsMixin#on</a>
 </div>
 
 
@@ -1201,7 +1059,7 @@ You should extend GameEngine to implement your own game.</div>
     
     <dt class="tag-overrides">Overrides:</dt>
     <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Evented.html#addEventListener">Evented#addEventListener</a>
+        <a href="HasEventsMixin.html#addEventListener">HasEventsMixin#addEventListener</a>
     </li></ul></dd>
     
 
@@ -1224,7 +1082,7 @@ You should extend GameEngine to implement your own game.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line52">line 52</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line104">line 104</a>
     </li></ul></dd>
     
 
@@ -1276,148 +1134,6 @@ You should extend GameEngine to implement your own game.</div>
 
 
     
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="defineEvents"><span class="type-signature"></span>defineEvents<span class="signature">(The)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Add the given events.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>The</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;String></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">event names to add</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-overrides">Overrides:</dt>
-    <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Evented.html#defineEvents">Evented#defineEvents</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line33">line 33</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1532,7 +1248,291 @@ You should extend GameEngine to implement your own game.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line291">line 291</a>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line296">line 296</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="defineEvent"><span class="type-signature"></span>defineEvent<span class="signature">(event)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Add the given event.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;String></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The event name to add</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="HasEventsMixin.html#defineEvent">HasEventsMixin#defineEvent</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line43">line 43</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="defineEvents"><span class="type-signature"></span>defineEvents<span class="signature">(events)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Add the given events.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>events</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;String></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The event names to add</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="HasEventsMixin.html#defineEvents">HasEventsMixin#defineEvents</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line59">line 59</a>
     </li></ul></dd>
     
 
@@ -1669,7 +1669,7 @@ You should extend GameEngine to implement your own game.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line181">line 181</a>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line186">line 186</a>
     </li></ul></dd>
     
 
@@ -1857,7 +1857,7 @@ You should extend GameEngine to implement your own game.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line202">line 202</a>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line207">line 207</a>
     </li></ul></dd>
     
 
@@ -1978,7 +1978,7 @@ You should extend GameEngine to implement your own game.</div>
     
     <dt class="tag-overrides">Overrides:</dt>
     <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Evented.html#getEventListeners">Evented#getEventListeners</a>
+        <a href="HasEventsMixin.html#getEventListeners">HasEventsMixin#getEventListeners</a>
     </li></ul></dd>
     
 
@@ -2001,7 +2001,7 @@ You should extend GameEngine to implement your own game.</div>
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line102">line 102</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line132">line 132</a>
     </li></ul></dd>
     
 
@@ -2191,7 +2191,7 @@ Note: If you override init, you *must* call the callback when done.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line157">line 157</a>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line162">line 162</a>
     </li></ul></dd>
     
 
@@ -2328,7 +2328,7 @@ Note: If you override init, you *must* call the callback when done.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line263">line 263</a>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line268">line 268</a>
     </li></ul></dd>
     
 
@@ -2465,7 +2465,7 @@ Note: If you override init, you *must* call the callback when done.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line277">line 277</a>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line282">line 282</a>
     </li></ul></dd>
     
 
@@ -2501,7 +2501,7 @@ Note: If you override init, you *must* call the callback when done.
     
 
     
-    <h4 class="name" id="recomputeFullScreen"><span class="type-signature"></span>recomputeFullScreen<span class="signature">()</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="on"><span class="type-signature"></span>on<span class="signature">(event, fn)</span><span class="type-signature"></span></h4>
     
 
     
@@ -2509,325 +2509,7 @@ Note: If you override init, you *must* call the callback when done.
 
 
 <div class="description">
-    Recompute the width and height from the 'canvas' element dimensions and call <a href="GameEngine.html#redraw">redraw()</a>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line319">line 319</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="redraw"><span class="type-signature"></span>redraw<span class="signature">()</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Mark the whole GameEngine to be redrawn.
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line210">line 210</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="undefineEvent"><span class="type-signature"></span>undefineEvent<span class="signature">(The)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Remove the given event.
-</div>
-
-
-
-
-
-
-
-
-
-    <h5>Parameters:</h5>
-    
-
-<table class="params">
-    <thead>
-    <tr>
-        
-        <th>Name</th>
-        
-
-        <th>Type</th>
-
-        
-
-        
-
-        <th class="last">Description</th>
-    </tr>
-    </thead>
-
-    <tbody>
-    
-
-        <tr>
-            
-                <td class="name"><code>The</code></td>
-            
-
-            <td class="type">
-            
-                
-<span class="param-type">Array.&lt;String></span>
-
-
-            
-            </td>
-
-            
-
-            
-
-            <td class="description last">event name to remove</td>
-        </tr>
-
-    
-    </tbody>
-</table>
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-overrides">Overrides:</dt>
-    <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Evented.html#undefineEvent">Evented#undefineEvent</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line25">line 25</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="removeEventListener"><span class="type-signature"></span>removeEventListener<span class="signature">(event, fn)</span><span class="type-signature"></span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Remove the given handler from the event.
+    Add the given handler to the event.
 </div>
 
 
@@ -2925,7 +2607,7 @@ Note: If you override init, you *must* call the callback when done.
     
     <dt class="tag-overrides">Overrides:</dt>
     <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Evented.html#removeEventListener">Evented#removeEventListener</a>
+        <a href="HasEventsMixin.html#on">HasEventsMixin#on</a>
     </li></ul></dd>
     
 
@@ -2948,7 +2630,7 @@ Note: If you override init, you *must* call the callback when done.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line65">line 65</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line77">line 77</a>
     </li></ul></dd>
     
 
@@ -3013,7 +2695,7 @@ Note: If you override init, you *must* call the callback when done.
     
 
     
-    <h4 class="name" id="undefineEvents"><span class="type-signature"></span>undefineEvents<span class="signature">(The)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="recomputeFullScreen"><span class="type-signature"></span>recomputeFullScreen<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -3021,7 +2703,183 @@ Note: If you override init, you *must* call the callback when done.
 
 
 <div class="description">
-    Remove the given events.
+    Recompute the width and height from the 'canvas' element dimensions and call <a href="GameEngine.html#redraw">redraw()</a>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line324">line 324</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="redraw"><span class="type-signature"></span>redraw<span class="signature">()</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Mark the whole GameEngine to be redrawn.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line215">line 215</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="removeEventListener"><span class="type-signature"></span>removeEventListener<span class="signature">(event, fn)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    removeEventListener is an alias of <a href="HasEventsMixin.html#on">HasEventsMixin#on</a>
 </div>
 
 
@@ -3057,13 +2915,13 @@ Note: If you override init, you *must* call the callback when done.
 
         <tr>
             
-                <td class="name"><code>The</code></td>
+                <td class="name"><code>event</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type">Array.&lt;String></span>
+<span class="param-type">String</span>
 
 
             
@@ -3073,7 +2931,30 @@ Note: If you override init, you *must* call the callback when done.
 
             
 
-            <td class="description last">event names to remove</td>
+            <td class="description last">The name of the event</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The event handler</td>
         </tr>
 
     
@@ -3096,7 +2977,7 @@ Note: If you override init, you *must* call the callback when done.
     
     <dt class="tag-overrides">Overrides:</dt>
     <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Evented.html#undefineEvents">Evented#undefineEvents</a>
+        <a href="HasEventsMixin.html#removeEventListener">HasEventsMixin#removeEventListener</a>
     </li></ul></dd>
     
 
@@ -3119,7 +3000,7 @@ Note: If you override init, you *must* call the callback when done.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line41">line 41</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line111">line 111</a>
     </li></ul></dd>
     
 
@@ -3142,6 +3023,35 @@ Note: If you override init, you *must* call the callback when done.
 
 
 
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        'unon: no such event <eventname>' if event not defined
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Exception</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
 
 
 
@@ -3256,7 +3166,7 @@ Note: If you override init, you *must* call the callback when done.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line98">line 98</a>
+        <a href="GameEngine.js.html">GameEngine.js</a>, <a href="GameEngine.js.html#line102">line 102</a>
     </li></ul></dd>
     
 
@@ -3300,7 +3210,7 @@ Note: If you override init, you *must* call the callback when done.
 
 
 <div class="description">
-    Trigger the given event with the specified arguments.
+    Trigger the given event with the specified arguments. Handlers are queued for execution using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout">setTimeout()</a>.
 </div>
 
 
@@ -3375,7 +3285,7 @@ Note: If you override init, you *must* call the callback when done.
             <td class="type">
             
                 
-<span class="param-type">array</span>
+<span class="param-type">*</span>
 
 
             
@@ -3418,7 +3328,7 @@ Note: If you override init, you *must* call the callback when done.
     
     <dt class="tag-overrides">Overrides:</dt>
     <dd class="tag-overrides"><ul class="dummy"><li>
-        <a href="Evented.html#trigger">Evented#trigger</a>
+        <a href="HasEventsMixin.html#trigger">HasEventsMixin#trigger</a>
     </li></ul></dd>
     
 
@@ -3441,7 +3351,7 @@ Note: If you override init, you *must* call the callback when done.
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line89">line 89</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line119">line 119</a>
     </li></ul></dd>
     
 
@@ -3501,6 +3411,484 @@ Note: If you override init, you *must* call the callback when done.
 
 
         
+            
+
+    
+
+    
+    <h4 class="name" id="undefineEvent"><span class="type-signature"></span>undefineEvent<span class="signature">(event)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Remove the given event.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;String></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The event name to remove</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="HasEventsMixin.html#undefineEvent">HasEventsMixin#undefineEvent</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line51">line 51</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="undefineEvents"><span class="type-signature"></span>undefineEvents<span class="signature">(events)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Remove the given events.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>events</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;String></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The event names to remove</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="HasEventsMixin.html#undefineEvents">HasEventsMixin#undefineEvents</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line67">line 67</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id="unon"><span class="type-signature"></span>unon<span class="signature">(event, fn)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Remove the given handler from the event.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>event</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The name of the event</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The event handler</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-overrides">Overrides:</dt>
+    <dd class="tag-overrides"><ul class="dummy"><li>
+        <a href="HasEventsMixin.html#unon">HasEventsMixin#unon</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line89">line 89</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Throws:</h5>
+
+        
+
+<dl>
+    <dt>
+        <div class="param-desc">
+        'unon: no such event <eventname>' if event not defined
+        </div>
+    </dt>
+    <dd></dd>
+    <dt>
+        <dl>
+            <dt>
+                Type
+            </dt>
+            <dd>
+                
+<span class="param-type">Exception</span>
+
+
+            </dd>
+        </dl>
+    </dt>
+    <dd></dd>
+</dl>
+
+
+    
+
+
+
+
+
+
+
+        
     
 
     
@@ -3516,13 +3904,13 @@ Note: If you override init, you *must* call the callback when done.
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="Evented.html">Evented</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasEventsMixin.html">HasEventsMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sun Apr 12 2020 13:32:54 GMT+1200 (New Zealand Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sun Apr 12 2020 14:15:55 GMT+1200 (New Zealand Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

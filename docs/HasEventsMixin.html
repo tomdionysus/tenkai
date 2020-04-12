@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: Evented</title>
+    <title>JSDoc: Class: HasEventsMixin</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: Evented</h1>
+    <h1 class="page-title">Class: HasEventsMixin</h1>
 
     
 
@@ -28,9 +28,9 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature">(abstract) </span></span>Evented<span class="signature">()</span><span class="type-signature"></span></h2>
+        <h2><span class="attribs"><span class="type-signature">(abstract) </span></span>HasEventsMixin</h2>
         
-            <div class="class-description">Evented provides DOM-like asynchronous event processing for classes.</div>
+            <div class="class-description">HasEventsMixin provides DOM-like asynchronous event processing for classes.</div>
         
     
 </header>
@@ -40,12 +40,135 @@
     
         
 
-    
-    <h2>Constructor</h2>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
     
 
     
-    <h4 class="name" id="Evented"><span class="type-signature">(abstract) </span>new Evented<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line31">line 31</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Examples</h5>
+    
+        <p class="code-caption">Define Events on your class</p>
+    
+    <pre class="prettyprint"><code>class GameEngine {
+	constructor() {
+		// Has Events
+		HasEventsMixin(this, options)
+		
+		...
+
+		// Events
+		this.defineEvents(['running','mouseup','mousedown','mousemove','resize'])
+	}
+}</code></pre>
+
+        <p class="code-caption">Bind to events</p>
+    
+    <pre class="prettyprint"><code>var x1 = new GameEngine()
+
+x1.on('running',(ge, isRunning) => {
+	console.log("GameEngine >", ge, isRunning ? 'running' : 'stopped')
+})</code></pre>
+
+        <p class="code-caption">Trigger Events</p>
+    
+    <pre class="prettyprint"><code>this.trigger('running', this, true)</code></pre>
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".init"><span class="type-signature">(static) </span>init<span class="signature">()</span><span class="type-signature"></span></h4>
     
 
     
@@ -97,7 +220,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line9">line 9</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line35">line 35</a>
     </li></ul></dd>
     
 
@@ -127,26 +250,6 @@
 
 
 
-    
-    </div>
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-        <h3 class="subsection-title">Methods</h3>
-
         
             
 
@@ -161,7 +264,7 @@
 
 
 <div class="description">
-    addEventListener is an alias of <a href="Evented.html#on">Evented#on</a>
+    addEventListener is an alias of <a href="HasEventsMixin.html#on">HasEventsMixin#on</a>
 </div>
 
 
@@ -277,7 +380,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line78">line 78</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line104">line 104</a>
     </li></ul></dd>
     
 
@@ -443,7 +546,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line17">line 17</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line43">line 43</a>
     </li></ul></dd>
     
 
@@ -580,7 +683,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line33">line 33</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line59">line 59</a>
     </li></ul></dd>
     
 
@@ -668,7 +771,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line106">line 106</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line132">line 132</a>
     </li></ul></dd>
     
 
@@ -879,7 +982,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line51">line 51</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line77">line 77</a>
     </li></ul></dd>
     
 
@@ -952,7 +1055,7 @@
 
 
 <div class="description">
-    removeEventListener is an alias of <a href="Evented.html#on">Evented#on</a>
+    removeEventListener is an alias of <a href="HasEventsMixin.html#on">HasEventsMixin#on</a>
 </div>
 
 
@@ -1068,7 +1171,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line85">line 85</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line111">line 111</a>
     </li></ul></dd>
     
 
@@ -1141,7 +1244,7 @@
 
 
 <div class="description">
-    Trigger the given event with the specified arguments.
+    Trigger the given event with the specified arguments. Handlers are queued for execution using <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout">setTimeout()</a>.
 </div>
 
 
@@ -1277,7 +1380,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line93">line 93</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line119">line 119</a>
     </li></ul></dd>
     
 
@@ -1443,7 +1546,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line25">line 25</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line51">line 51</a>
     </li></ul></dd>
     
 
@@ -1580,7 +1683,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line41">line 41</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line67">line 67</a>
     </li></ul></dd>
     
 
@@ -1740,7 +1843,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Evented.js.html">Evented.js</a>, <a href="Evented.js.html#line63">line 63</a>
+        <a href="HasEventsMixin.js.html">HasEventsMixin.js</a>, <a href="HasEventsMixin.js.html#line89">line 89</a>
     </li></ul></dd>
     
 
@@ -1815,13 +1918,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="Evented.html">Evented</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasEventsMixin.html">HasEventsMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sun Apr 12 2020 13:58:20 GMT+1200 (New Zealand Standard Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a> on Sun Apr 12 2020 14:15:55 GMT+1200 (New Zealand Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

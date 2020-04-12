@@ -1,28 +1,24 @@
-const Evented = require('../lib/Evented')
+const HasEventsMixin = require('../lib/HasEventsMixin')
 
-describe('Evented', () => {
-	it('should allow New', () => {
-		var x1 = new Evented({})
-		var x2 = new Evented({})
-
-		expect(x1).not.toBe(x2)
+describe('HasEventsMixin', () => {
+	var x1
+	beforeEach(()=>{
+		x1 = {} 
+		HasEventsMixin(x1)
 	})
 
-	describe('on', () => {
-		it('should throw on bad event', () => {
-			var x1 = new Evented()
-			expect(function(){x1.on('bad')}).toThrow('on: no such event bad')
+	describe('init', () => {
+		it('should set properties on object', ()=>{
+			expect(x1._events).toEqual({})
 		})
 	})
 
 	describe('unon', () => {
 		it('should throw on bad event', () => {
-			var x1 = new Evented()
 			expect(function(){x1.unon('bad',()=>{})}).toThrow('unon: no such event bad')
 		})
 
 		it('should not remove unknown handler', () => {
-			var x1 = new Evented()
 			x1.defineEvent('test')
 
 			var cb = { callback: ()=>{}, callback2: ()=>{} }
@@ -36,7 +32,6 @@ describe('Evented', () => {
 		})
 
 		it('should correctly remove valid event', () => {
-			var x1 = new Evented()
 			x1.defineEvent('test')
 
 			var cb = { callback: ()=>{} }
@@ -52,7 +47,6 @@ describe('Evented', () => {
 
 	describe('defineEvents', () => {
 		it('should add events', () => {
-			var x1 = new Evented()
 			x1.defineEvents(['test','test2'])
 			expect(x1._events).toEqual({ test: [], test2: [] })
 		})
@@ -60,7 +54,6 @@ describe('Evented', () => {
 
 	describe('undefineEvents', () => {
 		it('should remove events', () => {
-			var x1 = new Evented()
 			x1.defineEvent('test')
 			x1.defineEvent('test2')
 			x1.undefineEvents(['test'])
@@ -70,7 +63,6 @@ describe('Evented', () => {
 
 	describe('addEventListener', () => {
 		it('should call on', () => {
-			var x1 = new Evented()
 			spyOn(x1,'on')
 
 			var cb = { callback: ()=>{} }
@@ -82,7 +74,6 @@ describe('Evented', () => {
 
 	describe('removeEventListener', () => {
 		it('should call on', () => {
-			var x1 = new Evented()
 			spyOn(x1,'unon')
 
 			var cb = { callback: ()=>{} }
@@ -94,12 +85,10 @@ describe('Evented', () => {
 
 	describe('trigger', () => {
 		it('should throw on bad event', () => {
-			var x1 = new Evented()
 			expect(function(){x1.trigger('bad')}).toThrow('trigger: no such event bad')
 		})
 
 		it('should call valid event', () => {
-			var x1 = new Evented()
 			x1.defineEvent('test')
 
 			var cb = { callback: ()=>{} }
@@ -115,7 +104,6 @@ describe('Evented', () => {
 
 	describe('trigger', () => {
 		it('should not throw on ok event that is not defined', () => {
-			var x1 = new Evented()
 			x1.defineEvent('item')
 			expect(function(){x1.trigger('item')}).not.toThrow()
 		})
@@ -123,12 +111,10 @@ describe('Evented', () => {
 
 	describe('getEventListeners', () => {
 		it('should throw on bad event', () => {
-			var x1 = new Evented()
 			expect(function(){x1.getEventListeners('bad')}).toThrow('getEventListeners: no such event bad')
 		})
 
 		it('should return handlers as an array', () => {
-			var x1 = new Evented()
 			x1.defineEvent('test')
 			var cb = { 
 				callback1() {},
