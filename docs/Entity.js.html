@@ -234,7 +234,10 @@ class Entity {
 		nextFrame()
 	}
 
-	// Stop with an optional Stop Status
+	/** 
+	 * Stop the current animation with an optional Stop Status
+	 * @param {Integer} stopStatus The stop status
+	*/
 	animateStop(stopStatus = Entity.STOPSTATUS_STOPPED) {
 		if(!this._currentanimation) return
 		if (this._currentanimation._timeout) clearTimeout(this._currentanimation._timeout)
