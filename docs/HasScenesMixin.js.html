@@ -26,7 +26,7 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>const _ = require('underscore')
+            <pre class="prettyprint source linenums"><code>const Util = require('./Util')
 const Mixin = require('./Mixin')
 
 /**
@@ -100,7 +100,7 @@ class HasScenesMixin extends Mixin {
 	* Recalculate the draw order of all scenes based on their Z coordinate and store internally, for use by [drawScenes()]{@link HasScenes#drawScenes}) and [getScenesAtLayer()]{@link HasScenes#getScenesAtLayer})
 	*/
 	sortScenesZ() {
-		this._sceneOrder = _.sortBy(Object.values(this._scenes), 'z')
+		this._sceneOrder = Util.sortBy(Object.values(this._scenes), 'z')
 		var last = 0
 		this._sceneOrderMap = {}
 		for(var i in this._sceneOrder) {
