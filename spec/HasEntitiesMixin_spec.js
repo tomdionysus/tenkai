@@ -190,9 +190,9 @@ describe('HasEntitiesMixin', () => {
 
 			x1.sortEntitiesZ()
 
-			expect(x1._entityOrder).toEqual([ent2,ent4,ent5,ent3,ent1])
+			expect(x1._entityOrder).toEqual([ent2,ent5,ent4,ent3,ent1])
 			expect(x1._entityOrderMap).toEqual({
-				2: [ ent4, ent5 ],
+				2: [ ent5, ent4 ],
 				22: [ ent1 ],
 				0: [ ent2 ],
 				4: [ ent3 ],
