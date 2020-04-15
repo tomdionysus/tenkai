@@ -20,28 +20,28 @@ describe('HasEventsMixin', () => {
 
 		it('should not remove unknown handler', () => {
 			x1.defineEvent('test')
+			x1.defineEvent('test2')
 
 			var cb = { callback: ()=>{}, callback2: ()=>{} }
-			spyOn(cb,'callback')
 			
 			x1.on('test',cb.callback)
+			x1.on('test2',cb.callback2)
 			x1.unon('test',cb.callback2)
 
-			x1.trigger('test',{ one:1 },4,3)
-			setImmediate(()=>{ expect(cb.callback).toHaveBeenCalledWith({ one: 1 },4,3) })
+			expect(x1._events['test2']).toEqual([ cb.callback2 ])
 		})
 
 		it('should correctly remove valid event', () => {
 			x1.defineEvent('test')
+			x1.defineEvent('test2')
 
-			var cb = { callback: ()=>{} }
-			spyOn(cb,'callback')
+			var cb = { callback: ()=>{}, callback2: ()=>{} }
 			
-			x1.on('test',cb.callback)
-			x1.unon('test',cb.callback)
+			x1.on('test', cb.callback)
+			x1.on('test2', cb.callback2)
+			x1.unon('test', cb.callback)
 
-			x1.trigger('test',{ one:1 })
-			setImmediate(()=>{ expect(cb.callback).not.toHaveBeenCalled() })
+			expect(x1._events['test']).toEqual([])
 		})
 	})
 
@@ -95,9 +95,11 @@ describe('HasEventsMixin', () => {
 			spyOn(cb,'callback')
 			
 			x1.on('test',cb.callback)
-
 			x1.trigger('test',{ one:1 },2)
-			setImmediate(()=>{ expect(cb.callback).toHaveBeenCalledWith({ one: 1 },2) })
+
+			setTimeout(()=>{
+				expect(cb.callback).toHaveBeenCalledWith({ one: 1 },2)
+			}, 0)
 		})
 	})
 

@@ -26,7 +26,10 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>class Util {
+            <pre class="prettyprint source linenums"><code>/**
+ * Util contains static utility functions for CompGeo and functional calls
+ */
+class Util {
 	/**
 	 * Return true if two rectangles intersect
 	 * @param {Rectangle} r1 Rectangle 1
@@ -52,8 +55,19 @@
 		]
 	}
 
-	static sortBy(arr, property) {
-		return arr.sort(function(a, b) { return (a[property] > b[property]) ? 1 : -1 })
+	/**
+	* Sort an array of objects in order by a property
+	* @param {Object[]} arr The array of objects
+	* @param {String} p The property name
+	*/
+	static sortBy(arr, p) {
+		return arr.sort(function(a, b) { return (a[p] > b[p]) ? 1 : -1 })
+	}
+
+	static delay(func, wait, ...args) {
+		return setTimeout(function() {
+			return func.apply(null, args)
+		}, wait)
 	}
 
 	static debounce(func, wait, immediate) {
@@ -71,7 +85,7 @@
 				timeout = setTimeout(later, wait)
 				if (callNow) result = func.apply(this, args)
 			} else {
-				timeout = delay(later, wait, this, args)
+				timeout = Util.delay(later, wait, this, args)
 			}
 
 			return result
@@ -96,7 +110,7 @@ module.exports = Util</code></pre>
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasEventsMixin.html">HasEventsMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Logger.html">Logger</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li></ul><h3><a href="global.html">Global</a></h3>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasEventsMixin.html">HasEventsMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Logger.html">Logger</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li><li><a href="Util.html">Util</a></li></ul><h3><a href="global.html">Global</a></h3>
 </nav>
 
 <br class="clear">
