@@ -13,6 +13,33 @@ describe('HasEventsMixin', () => {
 		})
 	})
 
+	describe('on', () => {
+		it('should throw on bad event', () => {
+			expect(function(){x1.on('bad',()=>{})}).toThrow('on: no such event bad')
+		})
+
+		it('should add function to callback list', () => {
+			x1.defineEvent('test')
+
+			var cb = { callback: ()=>{} }
+			
+			x1.on('test',cb.callback)
+
+			expect(x1._events['test']).toEqual([ cb.callback ])
+		})
+
+		it('should not add existing callback twice', () => {
+			x1.defineEvent('test')
+
+			var cb = { callback: ()=>{} }
+			
+			x1.on('test',cb.callback)
+			x1.on('test',cb.callback)
+
+			expect(x1._events['test']).toEqual([ cb.callback ])
+		})
+	})
+
 	describe('unon', () => {
 		it('should throw on bad event', () => {
 			expect(function(){x1.unon('bad',()=>{})}).toThrow('unon: no such event bad')
@@ -91,15 +118,16 @@ describe('HasEventsMixin', () => {
 		it('should call valid event', () => {
 			x1.defineEvent('test')
 
-			var cb = { callback: ()=>{} }
+			var cb = { callback: ()=>{} }, f
 			spyOn(cb,'callback')
 			
 			x1.on('test',cb.callback)
+			spyOn(global, 'setImmediate').and.callFake((fn)=>{f=fn})
 			x1.trigger('test',{ one:1 },2)
 
-			setTimeout(()=>{
-				expect(cb.callback).toHaveBeenCalledWith({ one: 1 },2)
-			}, 0)
+			expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
+			f()
+			expect(cb.callback).toHaveBeenCalledWith({ one: 1 },2)
 		})
 	})
 
