@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Class: Mixin</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Class: Mixin</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    
+        <h2><span class="attribs"><span class="type-signature"></span></span>Mixin</h2>
+        
+            <div class="class-description">Mixin contains functions for creating mixins - a way to do multiple inheritance in JavaScript.
+Mixin classes can be defined, and their functionality merged into an instance of another class
+when it is instantiated.</div>
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Mixin.js.html">Mixin.js</a>, <a href="Mixin.js.html#line48">line 48</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Examples</h5>
+    
+        <p class="code-caption">To define a Mixin class</p>
+    
+    <pre class="prettyprint"><code>const { Mixin } = require('tenkai')
+
+class YourMixinClass extends Mixin {
+	static init(obj, options) {
+		// Do your initialisation here, like you would in a constructor.
+		// obj is the new object, eqivalent of 'this'.
+		// The user class can pass options, etc.
+		obj.testValue = 'This is a Mixin Class' 
+	}
+
+	// Add methods as per a standard class:
+	mixinMethod() {
+		...
+		console.log('mixinMethod: '+this.testValue)
+		...
+	}
+}
+
+// Use the Mixin.export() function to export the class.
+module.exports = Mixin.export(YourMixinClass)</code></pre>
+
+        <p class="code-caption">To use a Mixin class</p>
+    
+    <pre class="prettyprint"><code>const YourMixinClass = require('./YourMixinClass')
+
+class YourMixinUserClass {
+	constructor(options = {}) {
+
+		// Call the mixin with this and any options
+		YourMixinClass(this, options)
+	}
+
+	anotherMethod() {
+		// Now you can use the properties and methods on the mixin
+
+		console.log(this.testValue)
+		this.mixinMethod()
+	}
+}</code></pre>
+
+
+
+    
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    
+    <h4 class="name" id=".export"><span class="type-signature">(static) </span>export<span class="signature">(klass)</span><span class="type-signature"></span></h4>
+    
+
+    
+
+
+
+<div class="description">
+    Use export to export the class from the module as a mixin.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>klass</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Class</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The class to export as a mixin</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Mixin.js.html">Mixin.js</a>, <a href="Mixin.js.html#line55">line 55</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>module.exports = Mixin.export(YourMixinClass)</code></pre>
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="Asset.html">Asset</a></li><li><a href="Audio.html">Audio</a></li><li><a href="BackgroundScene.html">BackgroundScene</a></li><li><a href="Entity.html">Entity</a></li><li><a href="GameEngine.html">GameEngine</a></li><li><a href="HasEntitiesMixin.html">HasEntitiesMixin</a></li><li><a href="HasEventsMixin.html">HasEventsMixin</a></li><li><a href="HasScenesMixin.html">HasScenesMixin</a></li><li><a href="Logger.html">Logger</a></li><li><a href="Mixin.html">Mixin</a></li><li><a href="Scene.html">Scene</a></li><li><a href="TiledScene.html">TiledScene</a></li><li><a href="Util.html">Util</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.4</a>
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

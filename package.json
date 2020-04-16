@@ -1,0 +1,26 @@
+{
+	"name": "tenkai",
+	"version": "0.1.0",
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js",
+		"test": "node node_modules/nyc/bin/nyc.js --reporter=lcov --exclude=spec node_modules/jasmine/bin/jasmine.js && nyc report --reporter=text-lcov | coveralls",
+		"gendocs": "node node_modules/jsdoc/jsdoc.js lib lib/jsdoc README.md -c .jsdoc.js -d docs"
+	},
+	"author": "Tom Cully <tomhughcully@gmail.com>",
+	"license": "0BSD",
+	"repository": "git@github.com:tomdionysus/tenkai.git",
+	"dependencies": {
+		"async": "^2.6.3",
+		"moment": "^2.24.0",
+		"sprintf-js": "^1.1.2",
+		"uuid": "^3.4.0"
+	},
+	"devDependencies": {
+		"coveralls": "^3.0.11",
+		"eslint": "^5.16.0",
+		"jasmine": "2.8.0",
+		"jsdoc": "^3.6.4",
+		"nyc": "^15.0.1"
+	}
+}
