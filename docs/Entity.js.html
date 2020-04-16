@@ -185,15 +185,15 @@ class Entity {
 			// Set the tile
 			this.tile = frame.slice(0,2)
 			// Override the default delay if specified in the frame
-			if(frame.length>2) delay = frame[2]
+			if(frame.length>2 &amp;&amp; frame[2]!==null) delay = frame[2]
 
 			// Translation deltaX/Y default from animation itself
 			var dx = this._currentanimation.dx || 0
 			var dy = this._currentanimation.dy || 0
 
 			// Override that deltaX/Y if specified in the frame
-			if(frame.length>3 &amp;&amp; frame[3]!=null) dx = frame[3]
-			if(frame.length>4 &amp;&amp; frame[4]!=null) dy = frame[4]
+			if(frame.length>3 &amp;&amp; frame[3]!==null) dx = frame[3]
+			if(frame.length>4 &amp;&amp; frame[4]!==null) dy = frame[4]
 
 			// If deltaX/Y is specified, move us
 			if(dx) this.x += dx
@@ -229,8 +229,8 @@ class Entity {
 			// Mark to redraw
 			this.redraw()
 
-			// If the animation is ongoing, schedule the next frame
-			if(this._currentanimation) this._currentanimation._timeout = setTimeout(nextFrame, delay)
+			// Schedule the next frame
+			this._currentanimation._timeout = setTimeout(nextFrame, delay)
 		}
 
 		// Start the animation
