@@ -303,7 +303,7 @@ describe('Entity', () => {
 	})
 
 	describe('_enforceScrollLimits', () => {
-		it('should reset x and y coordinates to minimums', () => {
+		it('should reset x and y coordinates to minimums respecting scale', () => {
 			var x1 = new GameEngine()
 
 			x1.x = 50
@@ -320,7 +320,7 @@ describe('Entity', () => {
 			expect(x1.y).toEqual(150)
 		})
 
-		it('should reset x and y coordinates to maximums', () => {
+		it('should reset x and y coordinates to maximums respecting scale', () => {
 			var x1 = new GameEngine()
 
 			x1.x = 200
@@ -335,6 +335,45 @@ describe('Entity', () => {
 
 			expect(x1.x).toEqual(100)
 			expect(x1.y).toEqual(100)
+		})
+	})
+
+	describe('_move', () => {
+		it('should correctly call methods', () => {
+			var x1 = new GameEngine()
+
+			spyOn(x1,'_setMouseCoords')
+			spyOn(x1,'redraw')
+			spyOn(x1,'trigger')
+
+			var e = generateSpyObject(['preventDefault','stopPropagation'])
+
+			x1._move(e)
+
+			expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
+			expect(x1.redraw).toHaveBeenCalledWith()
+			expect(x1.trigger).toHaveBeenCalledWith('mousemove',x1,e)
+
+			expect(e.preventDefault).toHaveBeenCalledWith()
+			expect(e.stopPropagation).toHaveBeenCalledWith()
+		})
+	})
+
+	describe('_setMouseCoords', () => {
+		it('should correctly set mouseX and mouseY respecting scale', () => {
+			var x1 = new GameEngine()
+
+			x1.x = 50
+			x1.y = 50
+
+			x1.scale = 1.5
+
+			var e = { x: 30, y: 60 }
+
+			x1._setMouseCoords(e)
+
+			expect(x1.mouseX).toEqual(-30)
+			expect(x1.mouseY).toEqual(-10)
 		})
 	})
 
@@ -375,4 +414,138 @@ describe('Entity', () => {
 			fn()
 		})
 	})
+
+	describe('_drawHUD', () => {
+		it('should call context functions correctly', () => {
+			var context = generateSpyObject(['save', 'fillText', 'restore'])
+
+			var x1 = new GameEngine({
+				x: 3,
+				y: 4,
+				scale: 7,
+				rotate: 8,
+				minX: 100,
+				minY: 100,
+				maxX: 150,
+				maxY: 150
+			})
+
+			x1.width = 5
+			x1.height = 6
+
+			x1._drawHUD(context)
+			
+			expect(context.save).toHaveBeenCalledWith()
+			expect(context.font).toEqual('14px Arial')
+			expect(context.fillStyle).toEqual('white')
+			expect(context.fillText).toHaveBeenCalledWith('Screen (X: 3 Y: 4 W: 5 H: 6) Zoom: 700% Mouse (X: NaN Y: NaN) Limits Min: (X: 14, Y: 14) Limit Max: (X: 1050, Y: 1050)', 10, 20)
+			expect(context.restore).toHaveBeenCalledWith()
+		})
+	})
+
+	describe('_tick', () => {
+		it('should call context functions correctly', () => {
+			var context = generateSpyObject(['save', 'fillRect', 'scale', 'translate', 'restore'])
+
+			var x1 = new GameEngine({
+				x: 3,
+				y: 4,
+				scale: 7,
+				rotate: 8,
+				minX: 100,
+				minY: 100,
+				maxX: 150,
+				maxY: 150,
+			})
+
+			x1.element = { getContext: ()=>{}, width: 200, height: 300 } 
+			x1._doredraw = true
+			x1.running = true
+
+			spyOn(x1.element,'getContext').and.returnValue(context)
+
+			addSpies(x1,['redraw','sortScenesZ','sortEntitiesZ','drawScenes','drawEntities'])
+
+			var f
+			spyOn(window,'requestAnimationFrame').and.callFake((fn)=>{f=fn})
+
+			x1._tick()
+			
+			expect(x1.redraw).toHaveBeenCalledWith()
+			expect(x1.sortScenesZ).toHaveBeenCalledWith()
+			expect(x1.sortEntitiesZ).toHaveBeenCalledWith()
+			expect(x1.drawScenes).toHaveBeenCalledWith(context)
+			expect(x1.drawEntities).toHaveBeenCalledWith(context)
+
+			expect(context.save).toHaveBeenCalledWith()
+			expect(context.scale).toHaveBeenCalledWith(7,7)
+			expect(context.translate).toHaveBeenCalledWith(3,4)
+			expect(context.fillRect).toHaveBeenCalledWith(0, 0, 200, 300)
+			expect(context.restore).toHaveBeenCalledWith()
+
+			expect(window.requestAnimationFrame).toHaveBeenCalledWith(jasmine.any(Function),0)
+		})
+
+		it('should not call sortScenesZ or sortEntitiesZ if order maps exist', () => {
+			var context = generateSpyObject(['save', 'fillRect', 'scale', 'translate', 'restore'])
+
+			var x1 = new GameEngine({
+				x: 3,
+				y: 4,
+				scale: 7,
+				rotate: 8,
+				minX: 100,
+				minY: 100,
+				maxX: 150,
+				maxY: 150,
+			})
+
+			x1.element = { getContext: ()=>{}, width: 200, height: 300 } 
+			x1._doredraw = true
+
+			x1._sceneOrderMap = {}
+			x1._entityOrderMap = {}
+
+			spyOn(x1.element,'getContext').and.returnValue(context)
+
+			addSpies(x1,['redraw','sortScenesZ','sortEntitiesZ','drawScenes','drawEntities'])
+
+			x1._tick()
+			
+			expect(x1.sortScenesZ).not.toHaveBeenCalledWith()
+			expect(x1.sortEntitiesZ).not.toHaveBeenCalledWith()
+		})
+
+		it('should call _drawHUD if showHUD is set', () => {
+			var context = generateSpyObject(['save', 'fillRect', 'scale', 'translate', 'restore'])
+
+			var x1 = new GameEngine({
+				x: 3,
+				y: 4,
+				scale: 7,
+				rotate: 8,
+				minX: 100,
+				minY: 100,
+				maxX: 150,
+				maxY: 150,
+				showHUD: true
+			})
+
+			x1.element = { getContext: ()=>{}, width: 200, height: 300 } 
+			x1._doredraw = true
+
+			x1._sceneOrderMap = {}
+			x1._entityOrderMap = {}
+
+			spyOn(x1.element,'getContext').and.returnValue(context)
+
+			addSpies(x1,['redraw','sortScenesZ','sortEntitiesZ','drawScenes','drawEntities','_drawHUD'])
+
+			x1._tick()
+			
+			expect(x1._drawHUD).toHaveBeenCalledWith(context)
+		})
+	})
+
+
 })

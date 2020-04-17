@@ -18,6 +18,7 @@ global.document = {
 	}},
 }
 global.window = {
-	addEventListener: ()=>{}
+	addEventListener: ()=>{},
+	requestAnimationFrame: ()=>{}
 }
 global.XMLHttpRequest = {}
