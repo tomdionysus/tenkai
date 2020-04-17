@@ -1,4 +1,9 @@
+const path = require('path')
+
 const GameEngine = require("../lib/GameEngine")
+const Asset = require("../lib/Asset")
+const Audio = require("../lib/Audio")
+const Util = require("../lib/Util")
 
 describe('Entity', () => {
 	it('should allow New', () => {
@@ -69,6 +74,68 @@ describe('Entity', () => {
 			expect(x1.globalAlpha).toEqual(19)
 		})
 	})
+
+	describe('_bindMouseWheel', () => {
+		it('should use addEventListener if defined on element', () => {
+			var x1 = new GameEngine({ enableScroll: false, enableZoom: false })
+			var ele = generateSpyObject(['addEventListener'])
+
+			x1.element = ele
+
+			x1._bindMouseWheel()
+
+			expect(ele.addEventListener).toHaveBeenCalledWith('mousemove', jasmine.any(Function), false)
+			expect(ele.addEventListener).toHaveBeenCalledWith('mousedown', jasmine.any(Function))
+			expect(ele.addEventListener).toHaveBeenCalledWith('mouseup', jasmine.any(Function))
+		})
+
+		it('should use attachEvent if defined on element', () => {
+			var x1 = new GameEngine({ enableScroll: false, enableZoom: false })
+			var ele = generateSpyObject(['attachEvent'])
+
+			x1.element = ele
+
+			x1._bindMouseWheel()
+
+			expect(ele.attachEvent).toHaveBeenCalledWith('mousemove', jasmine.any(Function), false)
+			expect(ele.attachEvent).toHaveBeenCalledWith('mousedown', jasmine.any(Function))
+			expect(ele.attachEvent).toHaveBeenCalledWith('mouseup', jasmine.any(Function))
+		})
+
+		it('should bind mousewheel and DOMMouseScroll if enableScroll and enableZoom are true', () => {
+			var x1 = new GameEngine({ enableScroll: true, enableZoom: true })
+			var ele = generateSpyObject(['addEventListener'])
+
+			x1.element = ele
+
+			x1._bindMouseWheel()
+
+			expect(ele.addEventListener).toHaveBeenCalledWith('mousewheel', jasmine.any(Function), false)
+			expect(ele.addEventListener).toHaveBeenCalledWith('DOMMouseScroll', jasmine.any(Function), false)
+		})
+
+		it('should call correct ongoing functions on events', () => {
+			var x1 = new GameEngine({ enableScroll: true, enableZoom: true })
+			var fns = {}
+			var ele = generateSpyObject(['addEventListener'])
+			ele.addEventListener.and.callFake((evt, f)=>{ fns[evt] = f })
+			x1.element = ele
+
+			spyOn(x1,'_panZoom')
+			spyOn(x1,'_move')
+			spyOn(x1,'trigger')
+
+			x1._bindMouseWheel()
+
+			for(var i in fns) { fns[i]('ONE') }
+
+			expect(x1._panZoom).toHaveBeenCalledWith('ONE')
+			expect(x1._move).toHaveBeenCalledWith('ONE')
+			expect(x1.trigger).toHaveBeenCalledWith('mousedown',x1,'ONE')
+			expect(x1.trigger).toHaveBeenCalledWith('mouseup',x1,'ONE')
+		})
+	})
+
 
 	describe('init', () => {
 		it('should log debug and call callback', () => {
@@ -195,4 +262,117 @@ describe('Entity', () => {
 		})
 	})
 
+	describe('loadAssets', () => {
+		it('should console.debug and create assets', () => {
+			var x1 = new GameEngine()
+
+			x1.addAsset('test',path.join(__dirname,'fixtures/sprite.png'))
+
+			var cb = generateSpyObject(['callback'])
+
+			spyOn(console,'debug')
+			x1.loadAssets(cb.callback)
+
+			var ele = { onload: ()=>{} }
+			spyOn(document,'createElement').and.returnValue(ele)
+
+			expect(x1.assets['test']).toEqual(jasmine.any(Asset))
+
+			x1.assets['test'].element.onload({ returnValue: true })
+
+			expect(console.debug).toHaveBeenCalledWith('loading assets')
+			expect(cb.callback).toHaveBeenCalledWith(null)
+		})
+	})
+
+	describe('loadAudio', () => {
+		it('should console.debug and create audio', () => {
+			var x1 = new GameEngine()
+
+			x1.addAudio('test',path.join(__dirname,'fixtures/sprite.png'))
+
+			var cb = generateSpyObject(['callback'])
+
+			spyOn(console,'debug')
+			x1.loadAudio(cb.callback)
+
+			expect(x1.audio['test']).toEqual(jasmine.any(Audio))
+
+			expect(console.debug).toHaveBeenCalledWith('loading audio')
+		})
+	})
+
+	describe('_enforceScrollLimits', () => {
+		it('should reset x and y coordinates to minimums', () => {
+			var x1 = new GameEngine()
+
+			x1.x = 50
+			x1.y = 50
+
+			x1.minX = 100
+			x1.minY = 100
+
+			x1.scale = 1.5
+
+			x1._enforceScrollLimits()
+
+			expect(x1.x).toEqual(150)
+			expect(x1.y).toEqual(150)
+		})
+
+		it('should reset x and y coordinates to maximums', () => {
+			var x1 = new GameEngine()
+
+			x1.x = 200
+			x1.y = 200
+
+			x1.maxX = 150
+			x1.maxY = 150
+
+			x1.scale = 1.5
+
+			x1._enforceScrollLimits()
+
+			expect(x1.x).toEqual(100)
+			expect(x1.y).toEqual(100)
+		})
+	})
+
+	describe('bootElement', () => {
+		it('should boot element in DOM', () => {
+			var x1 = new GameEngine()
+			spyOn(x1,'_bindMouseWheel')
+
+			var cb = generateSpyObject(['callback'])
+
+			spyOn(console,'debug')
+			x1.bootElement(cb.callback)
+		})
+
+		it('should not throw when no callback', () => {
+			var x1 = new GameEngine()
+			spyOn(x1,'_bindMouseWheel')
+
+			var cb = generateSpyObject(['callback'])
+
+			spyOn(console,'debug')
+			x1.bootElement()
+		})
+
+		it('should not throw when fullscreen', () => {
+			var x1 = new GameEngine({ fullscreen: true })
+			spyOn(x1,'recomputeFullScreen')
+			spyOn(x1,'_bindMouseWheel')
+
+			var fn
+			spyOn(Util,'debounce').and.callFake((f)=>{fn=f})
+
+			var cb = generateSpyObject(['callback'])
+
+			spyOn(console,'debug')
+			x1.bootElement()
+
+			fn()
+		})
+	})
 })

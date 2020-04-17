@@ -1,5 +1,23 @@
 global.document = {
-	createElement: ()=>{}
+	createElement: ()=>{ return {
+		onload: ()=>{},
+		oncanplaythrough: ()=>{},
+		appendChild: ()=>{},
+		classList: {
+			add: ()=>{}
+		}
+	}},
+	getElementById: ()=>{ return {
+		ownerDocument: {
+			parentWindow: global.window
+		},
+		getAttribute: ()=>{},
+		parentNode: {
+			replaceChild: ()=>{},
+		}
+	}},
 }
-global.window = {}
+global.window = {
+	addEventListener: ()=>{}
+}
 global.XMLHttpRequest = {}
