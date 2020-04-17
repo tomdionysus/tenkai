@@ -547,5 +547,355 @@ describe('Entity', () => {
 		})
 	})
 
+	describe('_panZoom', () => {
+		it('should correctly call methods', () => {
+			var x1 = new GameEngine({
+				x: 3,
+				y: 4,
+				scale: 7,
+				rotate: 8,
+				minX: 100,
+				minY: 100,
+				maxX: 150,
+				maxY: 150,
+				showHUD: true,
+				enableScroll: false
+			})
 
+			addSpies(x1,['_enforceScrollLimits','_setMouseCoords','redraw'])
+
+			var e = generateSpyObject(['preventDefault','stopPropagation'])
+
+			e.deltaX = 10
+			e.deltaY = -5
+
+			x1._panZoom(e)
+
+			expect(x1._enforceScrollLimits).toHaveBeenCalledWith()
+			expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
+			expect(x1.redraw).toHaveBeenCalledWith()
+
+			expect(e.preventDefault).toHaveBeenCalledWith()
+			expect(e.stopPropagation).toHaveBeenCalledWith()
+
+			expect(x1.x).toEqual(3)
+			expect(x1.y).toEqual(4)
+		})
+
+		it('should respond to shiftKey and enableZoom', () => {
+			var x1 = new GameEngine({
+				x: 3,
+				y: 4,
+				scale: 1,
+				rotate: 8,
+				minX: 100,
+				minY: 100,
+				maxX: 150,
+				maxY: 150,
+				enableZoom: true
+			})
+
+			x1.element = { width: 400, height: 500 }
+			x1.width = 400
+			x1.height = 500
+
+			addSpies(x1,['_enforceScrollLimits','_setMouseCoords','redraw'])
+
+			var e = generateSpyObject(['preventDefault','stopPropagation'])
+			
+			e.shiftKey = true
+			e.deltaX = 10
+			e.deltaY = -5
+
+			x1._panZoom(e)
+
+			expect(x1._enforceScrollLimits).toHaveBeenCalledWith()
+			expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
+			expect(x1.redraw).toHaveBeenCalledWith()
+
+			expect(e.preventDefault).toHaveBeenCalledWith()
+			expect(e.stopPropagation).toHaveBeenCalledWith()
+
+			expect(x1.x).toEqual(13.5263157894737)
+			expect(x1.y).toEqual(17.157894736842138)
+			expect(x1.scale).toEqual(0.95)
+		})
+
+		it('should respond to shiftKey and enableZoom and respect minScale', () => {
+			var x1 = new GameEngine({
+				x: 3,
+				y: 4,
+				scale: 1,
+				rotate: 8,
+				minX: 100,
+				minY: 100,
+				maxX: 150,
+				maxY: 150,
+				enableZoom: true,
+				minScale: 0.98
+			})
+
+			x1.element = { width: 400, height: 500 }
+			x1.width = 400
+			x1.height = 500
+
+			addSpies(x1,['_enforceScrollLimits','_setMouseCoords','redraw'])
+
+			var e = generateSpyObject(['preventDefault','stopPropagation'])
+			
+			e.shiftKey = true
+			e.deltaX = 10
+			e.deltaY = -5
+
+			x1._panZoom(e)
+
+			expect(x1._enforceScrollLimits).toHaveBeenCalledWith()
+			expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
+			expect(x1.redraw).toHaveBeenCalledWith()
+
+			expect(e.preventDefault).toHaveBeenCalledWith()
+			expect(e.stopPropagation).toHaveBeenCalledWith()
+
+			expect(x1.x).toEqual(7.081632653061234)
+			expect(x1.y).toEqual(9.102040816326536)
+			expect(x1.scale).toEqual(0.98)
+		})
+
+		it('should respond to shiftKey and enableZoom and respect maxScale', () => {
+			var x1 = new GameEngine({
+				x: 3,
+				y: 4,
+				scale: 1,
+				rotate: 8,
+				minX: 100,
+				minY: 100,
+				maxX: 150,
+				maxY: 150,
+				enableZoom: true,
+				maxScale: 1.05
+			})
+
+			x1.element = { width: 400, height: 500 }
+			x1.width = 400
+			x1.height = 500
+
+			addSpies(x1,['_enforceScrollLimits','_setMouseCoords','redraw'])
+
+			var e = generateSpyObject(['preventDefault','stopPropagation'])
+			
+			e.shiftKey = true
+			e.deltaX = 10
+			e.deltaY = 20
+
+			x1._panZoom(e)
+
+			expect(x1._enforceScrollLimits).toHaveBeenCalledWith()
+			expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
+			expect(x1.redraw).toHaveBeenCalledWith()
+
+			expect(e.preventDefault).toHaveBeenCalledWith()
+			expect(e.stopPropagation).toHaveBeenCalledWith()
+
+			expect(x1.x).toEqual(-6.523809523809518)
+			expect(x1.y).toEqual(-7.904761904761926)
+			expect(x1.scale).toEqual(1.05)
+		})
+
+		it('should respond enableScroll', () => {
+			var x1 = new GameEngine({
+				x: 3,
+				y: 4,
+				scale: 1,
+				rotate: 8,
+				minX: 100,
+				minY: 100,
+				maxX: 150,
+				maxY: 150,
+				enableScroll: true
+			})
+
+			x1.element = { width: 400, height: 500 }
+			x1.width = 400
+			x1.height = 500
+
+			addSpies(x1,['_enforceScrollLimits','_setMouseCoords','redraw'])
+
+			var e = generateSpyObject(['preventDefault','stopPropagation'])
+
+			e.deltaX = 10
+			e.deltaY = -5
+
+			x1._panZoom(e)
+
+			expect(x1._enforceScrollLimits).toHaveBeenCalledWith()
+			expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
+			expect(x1.redraw).toHaveBeenCalledWith()
+
+			expect(e.preventDefault).toHaveBeenCalledWith()
+			expect(e.stopPropagation).toHaveBeenCalledWith()
+
+			expect(x1.x).toEqual(13)
+			expect(x1.y).toEqual(-1)
+		})
+	})
+
+	describe('start', () => {
+		it('should correctly call methods', () => {
+			var x1 = new GameEngine()
+
+			addSpies(x1,['loadAssets','loadAudio','bootElement','init','_tick','redraw'])
+
+			x1.loadAssets.and.callFake((f)=>{f()})
+			x1.loadAudio.and.callFake((f)=>{f()})
+			x1.bootElement.and.callFake((f)=>{f()})
+			x1.init.and.callFake((f)=>{f()})
+
+			var cb = generateSpyObject(['callback'])
+
+			spyOn(console,'debug')
+			var fn
+			spyOn(global,'setImmediate').and.callFake((f)=>{fn=f})
+
+			x1.start(cb.callback)
+
+			expect(x1.loadAssets).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.loadAudio).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.bootElement).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.init).toHaveBeenCalledWith(jasmine.any(Function))
+
+			expect(console.debug).toHaveBeenCalledWith('starting')
+			expect(console.debug).toHaveBeenCalledWith('started')
+
+			expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
+
+			fn()
+			expect(x1._tick).toHaveBeenCalledWith()
+			expect(x1.redraw).toHaveBeenCalledWith()
+
+			expect(cb.callback).toHaveBeenCalledWith()
+		})
+
+		it('should correctly call methods with no callback', () => {
+			var x1 = new GameEngine()
+
+			addSpies(x1,['loadAssets','loadAudio','bootElement','init','_tick','redraw'])
+
+			x1.loadAssets.and.callFake((f)=>{f()})
+			x1.loadAudio.and.callFake((f)=>{f()})
+			x1.bootElement.and.callFake((f)=>{f()})
+			x1.init.and.callFake((f)=>{f()})
+
+			spyOn(console,'debug')
+			var fn
+			spyOn(global,'setImmediate').and.callFake((f)=>{fn=f})
+
+			x1.start()
+
+			expect(x1.loadAssets).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.loadAudio).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.bootElement).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.init).toHaveBeenCalledWith(jasmine.any(Function))
+
+			expect(console.debug).toHaveBeenCalledWith('starting')
+			expect(console.debug).toHaveBeenCalledWith('started')
+
+			expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
+
+			fn()
+			expect(x1._tick).toHaveBeenCalledWith()
+			expect(x1.redraw).toHaveBeenCalledWith()
+		})
+
+		it('should call error if subinit calls back error', () => {
+			var x1 = new GameEngine()
+
+			addSpies(x1,['loadAssets','loadAudio','bootElement','init','_tick','redraw'])
+
+			x1.loadAssets.and.callFake((f)=>{f()})
+			x1.loadAudio.and.callFake((f)=>{f()})
+			x1.bootElement.and.callFake((f)=>{f()})
+			x1.init.and.callFake((f)=>{f('ERROR')})
+
+			spyOn(console,'debug')
+			spyOn(console,'error')
+			var fn
+			spyOn(global,'setImmediate').and.callFake((f)=>{fn=f})
+
+			x1.start()
+
+			expect(x1.loadAssets).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.loadAudio).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.bootElement).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.init).toHaveBeenCalledWith(jasmine.any(Function))
+
+			expect(console.debug).toHaveBeenCalledWith('starting')
+			expect(console.debug).not.toHaveBeenCalledWith('started')
+			expect(console.error).toHaveBeenCalledWith('error while starting', 'ERROR')
+
+			expect(global.setImmediate).not.toHaveBeenCalledWith()
+
+			expect(x1.fn).toBeUndefined()
+		})
+
+		it('should call error if subinit calls back error and call callback', () => {
+			var x1 = new GameEngine()
+
+			addSpies(x1,['loadAssets','loadAudio','bootElement','init','_tick','redraw'])
+
+			x1.loadAssets.and.callFake((f)=>{f()})
+			x1.loadAudio.and.callFake((f)=>{f()})
+			x1.bootElement.and.callFake((f)=>{f()})
+			x1.init.and.callFake((f)=>{f('ERROR')})
+
+			spyOn(console,'debug')
+			spyOn(console,'error')
+			var fn
+			spyOn(global,'setImmediate').and.callFake((f)=>{fn=f})
+
+			var cb = generateSpyObject(['callback'])
+			x1.start(cb.callback)
+
+			expect(x1.loadAssets).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.loadAudio).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.bootElement).toHaveBeenCalledWith(jasmine.any(Function))
+			expect(x1.init).toHaveBeenCalledWith(jasmine.any(Function))
+
+			expect(console.debug).toHaveBeenCalledWith('starting')
+			expect(console.debug).not.toHaveBeenCalledWith('started')
+			expect(console.error).toHaveBeenCalledWith('error while starting', 'ERROR')
+
+			expect(global.setImmediate).not.toHaveBeenCalledWith()
+
+			expect(x1.fn).toBeUndefined()
+
+			expect(cb.callback).toHaveBeenCalledWith('ERROR')
+		})
+
+		it('should should set document.onkeyup callback if processKey', () => {
+			var x1 = new GameEngine()
+
+			x1.processKey= ()=>{}
+
+			addSpies(x1,['loadAssets','loadAudio','bootElement','init','_tick','redraw','processKey'])
+
+			x1.loadAssets.and.callFake((f)=>{f()})
+			x1.loadAudio.and.callFake((f)=>{f()})
+			x1.bootElement.and.callFake((f)=>{f()})
+			x1.init.and.callFake((f)=>{f('ERROR')})
+
+			spyOn(console,'debug')
+			spyOn(console,'error')
+			spyOn(global,'setImmediate')
+
+			var cb = generateSpyObject(['callback'])
+			x1.start(cb.callback)
+
+			expect(document.onkeyup).toEqual(jasmine.any(Function))
+
+			document.onkeyup('key')
+			expect(x1.processKey).toHaveBeenCalledWith('key')
+
+			
+		})
+	})
 })
