@@ -98,8 +98,8 @@ class GameEngine {
 		this.y = options.y || 0
 
 		// The min/max scale values when zoom is enabled
-		this.maxScale = typeof(options.maxScale)=='undefined' ? 10 : options.maxScale
-		this.minScale = typeof(options.minScale)=='undefined' ? 0.01 : options.minScale
+		this.maxScale = options.maxScale
+		this.minScale = options.minScale
 		
 		// The min/max scroll values when scroll is enabled
 		this.minX = options.minX
@@ -163,22 +163,12 @@ class GameEngine {
 		})
 	}
 
+	/**
+	* Set the global alpha for drawing.
+	* @param {float} ga The Global alpha value 0 - 1
+	*/
 	setGlobalAlpha(ga) {
 		this.globalAlpha = ga
-	}
-
-	_bindMouseWheel() {
-		var ael = this.element.addEventListener
-		if(!ael) ael = this.element.attachEvent
-
-		if(this.enableScroll || this.enableZoom) {
-			ael('mousewheel', (e) => this._panZoom(e), false)
-			ael('DOMMouseScroll', (e) => this._panZoom(e), false)
-		}
-
-		ael('mousemove', (e) => this._move(e), false)
-		ael('mousedown', (e) => this.trigger('mousedown',this,e))
-		ael('mouseup', (e) => this.trigger('mouseup',this,e))
 	}
 
 	/**
@@ -192,6 +182,9 @@ class GameEngine {
 		callback()
 	}
 
+	/**
+	* Stop the game engine.
+	*/
 	stop() {
 		this.running = false
 	}
@@ -241,52 +234,13 @@ class GameEngine {
 	* Mark the whole GameEngine to be redrawn.
 	*/
 	redraw() {
-		this.clear = true
+		this._doredraw = true
 
 		// Redraw All Scenes
 		this.redrawScenes()
 
 		// Redraw All Entities
 		this.redrawEntities()
-	}
-
-	_tick() {
-		var context = this.element.getContext('2d')
-
-		this.redraw()
-
-		if(this.clear) {
-			context.fillStyle = 'black'
-			context.fillRect(0, 0, this.element.width, this.element.height)
-		}
-
-		context.save()
-
-		// Set Alpha, scale
-		context.scale(this.scale, this.scale)
-		context.translate(this.x, this.y)
-		context.globalAlpha = this.globalAlpha;
-
-		// Ensure TiledScene sort order
-		if(!this._sceneOrderMap) this.sortScenesZ()
-
-		// Ensure entity sort order
-		if(!this._entityOrderMap) this.sortEntitiesZ()
-
-		// Draw all the scenes in z-order
-		this.drawScenes(context)
-
-		// Draw all the entities in z-order
-		this.drawEntities(context)
-
-		context.restore()
-
-		// HUD
-		if(this.showHUD &amp;&amp; this.clear) { this._drawHUD(context) }
-		
-		this.clear = false
-
-		if(this.running) window.requestAnimationFrame(this._tick.bind(this),0)
 	}
 
 	/**
@@ -352,10 +306,61 @@ class GameEngine {
 	recomputeFullScreen() {
 		this.element.width = this.window.innerWidth
 		this.element.height = this.window.innerHeight
-		this.width = this.element.width / this.scale
-		this.height = this.element.height / this.scale
+		this.width = Math.round(this.element.width / this.scale)
+		this.height = Math.round(this.element.height / this.scale)
 		this.redraw()
 		this.trigger('resize',this)
+	}
+
+	_bindMouseWheel() {
+		var ael = this.element.addEventListener
+		if(!ael) ael = this.element.attachEvent
+
+		if(this.enableScroll || this.enableZoom) {
+			ael('mousewheel', (e) => this._panZoom(e), false)
+			ael('DOMMouseScroll', (e) => this._panZoom(e), false)
+		}
+
+		ael('mousemove', (e) => this._move(e), false)
+		ael('mousedown', (e) => this.trigger('mousedown',this,e))
+		ael('mouseup', (e) => this.trigger('mouseup',this,e))
+	}
+
+	_tick() {
+		var context = this.element.getContext('2d')
+
+		this.redraw()
+
+		context.fillStyle = 'black'
+		context.fillRect(0, 0, this.element.width, this.element.height)
+
+		context.save()
+
+		// Set Alpha, scale
+		context.scale(this.scale, this.scale)
+		context.translate(this.x, this.y)
+		context.globalAlpha = this.globalAlpha;
+
+		// Ensure TiledScene sort order
+		if(!this._sceneOrderMap) this.sortScenesZ()
+
+		// Ensure entity sort order
+		if(!this._entityOrderMap) this.sortEntitiesZ()
+
+		// Draw all the scenes in z-order
+		this.drawScenes(context)
+
+		// Draw all the entities in z-order
+		this.drawEntities(context)
+
+		context.restore()
+
+		// HUD
+		if(this.showHUD &amp;&amp; this._doredraw) { this._drawHUD(context) }
+		
+		this._doredraw = false
+
+		if(this.running) window.requestAnimationFrame(this._tick.bind(this),0)
 	}
 
 	// Event Handlers

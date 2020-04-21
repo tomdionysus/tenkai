@@ -64,39 +64,46 @@ class Util {
 		return arr.sort(function(a, b) { return (a[p] > b[p]) ? 1 : -1 })
 	}
 
+	/**
+	* Delay calling a function by a specific time in µs
+	* @param {function} func The function to call
+	* @param {integer} wait The time to wait in µs
+	* @param {...args} args The arguments to the function
+	* @returns {integer} The setTimeout indentifier
+	*/
 	static delay(func, wait, ...args) {
 		return setTimeout(function() {
 			return func.apply(null, args)
 		}, wait)
 	}
 
-	static debounce(func, wait, immediate) {
-		var timeout, result
+	/**
+	* Debounce a function. This means that the function can be called repeatedly during a timeout, but will only execute once after the timeout.
+	* @param {function} func The function to call
+	* @param {integer} wait The time to wait in µs
+	* @returns {function} The debounced function
+	*/
+	static debounce(func, wait) {
+		var to, res
 
-		var later = function(context, args) {
-			timeout = null
-			if (args) result = func.apply(context, args)
+		var callFn = function(obj, args) {
+			to = null
+			if (args) res = func.apply(obj, args)
 		}
 
-		var debounced = function(args) {
-			if (timeout) clearTimeout(timeout)
-			if (immediate) {
-				var callNow = !timeout
-				timeout = setTimeout(later, wait)
-				if (callNow) result = func.apply(this, args)
-			} else {
-				timeout = Util.delay(later, wait, this, args)
-			}
+		var dbFn = function(args) {
+			if (to) clearTimeout(to)
+			to = Util.delay(callFn, wait, this, args)
 
-			return result
+			return res
 		}
 
-		debounced.cancel = function() {
-			clearTimeout(timeout)
-			timeout = null
+		dbFn.cancel = function() {
+			clearTimeout(to)
+			to = null
 		}
 
-		return debounced
+		return dbFn
 	}
 }
 
