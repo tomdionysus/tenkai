@@ -23,4 +23,4 @@ Tenkai is a set of ES2015 classes designed to be complied to a JS application fo
 
 ### `npm` Package Documentation
 
-* Tenkai[tomdionysus.github.io/tenkai](https://tomdionysus.github.io/tenkai/) for documentation.
+* `tenkai` [tomdionysus.github.io/tenkai](https://tomdionysus.github.io/tenkai/)
