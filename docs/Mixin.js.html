@@ -40,7 +40,7 @@ class YourMixinClass extends Mixin {
 		// Do your initialisation here, like you would in a constructor.
 		// obj is the new object, eqivalent of 'this'.
 		// The user class can pass options, etc.
-		obj.testValue = 'This is a Mixin Class' 
+		obj.testValue = 'This is a Mixin Class'
 	}
 
 	// Add methods as per a standard class:
@@ -74,40 +74,39 @@ class YourMixinUserClass {
 }
  */
 class Mixin {
-	/**
+  /**
 	* Use export to export the class from the module as a mixin.
 	* @param {Class} klass The class to export as a mixin
 	* @example
 	* module.exports = Mixin.export(YourMixinClass)
 	*/
-	static export(klass) {
-		return function(obj, options) {
-			var c = Mixin._getMethods(new klass())
-			for(var i in c) {
-				obj[i] = c[i].bind(obj)
-			}
-			if(klass.init) klass.init(obj, options)
-		}
-	}
+  static export (klass) {
+    return function (obj, options) {
+      var c = Mixin._getMethods(new klass())
+      for (var i in c) {
+        obj[i] = c[i].bind(obj)
+      }
+      if (klass.init) klass.init(obj, options)
+    }
+  }
 
-	static _getMethods(inst) {
-		var out = {}
-		inst = inst.__proto__
-		while(inst) {
-			if(inst.constructor === Object) break
-			var methods = Object.getOwnPropertyDescriptors(inst)
-			for(var k in methods) {
-				if(k=='constructor') continue
-				out[k] = methods[k].value
-			}
-			inst = inst.__proto__
-		}
-		return out
-	}
+  static _getMethods (inst) {
+    var out = {}
+    inst = inst.__proto__
+    while (inst) {
+      if (inst.constructor === Object) break
+      var methods = Object.getOwnPropertyDescriptors(inst)
+      for (var k in methods) {
+        if (k == 'constructor') continue
+        out[k] = methods[k].value
+      }
+      inst = inst.__proto__
+    }
+    return out
+  }
 }
 
 module.exports = Mixin
-
 </code></pre>
         </article>
     </section>

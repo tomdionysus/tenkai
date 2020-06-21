@@ -1,2 +1,1 @@
-const Mixin = require("../lib/Mixin")
-
+const Mixin = require('../lib/Mixin')

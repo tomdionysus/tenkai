@@ -1,494 +1,494 @@
-const Entity = require("../lib/Entity")
+const Entity = require('../lib/Entity')
 
 describe('Entity', () => {
-	it('should allow New', () => {
-		var x1 = new Entity()
-		var x2 = new Entity()
-
-		expect(x1).not.toBe(x2)
-	})
-
-	it('should use option defaults', () => {
-		var options = {
-			tile: [1,1],
-			parent: 'PARENT',
-			visible: 'VISIBLE',
-			scale: 5,
-			rotate: 6,
-		}
-
-		var x1 = new Entity(options)
-
-		expect(x1.tile).toEqual([1,1])
-		expect(x1.parent).toEqual('PARENT')
-		expect(x1.visible).toEqual(true)
-		expect(x1.scale).toEqual(5)
-		expect(x1.rotate).toEqual(6)
-	})
-
-	describe('draw', () => {
-		it('should return immediately if _doredraw is not set', () => {
-			var context = { drawImage: ()=>{} }
-			spyOn(context,'drawImage')
-
-			var x1 = new Entity()
-			x1._doredraw = false
-			x1.draw(context)
-			
-			expect(context.drawImage).not.toHaveBeenCalled()
-		})
-
-		it('should return immediately if visible is not false', () => {
-			var context = { drawImage: ()=>{} }
-			spyOn(context,'drawImage')
-
-			var x1 = new Entity()
-			x1.visible = false
-			x1.draw(context)
-			
-			expect(context.drawImage).not.toHaveBeenCalled()
-		})
-
-		it('should call context functions and drawEntities and reset _doredraw', () => {
-			var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
-
-			var x1 = new Entity({
-				x: 3,
-				y: 4,
-				scale: 5,
-				rotate: 6
-			})
-			x1._doredraw = true
-
-			spyOn(x1,'drawEntities')
-
-			x1.tile = null
-			x1.draw(context)
-			
-			expect(x1.drawEntities).toHaveBeenCalledWith(context)
-
-			expect(context.save).toHaveBeenCalledWith()
-			expect(context.translate).toHaveBeenCalledWith(3,4)
-			expect(context.scale).toHaveBeenCalledWith(5,5)
-			expect(context.rotate).toHaveBeenCalledWith(6)
-			expect(context.drawImage).not.toHaveBeenCalled()
-			expect(context.restore).toHaveBeenCalledWith()
-
-			expect(x1._doredraw).toBeFalsy()
-		})
-
-		it('should call drawImage with correct params', () => {
-			var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
-
-			var x1 = new Entity({
-				x: 3,
-				y: 4,
-				scale: 5,
-				rotate: 6,
-				asset: { element: 'ELEMENT' },
-				tileWidth: 500,
-				tileHeight: 600
-			})
-
-			x1._doredraw = true
-
-			spyOn(x1,'drawEntities')
-
-			x1.tile = [10,11]
-			x1.draw(context)
-			
-			expect(x1.drawEntities).toHaveBeenCalledWith(context)
-
-			expect(context.drawImage).toHaveBeenCalledWith('ELEMENT', 5000, 6600, 500, 600, 0, 0, 500, 600)
-
-			expect(x1._doredraw).toBeFalsy()
-		})
+  it('should allow New', () => {
+    var x1 = new Entity()
+    var x2 = new Entity()
 
-		it('should not call drawImage if tile x is null', () => {
-			var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
+    expect(x1).not.toBe(x2)
+  })
 
-			var x1 = new Entity({
-				x: 3,
-				y: 4,
-				scale: 5,
-				rotate: 6
-			})
-			x1._doredraw = true
+  it('should use option defaults', () => {
+    var options = {
+      tile: [1, 1],
+      parent: 'PARENT',
+      visible: 'VISIBLE',
+      scale: 5,
+      rotate: 6
+    }
+
+    var x1 = new Entity(options)
+
+    expect(x1.tile).toEqual([1, 1])
+    expect(x1.parent).toEqual('PARENT')
+    expect(x1.visible).toEqual(true)
+    expect(x1.scale).toEqual(5)
+    expect(x1.rotate).toEqual(6)
+  })
 
-			spyOn(x1,'drawEntities')
+  describe('draw', () => {
+    it('should return immediately if _doredraw is not set', () => {
+      var context = { drawImage: () => {} }
+      spyOn(context, 'drawImage')
+
+      var x1 = new Entity()
+      x1._doredraw = false
+      x1.draw(context)
+
+      expect(context.drawImage).not.toHaveBeenCalled()
+    })
 
-			x1.tile = [null,1]
-			x1.draw(context)
-			
-			expect(context.drawImage).not.toHaveBeenCalled()
-		})
+    it('should return immediately if visible is not false', () => {
+      var context = { drawImage: () => {} }
+      spyOn(context, 'drawImage')
 
-		it('should not call drawImage if tile y is null', () => {
-			var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
+      var x1 = new Entity()
+      x1.visible = false
+      x1.draw(context)
 
-			var x1 = new Entity({
-				x: 3,
-				y: 4,
-				scale: 5,
-				rotate: 6
-			})
-			x1._doredraw = true
+      expect(context.drawImage).not.toHaveBeenCalled()
+    })
 
-			spyOn(x1,'drawEntities')
+    it('should call context functions and drawEntities and reset _doredraw', () => {
+      var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
 
-			x1.tile = [5,null]
-			x1.draw(context)
-			
-			expect(context.drawImage).not.toHaveBeenCalled()
-		})
-	})
+      var x1 = new Entity({
+        x: 3,
+        y: 4,
+        scale: 5,
+        rotate: 6
+      })
+      x1._doredraw = true
 
-	describe('animateStart', () => {
-		it('should animateStop current animation if defined', () => {
-			var x1 = new Entity()
+      spyOn(x1, 'drawEntities')
 
-			spyOn(x1,'animateStop')
+      x1.tile = null
+      x1.draw(context)
 
-			var anim = [[0,0]]
-			var anim2 = [[0,0],[1,1]]
-			var runAnim = { name:'testanim' }
-			
-			x1.addAnimation('testanim',anim)
-			x1._currentanimation = anim2
+      expect(x1.drawEntities).toHaveBeenCalledWith(context)
 
-			x1.animateStart(runAnim)
+      expect(context.save).toHaveBeenCalledWith()
+      expect(context.translate).toHaveBeenCalledWith(3, 4)
+      expect(context.scale).toHaveBeenCalledWith(5, 5)
+      expect(context.rotate).toHaveBeenCalledWith(6)
+      expect(context.drawImage).not.toHaveBeenCalled()
+      expect(context.restore).toHaveBeenCalledWith()
 
-			expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_REPLACED)
-			expect(x1._currentanimation).toBe(runAnim)
-		})
+      expect(x1._doredraw).toBeFalsy()
+    })
 
-		it('should continue existing animation', () => {
-			var x1 = new Entity()
+    it('should call drawImage with correct params', () => {
+      var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
 
-			spyOn(x1,'animateStop')
+      var x1 = new Entity({
+        x: 3,
+        y: 4,
+        scale: 5,
+        rotate: 6,
+        asset: { element: 'ELEMENT' },
+        tileWidth: 500,
+        tileHeight: 600
+      })
 
-			var anim = [ [0,0] ]
-			var runAnim = { name:'testanim', frame:0 }
-			
-			x1.addAnimation('testanim',anim)
-			x1._currentanimation = runAnim
-			x1.animateStart()
+      x1._doredraw = true
 
-			expect(x1._currentanimation).toBe(runAnim)
-		})
+      spyOn(x1, 'drawEntities')
 
-		it('should return if no existing animation', () => {
-			var x1 = new Entity()
+      x1.tile = [10, 11]
+      x1.draw(context)
 
-			x1.animateStart()
+      expect(x1.drawEntities).toHaveBeenCalledWith(context)
 
-			expect(x1._currentanimation).toBeNull()
-		})
+      expect(context.drawImage).toHaveBeenCalledWith('ELEMENT', 5000, 6600, 500, 600, 0, 0, 500, 600)
 
-		it('should run animation with one frame', () => {
-			var x1 = new Entity()
+      expect(x1._doredraw).toBeFalsy()
+    })
 
-			spyOn(x1,'animateStop')
+    it('should not call drawImage if tile x is null', () => {
+      var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
 
-			var anim = [[0,0]]
-			var anim2 = [[0,0],[1,1]]
-			var runAnim = { name:'testanim' }
-			
-			x1.addAnimation('testanim',anim)
+      var x1 = new Entity({
+        x: 3,
+        y: 4,
+        scale: 5,
+        rotate: 6
+      })
+      x1._doredraw = true
 
-			x1.animateStart(runAnim)
+      spyOn(x1, 'drawEntities')
 
-			expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
-			expect(x1._currentanimation).toBe(runAnim)
-		})
+      x1.tile = [null, 1]
+      x1.draw(context)
 
-		it('should run animation with two frames using anim delay', () => {
-			var x1 = new Entity()
+      expect(context.drawImage).not.toHaveBeenCalled()
+    })
 
-			spyOn(x1,'animateStop')
-			spyOn(global,'setTimeout')
+    it('should not call drawImage if tile y is null', () => {
+      var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
 
-			var anim = [[0,0],[1,1]]
-			var runAnim = { name:'testanim', delay: 145 }
-			
-			x1.addAnimation('testanim',anim)
+      var x1 = new Entity({
+        x: 3,
+        y: 4,
+        scale: 5,
+        rotate: 6
+      })
+      x1._doredraw = true
 
-			x1.animateStart(runAnim)
+      spyOn(x1, 'drawEntities')
 
-			expect(x1.animateStop).not.toHaveBeenCalled()
-			expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-		})
+      x1.tile = [5, null]
+      x1.draw(context)
 
-		it('should run animation with two frames and frame delay', () => {
-			var x1 = new Entity()
+      expect(context.drawImage).not.toHaveBeenCalled()
+    })
+  })
 
-			spyOn(x1,'animateStop')
-			spyOn(global,'setTimeout')
+  describe('animateStart', () => {
+    it('should animateStop current animation if defined', () => {
+      var x1 = new Entity()
 
-			var anim = [[0,0,11],[1,1]]
-			var runAnim = { name:'testanim', delay: 145 }
-			
-			x1.addAnimation('testanim',anim)
+      spyOn(x1, 'animateStop')
 
-			x1.animateStart(runAnim)
+      var anim = [[0, 0]]
+      var anim2 = [[0, 0], [1, 1]]
+      var runAnim = { name: 'testanim' }
 
-			expect(x1.animateStop).not.toHaveBeenCalled()
-			expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 11)
-		})
+      x1.addAnimation('testanim', anim)
+      x1._currentanimation = anim2
 
-		it('should run animation with two frames and anim dx, modifying entity x', () => {
-			var x1 = new Entity()
+      x1.animateStart(runAnim)
 
-			x1.x = 99
+      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_REPLACED)
+      expect(x1._currentanimation).toBe(runAnim)
+    })
 
-			spyOn(x1,'animateStop')
-			spyOn(global,'setTimeout')
+    it('should continue existing animation', () => {
+      var x1 = new Entity()
 
-			var anim = [[0,0,null,100],[1,1]]
-			var runAnim = { name:'testanim', delay: 145, dx: 22 }
-			
-			x1.addAnimation('testanim',anim)
+      spyOn(x1, 'animateStop')
 
-			x1.animateStart(runAnim)
+      var anim = [[0, 0]]
+      var runAnim = { name: 'testanim', frame: 0 }
 
-			expect(x1.animateStop).not.toHaveBeenCalled()
-			expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-			expect(x1.x).toEqual(199)
-		})
+      x1.addAnimation('testanim', anim)
+      x1._currentanimation = runAnim
+      x1.animateStart()
 
-		it('should run animation with two frames and anim dy, modifying entity y', () => {
-			var x1 = new Entity()
+      expect(x1._currentanimation).toBe(runAnim)
+    })
 
-			x1.y = 79
+    it('should return if no existing animation', () => {
+      var x1 = new Entity()
 
-			spyOn(x1,'animateStop')
-			spyOn(global,'setTimeout')
+      x1.animateStart()
 
-			var anim = [[0,0],[1,1]]
-			var runAnim = { name:'testanim', delay: 145, dy: 22 }
-			
-			x1.addAnimation('testanim',anim)
+      expect(x1._currentanimation).toBeNull()
+    })
 
-			x1.animateStart(runAnim)
+    it('should run animation with one frame', () => {
+      var x1 = new Entity()
 
-			expect(x1.animateStop).not.toHaveBeenCalled()
-			expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-			expect(x1.y).toEqual(101)
-		})
+      spyOn(x1, 'animateStop')
 
-		it('should run animation with two frames and frame dx/dy, modifying entity x and y', () => {
-			var x1 = new Entity()
+      var anim = [[0, 0]]
+      var anim2 = [[0, 0], [1, 1]]
+      var runAnim = { name: 'testanim' }
 
-			x1.x = -5
-			x1.y = -10
+      x1.addAnimation('testanim', anim)
 
-			spyOn(x1,'animateStop')
-			spyOn(global,'setTimeout')
+      x1.animateStart(runAnim)
 
-			var anim = [[0,0,null,32,33],[1,1]]
-			var runAnim = { name:'testanim', delay: 145, dy: 22 }
-			
-			x1.addAnimation('testanim',anim)
+      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
+      expect(x1._currentanimation).toBe(runAnim)
+    })
 
-			x1.animateStart(runAnim)
+    it('should run animation with two frames using anim delay', () => {
+      var x1 = new Entity()
 
-			expect(x1.animateStop).not.toHaveBeenCalled()
-			expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-			expect(x1.x).toEqual(27)
-			expect(x1.y).toEqual(23)
-		})
+      spyOn(x1, 'animateStop')
+      spyOn(global, 'setTimeout')
 
-		it('should run animation with two frames and minX boundary, calling animateStop', () => {
-			var x1 = new Entity()
+      var anim = [[0, 0], [1, 1]]
+      var runAnim = { name: 'testanim', delay: 145 }
 
-			x1.x = -5
+      x1.addAnimation('testanim', anim)
 
-			spyOn(x1,'animateStop')
+      x1.animateStart(runAnim)
 
-			var anim = [[0,0],[1,1]]
-			var runAnim = { name:'testanim', minX: -2 }
-			
-			x1.addAnimation('testanim',anim)
+      expect(x1.animateStop).not.toHaveBeenCalled()
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
+    })
 
-			x1.animateStart(runAnim)
+    it('should run animation with two frames and frame delay', () => {
+      var x1 = new Entity()
 
-			expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
-		})
+      spyOn(x1, 'animateStop')
+      spyOn(global, 'setTimeout')
 
-		it('should run animation with two frames and minY boundary, calling animateStop', () => {
-			var x1 = new Entity()
+      var anim = [[0, 0, 11], [1, 1]]
+      var runAnim = { name: 'testanim', delay: 145 }
 
-			x1.y = -10
+      x1.addAnimation('testanim', anim)
 
-			spyOn(x1,'animateStop')
+      x1.animateStart(runAnim)
 
-			var anim = [[0,0],[1,1]]
-			var runAnim = { name:'testanim', minY: -5 }
-			
-			x1.addAnimation('testanim',anim)
+      expect(x1.animateStop).not.toHaveBeenCalled()
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 11)
+    })
 
-			x1.animateStart(runAnim)
+    it('should run animation with two frames and anim dx, modifying entity x', () => {
+      var x1 = new Entity()
 
-			expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
-		})
+      x1.x = 99
 
-		it('should run animation with two frames and maxX boundary, calling animateStop', () => {
-			var x1 = new Entity()
+      spyOn(x1, 'animateStop')
+      spyOn(global, 'setTimeout')
 
-			x1.x = 100
+      var anim = [[0, 0, null, 100], [1, 1]]
+      var runAnim = { name: 'testanim', delay: 145, dx: 22 }
 
-			spyOn(x1,'animateStop')
+      x1.addAnimation('testanim', anim)
 
-			var anim = [[0,0],[1,1]]
-			var runAnim = { name:'testanim', maxX: 100 }
-			
-			x1.addAnimation('testanim',anim)
+      x1.animateStart(runAnim)
 
-			x1.animateStart(runAnim)
+      expect(x1.animateStop).not.toHaveBeenCalled()
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
+      expect(x1.x).toEqual(199)
+    })
 
-			expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
-		})
+    it('should run animation with two frames and anim dy, modifying entity y', () => {
+      var x1 = new Entity()
 
-		it('should run animation with two frames and maxY boundary, calling animateStop', () => {
-			var x1 = new Entity()
+      x1.y = 79
 
-			x1.y = 200
+      spyOn(x1, 'animateStop')
+      spyOn(global, 'setTimeout')
 
-			spyOn(x1,'animateStop')
+      var anim = [[0, 0], [1, 1]]
+      var runAnim = { name: 'testanim', delay: 145, dy: 22 }
 
-			var anim = [[0,0],[1,1]]
-			var runAnim = { name:'testanim', maxY: 150 }
-			
-			x1.addAnimation('testanim',anim)
+      x1.addAnimation('testanim', anim)
 
-			x1.animateStart(runAnim)
+      x1.animateStart(runAnim)
 
-			expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
-		})
+      expect(x1.animateStop).not.toHaveBeenCalled()
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
+      expect(x1.y).toEqual(101)
+    })
 
-		it('should run animation and loop if set true', () => {
-			var x1 = new Entity()
+    it('should run animation with two frames and frame dx/dy, modifying entity x and y', () => {
+      var x1 = new Entity()
 
-			spyOn(x1,'animateStop')
-			spyOn(global,'setTimeout')
+      x1.x = -5
+      x1.y = -10
 
-			var anim = [[0,0],[1,1]]
-			var runAnim = { name:'testanim', delay: 145, frame: 1, loop: true }
-			
-			x1.addAnimation('testanim',anim)
+      spyOn(x1, 'animateStop')
+      spyOn(global, 'setTimeout')
 
-			x1._currentanimation = runAnim
-			x1.animateStart()
+      var anim = [[0, 0, null, 32, 33], [1, 1]]
+      var runAnim = { name: 'testanim', delay: 145, dy: 22 }
 
-			expect(x1.animateStop).not.toHaveBeenCalled()
-			expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-			expect(runAnim.frame).toEqual(0)
-		})
+      x1.addAnimation('testanim', anim)
 
-		it('should run animation and decrement loop if number', () => {
-			var x1 = new Entity()
+      x1.animateStart(runAnim)
 
-			spyOn(x1,'animateStop')
-			spyOn(global,'setTimeout')
+      expect(x1.animateStop).not.toHaveBeenCalled()
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
+      expect(x1.x).toEqual(27)
+      expect(x1.y).toEqual(23)
+    })
 
-			var anim = [[0,0],[1,1]]
-			var runAnim = { name:'testanim', delay: 145, frame: 1, loop: 4 }
-			
-			x1.addAnimation('testanim',anim)
+    it('should run animation with two frames and minX boundary, calling animateStop', () => {
+      var x1 = new Entity()
 
-			x1._currentanimation = runAnim
-			x1.animateStart()
+      x1.x = -5
 
-			expect(x1.animateStop).not.toHaveBeenCalled()
-			expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-			expect(runAnim.frame).toEqual(0)
-			expect(runAnim.loop).toEqual(3)
-		})
-	})
+      spyOn(x1, 'animateStop')
 
-	describe('addAnimation', () => {
-		it('should set _animations with name and animation', () => {
-			var x1 = new Entity()
-			
-			x1.addAnimation('NAME','ANIMATION')
-			expect(x1._animations['NAME']).toEqual('ANIMATION')
-		})
-	})
+      var anim = [[0, 0], [1, 1]]
+      var runAnim = { name: 'testanim', minX: -2 }
 
-	describe('animateStop', () => {
-		it('should return immediately if _currentanimation is not set', () => {
-			spyOn(global,'setTimeout')
+      x1.addAnimation('testanim', anim)
 
-			var x1 = new Entity()
-			
-			x1.animateStop()
-			expect(global.setTimeout).not.toHaveBeenCalled()
-		})
+      x1.animateStart(runAnim)
 
-		it('should clear _currentanimation if it is set and call redraw()', () => {
-			spyOn(global,'setTimeout')
+      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
+    })
 
-			var x1 = new Entity()
-			x1._currentanimation = { 1:2 }
-			
-			x1.animateStop()
-			expect(global.setTimeout).not.toHaveBeenCalled()
-			expect(x1._currentanimation).toBeNull()
-		})
+    it('should run animation with two frames and minY boundary, calling animateStop', () => {
+      var x1 = new Entity()
 
-		it('should call clearTimeout if _timeout set on _currentanimation', () => {
-			spyOn(global,'clearTimeout')
+      x1.y = -10
 
-			var x1 = new Entity()
-			x1._currentanimation = { _timeout: 'TIMEOUTFN' }
-			
-			x1.animateStop()
-			expect(global.clearTimeout).toHaveBeenCalledWith('TIMEOUTFN')
-			expect(x1._currentanimation).toBeNull()
-		})
+      spyOn(x1, 'animateStop')
 
-		it('should set tile if stopTile is defined on _currentanimation', () => {
-			spyOn(global,'clearTimeout')
+      var anim = [[0, 0], [1, 1]]
+      var runAnim = { name: 'testanim', minY: -5 }
 
-			var x1 = new Entity()
-			x1._currentanimation = { stopTile: [5,5] }
-			
-			x1.animateStop()
-			expect(x1.tile).toEqual([5,5])
-		})
+      x1.addAnimation('testanim', anim)
 
-		it('should call setImmediate if _currentanimation.onStop is set, callback should call correctly', () => {
-			var fn
-			spyOn(global,'setImmediate').and.callFake( f => fn=f )
+      x1.animateStart(runAnim)
 
-			var x1 = new Entity()
-			var cb = { callback: ()=>{} }
-			spyOn(cb,'callback')
-			x1._currentanimation = { onStop: cb.callback }
-			
-			x1.animateStop()
-			expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
+      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
+    })
 
-			fn()
+    it('should run animation with two frames and maxX boundary, calling animateStop', () => {
+      var x1 = new Entity()
 
-			expect(cb.callback).toHaveBeenCalledWith(null, x1, Entity.STOPSTATUS_STOPPED)
-		})
+      x1.x = 100
 
-		it('should call callback correctly with a different stop status', () => {
-			var fn
-			spyOn(global,'setImmediate').and.callFake( f => fn=f )
+      spyOn(x1, 'animateStop')
 
-			var x1 = new Entity()
-			var cb = { callback: ()=>{} }
-			spyOn(cb,'callback')
-			x1._currentanimation = { onStop: cb.callback }
-			
-			x1.animateStop(Entity.STOPSTATUS_REPLACED)
-			expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
+      var anim = [[0, 0], [1, 1]]
+      var runAnim = { name: 'testanim', maxX: 100 }
 
-			fn()
+      x1.addAnimation('testanim', anim)
 
-			expect(cb.callback).toHaveBeenCalledWith(null, x1, Entity.STOPSTATUS_REPLACED)
-		})
-	})
+      x1.animateStart(runAnim)
+
+      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
+    })
+
+    it('should run animation with two frames and maxY boundary, calling animateStop', () => {
+      var x1 = new Entity()
+
+      x1.y = 200
+
+      spyOn(x1, 'animateStop')
+
+      var anim = [[0, 0], [1, 1]]
+      var runAnim = { name: 'testanim', maxY: 150 }
+
+      x1.addAnimation('testanim', anim)
+
+      x1.animateStart(runAnim)
+
+      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
+    })
+
+    it('should run animation and loop if set true', () => {
+      var x1 = new Entity()
+
+      spyOn(x1, 'animateStop')
+      spyOn(global, 'setTimeout')
+
+      var anim = [[0, 0], [1, 1]]
+      var runAnim = { name: 'testanim', delay: 145, frame: 1, loop: true }
+
+      x1.addAnimation('testanim', anim)
+
+      x1._currentanimation = runAnim
+      x1.animateStart()
+
+      expect(x1.animateStop).not.toHaveBeenCalled()
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
+      expect(runAnim.frame).toEqual(0)
+    })
+
+    it('should run animation and decrement loop if number', () => {
+      var x1 = new Entity()
+
+      spyOn(x1, 'animateStop')
+      spyOn(global, 'setTimeout')
+
+      var anim = [[0, 0], [1, 1]]
+      var runAnim = { name: 'testanim', delay: 145, frame: 1, loop: 4 }
+
+      x1.addAnimation('testanim', anim)
+
+      x1._currentanimation = runAnim
+      x1.animateStart()
+
+      expect(x1.animateStop).not.toHaveBeenCalled()
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
+      expect(runAnim.frame).toEqual(0)
+      expect(runAnim.loop).toEqual(3)
+    })
+  })
+
+  describe('addAnimation', () => {
+    it('should set _animations with name and animation', () => {
+      var x1 = new Entity()
+
+      x1.addAnimation('NAME', 'ANIMATION')
+      expect(x1._animations.NAME).toEqual('ANIMATION')
+    })
+  })
+
+  describe('animateStop', () => {
+    it('should return immediately if _currentanimation is not set', () => {
+      spyOn(global, 'setTimeout')
+
+      var x1 = new Entity()
+
+      x1.animateStop()
+      expect(global.setTimeout).not.toHaveBeenCalled()
+    })
+
+    it('should clear _currentanimation if it is set and call redraw()', () => {
+      spyOn(global, 'setTimeout')
+
+      var x1 = new Entity()
+      x1._currentanimation = { 1: 2 }
+
+      x1.animateStop()
+      expect(global.setTimeout).not.toHaveBeenCalled()
+      expect(x1._currentanimation).toBeNull()
+    })
+
+    it('should call clearTimeout if _timeout set on _currentanimation', () => {
+      spyOn(global, 'clearTimeout')
+
+      var x1 = new Entity()
+      x1._currentanimation = { _timeout: 'TIMEOUTFN' }
+
+      x1.animateStop()
+      expect(global.clearTimeout).toHaveBeenCalledWith('TIMEOUTFN')
+      expect(x1._currentanimation).toBeNull()
+    })
+
+    it('should set tile if stopTile is defined on _currentanimation', () => {
+      spyOn(global, 'clearTimeout')
+
+      var x1 = new Entity()
+      x1._currentanimation = { stopTile: [5, 5] }
+
+      x1.animateStop()
+      expect(x1.tile).toEqual([5, 5])
+    })
+
+    it('should call setImmediate if _currentanimation.onStop is set, callback should call correctly', () => {
+      var fn
+      spyOn(global, 'setImmediate').and.callFake(f => fn = f)
+
+      var x1 = new Entity()
+      var cb = { callback: () => {} }
+      spyOn(cb, 'callback')
+      x1._currentanimation = { onStop: cb.callback }
+
+      x1.animateStop()
+      expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
+
+      fn()
+
+      expect(cb.callback).toHaveBeenCalledWith(null, x1, Entity.STOPSTATUS_STOPPED)
+    })
+
+    it('should call callback correctly with a different stop status', () => {
+      var fn
+      spyOn(global, 'setImmediate').and.callFake(f => fn = f)
+
+      var x1 = new Entity()
+      var cb = { callback: () => {} }
+      spyOn(cb, 'callback')
+      x1._currentanimation = { onStop: cb.callback }
+
+      x1.animateStop(Entity.STOPSTATUS_REPLACED)
+      expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
+
+      fn()
+
+      expect(cb.callback).toHaveBeenCalledWith(null, x1, Entity.STOPSTATUS_REPLACED)
+    })
+  })
 })

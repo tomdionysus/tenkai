@@ -1,371 +1,368 @@
-const Audio = require("../lib/Audio")
+const Audio = require('../lib/Audio')
 
 describe('Audio', () => {
-	it('should allow New', () => {
-		var x1 = new Audio()
-		var x2 = new Audio()
-
-		expect(x1).not.toBe(x2)
-	})
-
-	describe('load', () => {
-		it('should call createElement and appendChild and set options', () => {
-			var ele = { appendChild: ()=>{} }
-
-			spyOn(document,'createElement').and.returnValue(ele)
-			spyOn(ele,'appendChild')
-			var x1 = new Audio({ 
-				src: 'SOURCE', 
-				type: 'TYPE',
-				startTime: 'STARTTIME',
-				endTime: 'ENDTIME',
-				loop: true
-			})
-
-			x1.load()
-
-			expect(document.createElement).toHaveBeenCalledWith('audio')
-			expect(ele.appendChild).toHaveBeenCalledWith(ele)
-
-			expect(x1.element).toBe(ele)
-
-			expect(ele.src).toEqual('SOURCE')
-			expect(ele.type).toEqual('TYPE')
-
-			expect(x1.startTime).toEqual('STARTTIME')
-			expect(x1.endTime).toEqual('ENDTIME')
-			expect(x1.loop).toBeTruthy()
-		})
-	})
-
-	describe('play', () => {
-		it('should call play on element', () => {
-			var ele = { play: ()=>{} }
-			spyOn(ele,'play')
-
-			var x1 = new Audio()
-			x1.element = ele
-			x1.play()
-
-			expect(ele.play).toHaveBeenCalledWith()
-		})
-	})
-
-	describe('playRange', () => {
-		it('should set properties and call play on element', () => {
-			var ele = { play: ()=>{} }
-			spyOn(ele,'play')
+  it('should allow New', () => {
+    var x1 = new Audio()
+    var x2 = new Audio()
+
+    expect(x1).not.toBe(x2)
+  })
+
+  describe('load', () => {
+    it('should call createElement and appendChild and set options', () => {
+      var ele = { appendChild: () => {} }
+
+      spyOn(document, 'createElement').and.returnValue(ele)
+      spyOn(ele, 'appendChild')
+      var x1 = new Audio({
+        src: 'SOURCE',
+        type: 'TYPE',
+        startTime: 'STARTTIME',
+        endTime: 'ENDTIME',
+        loop: true
+      })
+
+      x1.load()
+
+      expect(document.createElement).toHaveBeenCalledWith('audio')
+      expect(ele.appendChild).toHaveBeenCalledWith(ele)
+
+      expect(x1.element).toBe(ele)
+
+      expect(ele.src).toEqual('SOURCE')
+      expect(ele.type).toEqual('TYPE')
+
+      expect(x1.startTime).toEqual('STARTTIME')
+      expect(x1.endTime).toEqual('ENDTIME')
+      expect(x1.loop).toBeTruthy()
+    })
+  })
+
+  describe('play', () => {
+    it('should call play on element', () => {
+      var ele = { play: () => {} }
+      spyOn(ele, 'play')
+
+      var x1 = new Audio()
+      x1.element = ele
+      x1.play()
+
+      expect(ele.play).toHaveBeenCalledWith()
+    })
+  })
+
+  describe('playRange', () => {
+    it('should set properties and call play on element', () => {
+      var ele = { play: () => {} }
+      spyOn(ele, 'play')
+
+      var x1 = new Audio()
+      x1.element = ele
+      x1.playRange('STARTTIME', 'ENDTIME', false)
+
+      expect(ele.play).toHaveBeenCalledWith()
+      expect(x1.startTime).toEqual('STARTTIME')
+      expect(x1.endTime).toEqual('ENDTIME')
+      expect(x1.loop).toBeFalsy()
+    })
+
+    it('should use existing properties call play on element', () => {
+      var ele = { play: () => {} }
+      spyOn(ele, 'play')
+
+      var x1 = new Audio()
+      x1.element = ele
+      x1.playRange(null, null, true)
+
+      expect(ele.play).toHaveBeenCalledWith()
+      expect(x1.startTime).toBeUndefined()
+      expect(x1.endTime).toBeUndefined()
+      expect(x1.loop).toBeTruthy()
+    })
+
+    it('should call play on element when called with defaults', () => {
+      var ele = { play: () => {} }
+      spyOn(ele, 'play')
+
+      var x1 = new Audio()
+      x1.element = ele
+      x1.playRange()
+
+      expect(ele.play).toHaveBeenCalledWith()
+    })
+  })
+
+  describe('pause', () => {
+    it('should call pause on element', () => {
+      var ele = { pause: () => {} }
+      spyOn(ele, 'pause')
+
+      var x1 = new Audio()
+      x1.element = ele
+      x1.pause()
+
+      expect(ele.pause).toHaveBeenCalledWith()
+    })
+  })
 
-			var x1 = new Audio()
-			x1.element = ele
-			x1.playRange('STARTTIME','ENDTIME',false)
-
-			expect(ele.play).toHaveBeenCalledWith()
-			expect(x1.startTime).toEqual('STARTTIME')
-			expect(x1.endTime).toEqual('ENDTIME')
-			expect(x1.loop).toBeFalsy()
-		})
+  describe('stop', () => {
+    it('should reset oncanplaythrough and currentTime and call pause on element', () => {
+      var ele = { pause: () => {} }
+      spyOn(ele, 'pause')
 
-		it('should use existing properties call play on element', () => {
-			var ele = { play: ()=>{} }
-			spyOn(ele,'play')
+      var x1 = new Audio()
+      x1.element = ele
+      x1.stop()
 
-			var x1 = new Audio()
-			x1.element = ele
-			x1.playRange(null,null,true)
+      expect(ele.pause).toHaveBeenCalledWith()
+      expect(ele.oncanplaythrough).toBeNull()
+      expect(ele.currentTime).toEqual('0')
+    })
+  })
 
-			expect(ele.play).toHaveBeenCalledWith()
-			expect(x1.startTime).toBeUndefined()
-			expect(x1.endTime).toBeUndefined()
-			expect(x1.loop).toBeTruthy()
-		})
+  describe('fadeIn', () => {
+    it('should set volume and call play on element, then call _fade', () => {
+      var ele = { play: () => {} }
+      spyOn(ele, 'play')
 
-		it('should call play on element when called with defaults', () => {
-			var ele = { play: ()=>{} }
-			spyOn(ele,'play')
+      var x1 = new Audio()
+      x1.element = ele
+      spyOn(x1, '_fade').and.callFake(function (v, d, c) { c() })
 
-			var x1 = new Audio()
-			x1.element = ele
-			x1.playRange()
+      x1.fadeIn()
 
-			expect(ele.play).toHaveBeenCalledWith()
-		})
-	})
+      expect(ele.play).toHaveBeenCalledWith()
+      expect(ele.volume).toEqual(0)
 
-	describe('pause', () => {
-		it('should call pause on element', () => {
-			var ele = { pause: ()=>{} }
-			spyOn(ele,'pause')
+      expect(x1._fade).toHaveBeenCalledWith(1, 1000, jasmine.any(Function))
+    })
 
-			var x1 = new Audio()
-			x1.element = ele
-			x1.pause()
+    it('should call supplied callback ', () => {
+      var ele = { play: () => {} }
+      var x1 = new Audio()
+      x1.element = ele
 
-			expect(ele.pause).toHaveBeenCalledWith()
-		})
-	})
+      var cb = { cb: () => {} }
+      spyOn(cb, 'cb')
 
-	describe('stop', () => {
-		it('should reset oncanplaythrough and currentTime and call pause on element', () => {
-			var ele = { pause: ()=>{} }
-			spyOn(ele,'pause')
+      spyOn(x1, '_fade').and.callFake(function (v, d, c) { c() })
 
-			var x1 = new Audio()
-			x1.element = ele
-			x1.stop()
+      x1.fadeIn(200, cb.cb)
 
-			expect(ele.pause).toHaveBeenCalledWith()
-			expect(ele.oncanplaythrough).toBeNull()
-			expect(ele.currentTime).toEqual('0')
+      expect(cb.cb).toHaveBeenCalledWith(null, x1)
+    })
+  })
 
-		})
-	})
+  describe('fadeOut', () => {
+    it('should set volume and call play on element, then call _fade', () => {
+      var x1 = new Audio()
+      spyOn(x1, '_fade')
 
-	describe('fadeIn', () => {
-		it('should set volume and call play on element, then call _fade', () => {
-			var ele = { play: ()=>{} }
-			spyOn(ele,'play')
+      x1.fadeOut()
 
-			var x1 = new Audio()
-			x1.element = ele
-			spyOn(x1,'_fade').and.callFake(function(v, d, c) { c() })
+      expect(x1._fade).toHaveBeenCalledWith(0, 1000, jasmine.any(Function))
+    })
 
-			x1.fadeIn()
+    it('should call _fade and pause', () => {
+      var x1 = new Audio()
+      spyOn(x1, '_fade').and.callFake(function (v, d, c) { c() })
+      spyOn(x1, 'pause')
 
-			expect(ele.play).toHaveBeenCalledWith()
-			expect(ele.volume).toEqual(0)
+      x1.fadeOut()
 
-			expect(x1._fade).toHaveBeenCalledWith(1,1000,jasmine.any(Function))
+      expect(x1._fade).toHaveBeenCalledWith(0, 1000, jasmine.any(Function))
+      expect(x1.pause).toHaveBeenCalledWith()
+    })
 
-		})
+    it('should call _fade and pause and callback', () => {
+      var x1 = new Audio()
+      spyOn(x1, '_fade').and.callFake(function (v, d, c) { c() })
+      spyOn(x1, 'pause')
 
-		it('should call supplied callback ', () => {
-			var ele = { play: ()=>{} }
-			var x1 = new Audio()
-			x1.element = ele
+      var cb = { cb: () => {} }
+      spyOn(cb, 'cb')
 
-			var cb = { cb: ()=>{} }
-			spyOn(cb,'cb')
+      x1.fadeOut(500, cb.cb)
 
-			spyOn(x1,'_fade').and.callFake(function(v, d, c) { c() })
+      expect(x1._fade).toHaveBeenCalledWith(0, 500, jasmine.any(Function))
+      expect(x1.pause).toHaveBeenCalledWith()
+    })
+  })
 
-			x1.fadeIn(200, cb.cb)
+  describe('_fade', () => {
+    it('should call setTimeout with fn', () => {
+      var callback = { cb: () => {} }; var fn
+      var ele = { pause: () => {}, duration: 3 }
+      spyOn(callback, 'cb')
+      spyOn(global, 'setTimeout').and.callFake((f) => { fn = f })
 
-			expect(cb.cb).toHaveBeenCalledWith(null, x1)
-		})
-	})
+      var x1 = new Audio()
+      x1.element = ele
 
-	describe('fadeOut', () => {
-		it('should set volume and call play on element, then call _fade', () => {
-			var x1 = new Audio()
-			spyOn(x1,'_fade')
+      x1._fade(1, 1000, callback.cb)
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 10)
 
-			x1.fadeOut()
+      fn()
+    })
 
-			expect(x1._fade).toHaveBeenCalledWith(0,1000,jasmine.any(Function))
-		})
+    it('should call clearTimeout if _fadeTimeout is already set', () => {
+      var callback = { cb: () => {} }; var fn
+      var ele = { pause: () => {}, duration: 3 }
+      spyOn(callback, 'cb')
+      spyOn(global, 'clearTimeout')
 
-		it('should call _fade and pause', () => {
-			var x1 = new Audio()
-			spyOn(x1,'_fade').and.callFake(function(v, d, c) { c() })
-			spyOn(x1,'pause')
+      var x1 = new Audio(); var ftf = () => {}
+      x1._fadeTimeout = ftf
+      x1.element = ele
 
-			x1.fadeOut()
+      x1._fade(1, 1000, callback.cb)
+      expect(global.clearTimeout).toHaveBeenCalledWith(ftf)
+    })
 
-			expect(x1._fade).toHaveBeenCalledWith(0,1000,jasmine.any(Function))
-			expect(x1.pause).toHaveBeenCalledWith()
-		})
+    it('should call callback if value is reached by increasing', () => {
+      var callback = { cb: () => {} }; var fn
+      var ele = { pause: () => {}, duration: 3, volume: 1 }
+      spyOn(callback, 'cb')
+      spyOn(global, 'setTimeout').and.callFake((f) => { fn = f })
 
+      var x1 = new Audio()
+      x1.element = ele
 
-		it('should call _fade and pause and callback', () => {
-			var x1 = new Audio()
-			spyOn(x1,'_fade').and.callFake(function(v, d, c) { c() })
-			spyOn(x1,'pause')
+      x1._fade(2, 1000, callback.cb)
 
-			var cb = { cb: ()=>{} }
-			spyOn(cb,'cb')
+      ele.volume = 2
+      fn()
 
-			x1.fadeOut(500, cb.cb)
+      expect(callback.cb).toHaveBeenCalled()
+    })
 
-			expect(x1._fade).toHaveBeenCalledWith(0,500,jasmine.any(Function))
-			expect(x1.pause).toHaveBeenCalledWith()
-		})
-	})
+    it('should call callback if value is reached by deceasing', () => {
+      var callback = { cb: () => {} }; var fn
+      var ele = { pause: () => {}, duration: 3, volume: 2 }
+      spyOn(callback, 'cb')
+      spyOn(global, 'setTimeout').and.callFake((f) => { fn = f })
 
-	describe('_fade', () => {
-		it('should call setTimeout with fn', () => {
-			var callback = { cb: ()=>{} }, fn
-			var ele = { pause: ()=>{}, duration: 3 }
-			spyOn(callback,'cb')
-			spyOn(global,'setTimeout').and.callFake((f)=>{ fn = f })
+      var x1 = new Audio()
+      x1.element = ele
 
-			var x1 = new Audio()
-			x1.element = ele
-			
-			x1._fade(1,1000,callback.cb)
-			expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 10)
+      x1._fade(1, 1000, callback.cb)
 
-			fn()
-		})
+      ele.volume = 1
+      fn()
 
-		it('should call clearTimeout if _fadeTimeout is already set', () => {
-			var callback = { cb: ()=>{} }, fn
-			var ele = { pause: ()=>{}, duration: 3 }
-			spyOn(callback,'cb')
-			spyOn(global,'clearTimeout')
+      expect(callback.cb).toHaveBeenCalled()
+    })
 
-			var x1 = new Audio(), ftf = ()=>{}
-			x1._fadeTimeout = ftf
-			x1.element = ele
-			
-			x1._fade(1,1000,callback.cb)
-			expect(global.clearTimeout).toHaveBeenCalledWith(ftf)
-		})
+    it('should not call callback if value is reached and callback is undefined', () => {
+      var ele = { pause: () => {}, duration: 3, volume: 2 }
+      spyOn(global, 'setTimeout').and.callFake((f) => { fn = f })
 
-		it('should call callback if value is reached by increasing', () => {
-			var callback = { cb: ()=>{} }, fn
-			var ele = { pause: ()=>{}, duration: 3, volume: 1 }
-			spyOn(callback,'cb')
-			spyOn(global,'setTimeout').and.callFake((f)=>{ fn = f })
+      var x1 = new Audio()
+      x1.element = ele
 
-			var x1 = new Audio()
-			x1.element = ele
-			
-			x1._fade(2,1000,callback.cb)
+      x1._fade(1, 1000, null)
 
-			ele.volume = 2
-			fn()
+      ele.volume = 1
+      fn()
 
-			expect(callback.cb).toHaveBeenCalled()
-		})
+      expect(x1._fadeTimeout).toBeUndefined()
+    })
+  })
 
-		it('should call callback if value is reached by deceasing', () => {
-			var callback = { cb: ()=>{} }, fn
-			var ele = { pause: ()=>{}, duration: 3, volume: 2 }
-			spyOn(callback,'cb')
-			spyOn(global,'setTimeout').and.callFake((f)=>{ fn = f })
+  describe('_oncanplaythrough', () => {
+    it('should call function in _callonloaded', () => {
+      var callback = { cb: () => {} }
+      spyOn(callback, 'cb')
 
-			var x1 = new Audio()
-			x1.element = ele
-			
-			x1._fade(1,1000,callback.cb)
+      var x1 = new Audio()
 
-			ele.volume = 1
-			fn()
+      x1._callonloaded = callback.cb
 
-			expect(callback.cb).toHaveBeenCalled()
-		})
+      x1._oncanplaythrough()
 
-		it('should not call callback if value is reached and callback is undefined', () => {
-			var ele = { pause: ()=>{}, duration: 3, volume: 2 }
-			spyOn(global,'setTimeout').and.callFake((f)=>{ fn = f })
+      expect(callback.cb).toHaveBeenCalledWith()
+    })
 
-			var x1 = new Audio()
-			x1.element = ele
-			
-			x1._fade(1,1000,null)
+    it('should not fail if _callonloaded not set', () => {
+      var callback = { cb: () => {} }
 
-			ele.volume = 1
-			fn()
+      var x1 = new Audio()
 
-			expect(x1._fadeTimeout).toBeUndefined()
-		})
-	})
+      expect(() => { x1._oncanplaythrough() }).not.toThrow()
+    })
+  })
 
-	describe('_oncanplaythrough', () => {
-		it('should call function in _callonloaded', () => {
-			var callback = { cb: ()=>{} }
-			spyOn(callback,'cb')
+  describe('_onloadedmetadata', () => {
+    it('should set duration from element', () => {
+      var ele = { pause: () => {}, duration: 3 }
 
-			var x1 = new Audio()
+      var x1 = new Audio()
+      x1.element = ele
+      x1.endTime = 2000
 
-			x1._callonloaded = callback.cb
+      x1._onloadedmetadata()
 
-			x1._oncanplaythrough()
+      expect(x1.duration).toEqual(3000)
+      expect(x1.endTime).toEqual(2000)
+    })
 
-			expect(callback.cb).toHaveBeenCalledWith()
-		})
+    it('should set duration and endTime from element if endTime not set', () => {
+      var ele = { pause: () => {}, duration: 3 }
 
-		it('should not fail if _callonloaded not set', () => {
-			var callback = { cb: ()=>{} }
+      var x1 = new Audio()
+      x1.element = ele
 
-			var x1 = new Audio()
+      x1._onloadedmetadata()
 
-			expect(()=>{x1._oncanplaythrough()}).not.toThrow()
-		})
-	})
+      expect(x1.duration).toEqual(3000)
+      expect(x1.endTime).toEqual(3000)
+    })
+  })
 
-	describe('_onloadedmetadata', () => {
-		it('should set duration from element', () => {
-			var ele = { pause: ()=>{}, duration: 3 }
+  describe('_ontimeupdate', () => {
+    it('should call pause if element currentTime is greater than endTime and not looped', () => {
+      var ele = { pause: () => {}, currentTime: 3 }
+      spyOn(ele, 'pause')
 
-			var x1 = new Audio()
-			x1.element = ele
-			x1.endTime = 2000
+      var x1 = new Audio()
+      x1.element = ele
+      x1.endTime = 3000
 
-			x1._onloadedmetadata()
+      x1._ontimeupdate()
 
-			expect(x1.duration).toEqual(3000)
-			expect(x1.endTime).toEqual(2000)
-		})
+      expect(ele.pause).toHaveBeenCalledWith()
+    })
 
-		it('should set duration and endTime from element if endTime not set', () => {
-			var ele = { pause: ()=>{}, duration: 3 }
+    it('should not call pause and reset currentTime if element currentTime is greater than endTime and loop', () => {
+      var ele = { pause: () => {}, currentTime: 3 }
+      spyOn(ele, 'pause')
 
-			var x1 = new Audio()
-			x1.element = ele
+      var x1 = new Audio()
+      x1.element = ele
+      x1.startTime = 1500
+      x1.endTime = 3000
+      x1.loop = true
 
-			x1._onloadedmetadata()
+      x1._ontimeupdate()
 
-			expect(x1.duration).toEqual(3000)
-			expect(x1.endTime).toEqual(3000)
-		})
-	})
+      expect(ele.pause).not.toHaveBeenCalledWith()
+      expect(ele.currentTime).toEqual(1.5)
+    })
 
-	describe('_ontimeupdate', () => {
-		it('should call pause if element currentTime is greater than endTime and not looped', () => {
-			var ele = { pause: ()=>{}, currentTime: 3 }
-			spyOn(ele,'pause')
+    it('should do nothing if currentTime is not greater than endTime and loop', () => {
+      var ele = { pause: () => {}, currentTime: 2 }
+      spyOn(ele, 'pause')
 
-			var x1 = new Audio()
-			x1.element = ele
-			x1.endTime = 3000
+      var x1 = new Audio()
+      x1.element = ele
+      x1.startTime = 1500
+      x1.endTime = 3000
+      x1.loop = true
 
-			x1._ontimeupdate()
+      x1._ontimeupdate()
 
-			expect(ele.pause).toHaveBeenCalledWith()
-		})
-
-		it('should not call pause and reset currentTime if element currentTime is greater than endTime and loop', () => {
-			var ele = { pause: ()=>{}, currentTime: 3 }
-			spyOn(ele,'pause')
-
-			var x1 = new Audio()
-			x1.element = ele
-			x1.startTime = 1500
-			x1.endTime = 3000
-			x1.loop = true
-
-			x1._ontimeupdate()
-
-			expect(ele.pause).not.toHaveBeenCalledWith()
-			expect(ele.currentTime).toEqual(1.5)
-		})
-
-		it('should do nothing if currentTime is not greater than endTime and loop', () => {
-			var ele = { pause: ()=>{}, currentTime: 2 }
-			spyOn(ele,'pause')
-
-			var x1 = new Audio()
-			x1.element = ele
-			x1.startTime = 1500
-			x1.endTime = 3000
-			x1.loop = true
-
-			x1._ontimeupdate()
-
-			expect(ele.pause).not.toHaveBeenCalledWith()
-			expect(ele.currentTime).toEqual(2)
-		})
-	})
+      expect(ele.pause).not.toHaveBeenCalledWith()
+      expect(ele.currentTime).toEqual(2)
+    })
+  })
 })
