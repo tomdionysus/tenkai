@@ -11,7 +11,7 @@
 	"license": "0BSD",
 	"repository": "git@github.com:tomdionysus/tenkai.git",
 	"dependencies": {
-		"async": "^2.6.3",
+		"async": "^2.6.4",
 		"moment": "^2.27.0",
 		"sprintf-js": "^1.1.2",
 		"uuid": "^3.4.0"
