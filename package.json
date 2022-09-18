@@ -12,7 +12,7 @@
 	"repository": "git@github.com:tomdionysus/tenkai.git",
 	"dependencies": {
 		"async": "^2.6.3",
-		"moment": "^2.27.0",
+		"moment": "^2.29.4",
 		"sprintf-js": "^1.1.2",
 		"uuid": "^3.4.0"
 	},
