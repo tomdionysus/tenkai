@@ -37,24 +37,6 @@ describe('BackgroundScene', () => {
       expect(context.save).not.toHaveBeenCalled()
     })
 
-    it('should not call sortScenesZ if _sceneOrderMap is set', () => {
-      spyOn(x1, 'sortScenesZ')
-      spyOn(x1, 'drawScenes')
-      x1._sceneOrderMap = {}
-      x1.draw(context)
-
-      expect(x1.sortScenesZ).not.toHaveBeenCalled()
-    })
-
-    it('should not call sortEntitiesZ if _entityOrderMap is set', () => {
-      spyOn(x1, 'sortEntitiesZ')
-      spyOn(x1, 'drawEntities')
-      x1._entityOrderMap = {}
-      x1.draw(context)
-
-      expect(x1.sortEntitiesZ).not.toHaveBeenCalled()
-    })
-
     it('should call context save, tranlate, scale, rotate with correct values', () => {
       x1.visible = true
       x1._doredraw = true

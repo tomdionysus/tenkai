@@ -11,8 +11,6 @@ describe('HasEntitiesMixin', () => {
   describe('init', () => {
     it('should set properties on object', () => {
       expect(x1._entities).toEqual({})
-      expect(x1._entityOrder).toBeNull()
-      expect(x1._entityOrderMap).toBeNull()
     })
   })
 
@@ -91,14 +89,6 @@ describe('HasEntitiesMixin', () => {
       context = new ContextMock2D()
     })
 
-    it('should call sortEntitiesZ if _entityOrder is not defined', () => {
-      spyOn(x1, 'sortEntitiesZ').and.callThrough()
-
-      x1.drawEntities(context)
-
-      expect(x1.sortEntitiesZ).toHaveBeenCalled()
-    })
-
     it('should call draw on all entities if z is not defined', () => {
       x1._entityOrder = [
         { entity: 'ENTITY1', draw: () => {} },
@@ -143,59 +133,6 @@ describe('HasEntitiesMixin', () => {
       expect(x1._entityOrderMap[2][1].draw).toHaveBeenCalledWith(context)
       expect(x1._entityOrderMap[2][1].draw).toHaveBeenCalledWith(context)
       expect(x1._entityOrderMap[3][0].draw).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('getEntitiesAtLayer', () => {
-    it('should call sortEntitiesZ if _entityOrder is not defined', () => {
-      spyOn(x1, 'sortEntitiesZ').and.callThrough()
-
-      x1.getEntitiesAtLayer(0)
-
-      expect(x1.sortEntitiesZ).toHaveBeenCalled()
-    })
-
-    it('should not call sortEntitiesZ if _entityOrder is defined', () => {
-      spyOn(x1, 'sortEntitiesZ')
-
-      x1._entityOrder = {}
-      x1._entityOrderMap = {}
-      x1.getEntitiesAtLayer(0)
-
-      expect(x1.sortEntitiesZ).not.toHaveBeenCalled()
-    })
-
-    it('should return correct map', () => {
-      x1._entityOrder = {}
-      x1._entityOrderMap = { 0: [1, 2, 3], 1: [4, 5, 6] }
-
-      expect(x1.getEntitiesAtLayer(1)).toEqual([4, 5, 6])
-    })
-  })
-
-  describe('sortEntitiesZ', () => {
-    it('should set _entityOrder and _entityOrderMap to correct values ', () => {
-      var ent1 = { entity: 'ENTITY1', redraw: () => {}, z: 22 }
-      var ent2 = { entity: 'ENTITY2', redraw: () => {}, z: 0 }
-      var ent3 = { entity: 'ENTITY3', redraw: () => {}, z: 4 }
-      var ent4 = { entity: 'ENTITY4', redraw: () => {}, z: 2 }
-      var ent5 = { entity: 'ENTITY5', redraw: () => {}, z: 2 }
-
-      x1._entities.NAME1 = ent1
-      x1._entities.NAME2 = ent2
-      x1._entities.NAME3 = ent3
-      x1._entities.NAME4 = ent4
-      x1._entities.NAME5 = ent5
-
-      x1.sortEntitiesZ()
-
-      expect(x1._entityOrder).toEqual([ent2, ent5, ent4, ent3, ent1])
-      expect(x1._entityOrderMap).toEqual({
-        2: [ent5, ent4],
-        22: [ent1],
-        0: [ent2],
-        4: [ent3]
-      })
     })
   })
 
