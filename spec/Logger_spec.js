@@ -17,6 +17,12 @@ describe('Logger', () => {
     expect(x1.logLevel).toEqual(Logger.Warn)
   })
 
+  it('should parse log level debug', () => {
+    var x1 = new Logger({ logLevel: 'debug' })
+
+    expect(x1.logLevel).toEqual(Logger.Debug)
+  })
+
   it('should parse log level error', () => {
     var x1 = new Logger({ logLevel: 'error' })
 

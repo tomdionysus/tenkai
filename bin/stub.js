@@ -24,10 +24,12 @@ function loadFiles (pth, bs = '', target) {
       specname = path.join(path.dirname(specname), path.basename(specname, '.js') + '_spec.js')
       if (!fs.existsSync(specname)) {
         logger.info('Creating ' + specname)
-        var klName = shortname.substr(0, shortname.length - 3)
-        fs.writeFileSync(specname, 'const ' + klName + ' = require("../lib/' + klName + '")\n\n')
+        var klName = path.basename(files[f], '.js')
+        var requirePath = path.relative(path.dirname(specname), filename.slice(0, -3)).split(path.sep).join('/')
+        fs.writeFileSync(specname, 'const ' + klName + ' = require(\'' + requirePath + '\')\n\n')
       }
-    } else if (d.isDirectory()) {
+    } else if (d.isDirectory() && files[f] !== 'jsdoc') {
+      // lib/jsdoc holds typedef-only files with nothing to test
       if (!fs.existsSync(specname)) {
         logger.info('Creating Directory ' + specname)
         fs.mkdirSync(specname)

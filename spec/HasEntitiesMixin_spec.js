@@ -34,13 +34,23 @@ describe('HasEntitiesMixin', () => {
 
     it('should call removeEntity on entity parent if it is already defined', () => {
       var oldcontainer = { removeEntity: () => {} }
-      var ent = { entity: 'ENTITY', parent: oldcontainer }
+      var ent = { entity: 'ENTITY', name: 'OLDNAME', parent: oldcontainer }
 
       spyOn(oldcontainer, 'removeEntity')
 
       x1.addEntity('NAME', ent)
 
-      expect(oldcontainer.removeEntity).toHaveBeenCalledWith('NAME')
+      expect(oldcontainer.removeEntity).toHaveBeenCalledWith('OLDNAME')
+      expect(x1.getEntity('NAME')).toBe(ent)
+    })
+
+    it('should keep the entity when re-added to the same container', () => {
+      var ent = { entity: 'ENTITY' }
+
+      x1.addEntity('NAME', ent)
+      x1.addEntity('NAME', ent)
+
+      expect(x1.getEntity('NAME')).toBe(ent)
     })
   })
 
@@ -72,15 +82,6 @@ describe('HasEntitiesMixin', () => {
 
       expect(x1._entities.NAME).toBeUndefined()
     })
-
-    it('should call redraw if defined on container', () => {
-      x1.redraw = () => {}
-      spyOn(x1, 'redraw')
-
-      x1.removeEntity('NAME')
-
-      expect(x1.redraw).toHaveBeenCalledWith()
-    })
   })
 
   describe('drawEntities', () => {
@@ -89,67 +90,57 @@ describe('HasEntitiesMixin', () => {
       context = new ContextMock2D()
     })
 
-    it('should call draw on all entities if z is not defined', () => {
-      x1._entityOrder = [
-        { entity: 'ENTITY1', draw: () => {} },
-        { entity: 'ENTITY2', draw: () => {} }
-      ]
-
-      spyOn(x1._entityOrder[0], 'draw')
-      spyOn(x1._entityOrder[1], 'draw')
+    it('should draw entities in z order in PERSPECTIVE_OVERHEAD mode', () => {
+      var order = []
+      x1.perspectiveMode = 1
+      x1._entities = {
+        A: { z: 3, y: 0, hotspotY: 0, draw: () => order.push('A') },
+        B: { z: 1, y: 9, hotspotY: 0, draw: () => order.push('B') },
+        C: { z: 2, y: 5, hotspotY: 0, draw: () => order.push('C') }
+      }
 
       x1.drawEntities(context)
 
-      expect(x1._entityOrder[0].draw).toHaveBeenCalledWith(context)
-      expect(x1._entityOrder[1].draw).toHaveBeenCalledWith(context)
+      expect(order).toEqual(['B', 'C', 'A'])
     })
 
-    it('should call draw on only correct entities if z is defined', () => {
-      x1._entityOrder = []
-      x1._entityOrderMap = {
-        1: [
-          { entity: 'ENTITY1', draw: () => {} },
-          { entity: 'ENTITY2', draw: () => {} }
-        ],
-        2: [
-          { entity: 'ENTITY3', draw: () => {} },
-          { entity: 'ENTITY4', draw: () => {} }
-        ],
-        3: [
-          { entity: 'ENTITY5', draw: () => {} }
-        ]
+    it('should draw entities by where they stand, then by elevation, in PERSPECTIVE_DEPTH mode', () => {
+      var order = []
+      x1.perspectiveMode = 2
+      x1._entities = {
+        A: { z: 3, y: 10, elevation: 8, draw: () => order.push('A') },
+        B: { z: 1, y: 14, draw: () => order.push('B') },
+        C: { z: 2, y: 5, draw: () => order.push('C') },
+        D: { z: 0, y: 10, elevation: 0, draw: () => order.push('D') }
       }
 
-      spyOn(x1._entityOrderMap[1][0], 'draw')
-      spyOn(x1._entityOrderMap[1][1], 'draw')
-      spyOn(x1._entityOrderMap[2][0], 'draw')
-      spyOn(x1._entityOrderMap[2][1], 'draw')
-      spyOn(x1._entityOrderMap[3][0], 'draw')
+      x1.drawEntities(context)
 
-      x1.drawEntities(context, 2)
-
-      expect(x1._entityOrderMap[1][0].draw).not.toHaveBeenCalled()
-      expect(x1._entityOrderMap[1][1].draw).not.toHaveBeenCalled()
-      expect(x1._entityOrderMap[2][1].draw).toHaveBeenCalledWith(context)
-      expect(x1._entityOrderMap[2][1].draw).toHaveBeenCalledWith(context)
-      expect(x1._entityOrderMap[3][0].draw).not.toHaveBeenCalled()
+      expect(order).toEqual(['C', 'D', 'A', 'B'])
     })
-  })
 
-  describe('redrawEntities', () => {
-    it('should call redraw on all _entities', () => {
-      var ent1 = { entity: 'ENTITY1', redraw: () => {} }
-      var ent2 = { entity: 'ENTITY2', redraw: () => {} }
+    it('should draw entities in z order if perspectiveMode is not set, keeping insertion order for ties', () => {
+      var order = []
+      x1._entities = {
+        A: { z: 1, draw: () => order.push('A') },
+        B: { z: 0, draw: () => order.push('B') },
+        C: { z: 1, draw: () => order.push('C') },
+        D: { z: 0, draw: () => order.push('D') }
+      }
 
-      x1._entities.NAME1 = ent1
-      x1._entities.NAME2 = ent2
-      spyOn(ent1, 'redraw')
-      spyOn(ent2, 'redraw')
+      x1.drawEntities(context)
 
-      x1.redrawEntities('NAME')
+      expect(order).toEqual(['B', 'D', 'A', 'C'])
+    })
 
-      expect(ent1.redraw).toHaveBeenCalledWith()
-      expect(ent2.redraw).toHaveBeenCalledWith()
+    it('should pass the context to each entity', () => {
+      var ent = { z: 0, draw: () => {} }
+      spyOn(ent, 'draw')
+      x1._entities = { A: ent }
+
+      x1.drawEntities(context)
+
+      expect(ent.draw).toHaveBeenCalledWith(context)
     })
   })
 })

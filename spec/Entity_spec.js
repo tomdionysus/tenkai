@@ -1,494 +1,224 @@
 const Entity = require('../lib/Entity')
+const Sheet = require('../lib/Sheet')
+const Scene = require('../lib/Scene')
+const ContextMock2D = require('./mocks/ContextMock2D')
 
 describe('Entity', () => {
-  it('should allow New', () => {
-    var x1 = new Entity()
-    var x2 = new Entity()
-
-    expect(x1).not.toBe(x2)
+  var image, sheet
+  beforeEach(() => {
+    image = { width: 256, height: 128 }
+    sheet = new Sheet({
+      image,
+      tileWidth: 32,
+      tileHeight: 32,
+      anchor: [16, 30],
+      clips: {
+        walk: { row: 1, columns: [0, 1, 2, 3], delay: 100, loop: true },
+        die: { row: 2, count: 3, delay: 100 },
+        flash: { frames: [[0, 3], [1, 3, 0], [2, 3]], delay: 50 }
+      }
+    })
   })
 
-  it('should use option defaults', () => {
-    var options = {
-      tile: [1, 1],
-      parent: 'PARENT',
-      visible: 'VISIBLE',
-      scale: 5,
-      rotate: 6
-    }
+  describe('construction', () => {
+    it('should use defaults', () => {
+      var e = new Entity()
+      expect([e.x, e.y, e.z, e.elevation, e.scale, e.rotate]).toEqual([0, 0, 0, 0, 1, 0])
+      expect(e.visible).toBe(true)
+      expect(e.flipX).toBe(false)
+      expect(e.sheet).toBeNull()
+      expect(e.tile).toBeNull()
+      expect(e.animating).toBe(false)
+    })
 
-    var x1 = new Entity(options)
+    it('should show the first tile of a sheet, with the sheet anchor', () => {
+      var e = new Entity({ sheet })
+      expect(e.tile).toEqual([0, 0])
+      expect(e.origin).toEqual([16, 30])
+      expect([e.width, e.height]).toEqual([32, 32])
+    })
 
-    expect(x1.tile).toEqual([1, 1])
-    expect(x1.parent).toEqual('PARENT')
-    expect(x1.visible).toEqual(true)
-    expect(x1.scale).toEqual(5)
-    expect(x1.rotate).toEqual(6)
+    it('should let its own anchor replace the sheet anchor', () => {
+      expect(new Entity({ sheet, anchor: [0, 0] }).origin).toEqual([0, 0])
+    })
+
+    it('should make a sheet from a single image', () => {
+      var e = new Entity({ image: { element: { width: 40, height: 20 } } })
+      expect([e.width, e.height]).toEqual([40, 20])
+      expect(e.origin).toEqual([0, 0])
+    })
+
+    it('should find the game through its parents', () => {
+      var game = { isGameEngine: true }
+      var scene = new Scene()
+      scene.parent = game
+      var e = new Entity()
+      var child = new Entity()
+      scene.addEntity('e', e)
+      e.addEntity('child', child)
+      expect(child.game).toBe(game)
+      expect(new Entity().game).toBeNull()
+    })
   })
 
   describe('draw', () => {
-    it('should return immediately if _doredraw is not set', () => {
-      var context = { drawImage: () => {} }
-      spyOn(context, 'drawImage')
+    var context
+    beforeEach(() => { context = new ContextMock2D() })
 
-      var x1 = new Entity()
-      x1._doredraw = false
-      x1.draw(context)
-
-      expect(context.drawImage).not.toHaveBeenCalled()
+    it('should draw its tile with the anchor at its position, raised by its elevation', () => {
+      var e = new Entity({ sheet, tile: [2, 1], x: 100, y: 50, elevation: 8 })
+      e.draw(context)
+      expect(context.translate).toHaveBeenCalledWith(100, 42)
+      expect(context.drawImage).toHaveBeenCalledWith(image, 64, 32, 32, 32, -16, -30, 32, 32)
     })
 
-    it('should return immediately if visible is not false', () => {
-      var context = { drawImage: () => {} }
-      spyOn(context, 'drawImage')
-
-      var x1 = new Entity()
-      x1.visible = false
-      x1.draw(context)
-
-      expect(context.drawImage).not.toHaveBeenCalled()
+    it('should scale, rotate and flip about the anchor', () => {
+      var e = new Entity({ sheet, scale: 2, rotate: 1, flipX: true })
+      e.draw(context)
+      expect(context.scale).toHaveBeenCalledWith(2, 2)
+      expect(context.rotate).toHaveBeenCalledWith(1)
+      expect(context.scale).toHaveBeenCalledWith(-1, 1)
     })
 
-    it('should call context functions and drawEntities and reset _doredraw', () => {
-      var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
-
-      var x1 = new Entity({
-        x: 3,
-        y: 4,
-        scale: 5,
-        rotate: 6
-      })
-      x1._doredraw = true
-
-      spyOn(x1, 'drawEntities')
-
-      x1.tile = null
-      x1.draw(context)
-
-      expect(x1.drawEntities).toHaveBeenCalledWith(context)
-
-      expect(context.save).toHaveBeenCalledWith()
-      expect(context.translate).toHaveBeenCalledWith(3, 4)
-      expect(context.scale).toHaveBeenCalledWith(5, 5)
-      expect(context.rotate).toHaveBeenCalledWith(6)
-      expect(context.drawImage).not.toHaveBeenCalled()
-      expect(context.restore).toHaveBeenCalledWith()
-
-      expect(x1._doredraw).toBeFalsy()
+    it('should use the sheet offset and spacing', () => {
+      var spaced = new Sheet({ image, tileWidth: 32, tileHeight: 32, offsetX: 1, offsetY: 2, spacing: 3 })
+      new Entity({ sheet: spaced, tile: [2, 1] }).draw(context)
+      expect(context.drawImage).toHaveBeenCalledWith(image, 71, 37, 32, 32, 0, 0, 32, 32)
     })
 
-    it('should call drawImage with correct params', () => {
-      var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
-
-      var x1 = new Entity({
-        x: 3,
-        y: 4,
-        scale: 5,
-        rotate: 6,
-        asset: { element: 'ELEMENT' },
-        tileWidth: 500,
-        tileHeight: 600
-      })
-
-      x1._doredraw = true
-
-      spyOn(x1, 'drawEntities')
-
-      x1.tile = [10, 11]
-      x1.draw(context)
-
-      expect(x1.drawEntities).toHaveBeenCalledWith(context)
-
-      expect(context.drawImage).toHaveBeenCalledWith('ELEMENT', 5000, 6600, 500, 600, 0, 0, 500, 600)
-
-      expect(x1._doredraw).toBeFalsy()
+    it('should draw children relative to its position, after itself', () => {
+      var e = new Entity({ sheet })
+      var child = new Entity()
+      spyOn(child, 'draw')
+      e.addEntity('child', child)
+      e.draw(context)
+      expect(child.draw).toHaveBeenCalledWith(context)
     })
 
-    it('should not call drawImage if tile x is null', () => {
-      var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
-
-      var x1 = new Entity({
-        x: 3,
-        y: 4,
-        scale: 5,
-        rotate: 6
-      })
-      x1._doredraw = true
-
-      spyOn(x1, 'drawEntities')
-
-      x1.tile = [null, 1]
-      x1.draw(context)
-
-      expect(context.drawImage).not.toHaveBeenCalled()
-    })
-
-    it('should not call drawImage if tile y is null', () => {
-      var context = generateSpyObject(['drawImage', 'save', 'translate', 'scale', 'rotate', 'restore'])
-
-      var x1 = new Entity({
-        x: 3,
-        y: 4,
-        scale: 5,
-        rotate: 6
-      })
-      x1._doredraw = true
-
-      spyOn(x1, 'drawEntities')
-
-      x1.tile = [5, null]
-      x1.draw(context)
-
-      expect(context.drawImage).not.toHaveBeenCalled()
+    it('should draw nothing when invisible', () => {
+      new Entity({ sheet, visible: false }).draw(context)
+      expect(context.save).not.toHaveBeenCalled()
     })
   })
 
-  describe('animateStart', () => {
-    it('should animateStop current animation if defined', () => {
-      var x1 = new Entity()
+  describe('animation', () => {
+    var e
+    beforeEach(() => { e = new Entity({ sheet }) })
 
-      spyOn(x1, 'animateStop')
-
-      var anim = [[0, 0]]
-      var anim2 = [[0, 0], [1, 1]]
-      var runAnim = { name: 'testanim' }
-
-      x1.addAnimation('testanim', anim)
-      x1._currentanimation = anim2
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_REPLACED)
-      expect(x1._currentanimation).toBe(runAnim)
+    it('should show the first frame of a clip at once', () => {
+      e.play('walk')
+      expect(e.tile).toEqual([0, 1])
+      expect(e.clip).toBe(sheet.clips.walk)
+      expect(e.animating).toBe(true)
     })
 
-    it('should continue existing animation', () => {
-      var x1 = new Entity()
-
-      spyOn(x1, 'animateStop')
-
-      var anim = [[0, 0]]
-      var runAnim = { name: 'testanim', frame: 0 }
-
-      x1.addAnimation('testanim', anim)
-      x1._currentanimation = runAnim
-      x1.animateStart()
-
-      expect(x1._currentanimation).toBe(runAnim)
+    it('should show each frame for its delay of game time', () => {
+      e.play('walk')
+      e.animate(99)
+      expect(e.tile).toEqual([0, 1])
+      e.animate(1)
+      expect(e.tile).toEqual([1, 1])
     })
 
-    it('should return if no existing animation', () => {
-      var x1 = new Entity()
-
-      x1.animateStart()
-
-      expect(x1._currentanimation).toBeNull()
+    it('should carry over time, catching up several frames at once', () => {
+      e.play('walk')
+      e.animate(250)
+      expect(e.frame).toEqual(2)
+      e.animate(50)
+      expect(e.frame).toEqual(3)
     })
 
-    it('should run animation with one frame', () => {
-      var x1 = new Entity()
-
-      spyOn(x1, 'animateStop')
-
-      var anim = [[0, 0]]
-      var anim2 = [[0, 0], [1, 1]]
-      var runAnim = { name: 'testanim' }
-
-      x1.addAnimation('testanim', anim)
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
-      expect(x1._currentanimation).toBe(runAnim)
+    it('should loop a looping clip', () => {
+      e.play('walk')
+      e.animate(400)
+      expect(e.frame).toEqual(0)
+      expect(e.animating).toBe(true)
     })
 
-    it('should run animation with two frames using anim delay', () => {
-      var x1 = new Entity()
-
-      spyOn(x1, 'animateStop')
-      spyOn(global, 'setTimeout')
-
-      var anim = [[0, 0], [1, 1]]
-      var runAnim = { name: 'testanim', delay: 145 }
-
-      x1.addAnimation('testanim', anim)
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).not.toHaveBeenCalled()
-      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
+    it('should hold the last frame of a clip for its delay, then complete', () => {
+      var complete = jasmine.createSpy('onComplete')
+      e.play('die', { onComplete: complete })
+      e.animate(200)
+      expect(e.tile).toEqual([2, 2])
+      e.animate(99)
+      expect(complete).not.toHaveBeenCalled()
+      e.animate(1)
+      expect(complete).toHaveBeenCalledWith(e)
+      expect(e.done).toBe(true)
+      expect(e.animating).toBe(false)
+      expect(e.tile).toEqual([2, 2])
     })
 
-    it('should run animation with two frames and frame delay', () => {
-      var x1 = new Entity()
-
-      spyOn(x1, 'animateStop')
-      spyOn(global, 'setTimeout')
-
-      var anim = [[0, 0, 11], [1, 1]]
-      var runAnim = { name: 'testanim', delay: 145 }
-
-      x1.addAnimation('testanim', anim)
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).not.toHaveBeenCalled()
-      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 11)
+    it('should use a frame delay over the clip delay, and show a frame with delay 0 for one step', () => {
+      e.play('flash')
+      e.animate(50)
+      expect(e.tile).toEqual([1, 3])
+      e.animate(1)
+      expect(e.tile).toEqual([2, 3])
     })
 
-    it('should run animation with two frames and anim dx, modifying entity x', () => {
-      var x1 = new Entity()
-
-      x1.x = 99
-
-      spyOn(x1, 'animateStop')
-      spyOn(global, 'setTimeout')
-
-      var anim = [[0, 0, null, 100], [1, 1]]
-      var runAnim = { name: 'testanim', delay: 145, dx: 22 }
-
-      x1.addAnimation('testanim', anim)
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).not.toHaveBeenCalled()
-      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-      expect(x1.x).toEqual(199)
+    it('should keep playing a clip that is asked for again, unless restarted', () => {
+      e.play('walk')
+      e.animate(150)
+      e.play('walk')
+      expect(e.frame).toEqual(1)
+      e.play('walk', { restart: true })
+      expect(e.frame).toEqual(0)
     })
 
-    it('should run animation with two frames and anim dy, modifying entity y', () => {
-      var x1 = new Entity()
-
-      x1.y = 79
-
-      spyOn(x1, 'animateStop')
-      spyOn(global, 'setTimeout')
-
-      var anim = [[0, 0], [1, 1]]
-      var runAnim = { name: 'testanim', delay: 145, dy: 22 }
-
-      x1.addAnimation('testanim', anim)
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).not.toHaveBeenCalled()
-      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-      expect(x1.y).toEqual(101)
+    it('should scale delays by speed, and hold the frame at speed 0', () => {
+      e.play('walk', { speed: 2 })
+      e.animate(50)
+      expect(e.frame).toEqual(1)
+      e.play('walk', { speed: 0 })
+      e.animate(1000)
+      expect(e.frame).toEqual(1)
     })
 
-    it('should run animation with two frames and frame dx/dy, modifying entity x and y', () => {
-      var x1 = new Entity()
-
-      x1.x = -5
-      x1.y = -10
-
-      spyOn(x1, 'animateStop')
-      spyOn(global, 'setTimeout')
-
-      var anim = [[0, 0, null, 32, 33], [1, 1]]
-      var runAnim = { name: 'testanim', delay: 145, dy: 22 }
-
-      x1.addAnimation('testanim', anim)
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).not.toHaveBeenCalled()
-      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-      expect(x1.x).toEqual(27)
-      expect(x1.y).toEqual(23)
+    it('should let a play override whether the clip loops', () => {
+      e.play('walk', { loop: false })
+      e.animate(400)
+      expect(e.done).toBe(true)
+      e.play('die', { loop: true })
+      e.animate(300)
+      expect(e.animating).toBe(true)
+      expect(e.frame).toEqual(0)
     })
 
-    it('should run animation with two frames and minX boundary, calling animateStop', () => {
-      var x1 = new Entity()
-
-      x1.x = -5
-
-      spyOn(x1, 'animateStop')
-
-      var anim = [[0, 0], [1, 1]]
-      var runAnim = { name: 'testanim', minX: -2 }
-
-      x1.addAnimation('testanim', anim)
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
+    it('should show a chosen frame with setFrame', () => {
+      e.play('die', { speed: 0 })
+      e.setFrame(2)
+      expect(e.tile).toEqual([2, 2])
+      e.setFrame(9)
+      expect(e.frame).toEqual(2)
     })
 
-    it('should run animation with two frames and minY boundary, calling animateStop', () => {
-      var x1 = new Entity()
-
-      x1.y = -10
-
-      spyOn(x1, 'animateStop')
-
-      var anim = [[0, 0], [1, 1]]
-      var runAnim = { name: 'testanim', minY: -5 }
-
-      x1.addAnimation('testanim', anim)
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
+    it('should stop animating, keeping the tile', () => {
+      e.play('walk')
+      e.animate(100)
+      e.stop()
+      e.animate(500)
+      expect(e.tile).toEqual([1, 1])
     })
 
-    it('should run animation with two frames and maxX boundary, calling animateStop', () => {
-      var x1 = new Entity()
-
-      x1.x = 100
-
-      spyOn(x1, 'animateStop')
-
-      var anim = [[0, 0], [1, 1]]
-      var runAnim = { name: 'testanim', maxX: 100 }
-
-      x1.addAnimation('testanim', anim)
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
+    it('should play a clip again once it has completed', () => {
+      e.play('die')
+      e.animate(300)
+      e.play('die')
+      expect(e.frame).toEqual(0)
+      expect(e.animating).toBe(true)
     })
 
-    it('should run animation with two frames and maxY boundary, calling animateStop', () => {
-      var x1 = new Entity()
-
-      x1.y = 200
-
-      spyOn(x1, 'animateStop')
-
-      var anim = [[0, 0], [1, 1]]
-      var runAnim = { name: 'testanim', maxY: 150 }
-
-      x1.addAnimation('testanim', anim)
-
-      x1.animateStart(runAnim)
-
-      expect(x1.animateStop).toHaveBeenCalledWith(Entity.STOPSTATUS_COMPLETED)
+    it('should animate its children', () => {
+      var child = new Entity()
+      spyOn(child, 'animate')
+      e.addEntity('child', child)
+      e.animate(16)
+      expect(child.animate).toHaveBeenCalledWith(16)
     })
 
-    it('should run animation and loop if set true', () => {
-      var x1 = new Entity()
-
-      spyOn(x1, 'animateStop')
-      spyOn(global, 'setTimeout')
-
-      var anim = [[0, 0], [1, 1]]
-      var runAnim = { name: 'testanim', delay: 145, frame: 1, loop: true }
-
-      x1.addAnimation('testanim', anim)
-
-      x1._currentanimation = runAnim
-      x1.animateStart()
-
-      expect(x1.animateStop).not.toHaveBeenCalled()
-      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-      expect(runAnim.frame).toEqual(0)
-    })
-
-    it('should run animation and decrement loop if number', () => {
-      var x1 = new Entity()
-
-      spyOn(x1, 'animateStop')
-      spyOn(global, 'setTimeout')
-
-      var anim = [[0, 0], [1, 1]]
-      var runAnim = { name: 'testanim', delay: 145, frame: 1, loop: 4 }
-
-      x1.addAnimation('testanim', anim)
-
-      x1._currentanimation = runAnim
-      x1.animateStart()
-
-      expect(x1.animateStop).not.toHaveBeenCalled()
-      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 145)
-      expect(runAnim.frame).toEqual(0)
-      expect(runAnim.loop).toEqual(3)
-    })
-  })
-
-  describe('addAnimation', () => {
-    it('should set _animations with name and animation', () => {
-      var x1 = new Entity()
-
-      x1.addAnimation('NAME', 'ANIMATION')
-      expect(x1._animations.NAME).toEqual('ANIMATION')
-    })
-  })
-
-  describe('animateStop', () => {
-    it('should return immediately if _currentanimation is not set', () => {
-      spyOn(global, 'setTimeout')
-
-      var x1 = new Entity()
-
-      x1.animateStop()
-      expect(global.setTimeout).not.toHaveBeenCalled()
-    })
-
-    it('should clear _currentanimation if it is set and call redraw()', () => {
-      spyOn(global, 'setTimeout')
-
-      var x1 = new Entity()
-      x1._currentanimation = { 1: 2 }
-
-      x1.animateStop()
-      expect(global.setTimeout).not.toHaveBeenCalled()
-      expect(x1._currentanimation).toBeNull()
-    })
-
-    it('should call clearTimeout if _timeout set on _currentanimation', () => {
-      spyOn(global, 'clearTimeout')
-
-      var x1 = new Entity()
-      x1._currentanimation = { _timeout: 'TIMEOUTFN' }
-
-      x1.animateStop()
-      expect(global.clearTimeout).toHaveBeenCalledWith('TIMEOUTFN')
-      expect(x1._currentanimation).toBeNull()
-    })
-
-    it('should set tile if stopTile is defined on _currentanimation', () => {
-      spyOn(global, 'clearTimeout')
-
-      var x1 = new Entity()
-      x1._currentanimation = { stopTile: [5, 5] }
-
-      x1.animateStop()
-      expect(x1.tile).toEqual([5, 5])
-    })
-
-    it('should call setImmediate if _currentanimation.onStop is set, callback should call correctly', () => {
-      var fn
-      spyOn(global, 'setImmediate').and.callFake(f => fn = f)
-
-      var x1 = new Entity()
-      var cb = { callback: () => {} }
-      spyOn(cb, 'callback')
-      x1._currentanimation = { onStop: cb.callback }
-
-      x1.animateStop()
-      expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
-
-      fn()
-
-      expect(cb.callback).toHaveBeenCalledWith(null, x1, Entity.STOPSTATUS_STOPPED)
-    })
-
-    it('should call callback correctly with a different stop status', () => {
-      var fn
-      spyOn(global, 'setImmediate').and.callFake(f => fn = f)
-
-      var x1 = new Entity()
-      var cb = { callback: () => {} }
-      spyOn(cb, 'callback')
-      x1._currentanimation = { onStop: cb.callback }
-
-      x1.animateStop(Entity.STOPSTATUS_REPLACED)
-      expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
-
-      fn()
-
-      expect(cb.callback).toHaveBeenCalledWith(null, x1, Entity.STOPSTATUS_REPLACED)
+    it('should complain about a clip it does not have', () => {
+      expect(() => e.play('fly')).toThrowError(/No such clip/)
     })
   })
 })

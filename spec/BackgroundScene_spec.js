@@ -23,13 +23,6 @@ describe('BackgroundScene', () => {
       context = new ContextMock2D()
     })
 
-    it('should return immediately if _doredraw is false', () => {
-      x1.visible = true
-      x1._doredraw = false
-      x1.draw(context)
-      expect(context.save).not.toHaveBeenCalled()
-    })
-
     it('should return immediately if visible is false', () => {
       x1.visible = false
       x1._doredraw = true
@@ -56,13 +49,17 @@ describe('BackgroundScene', () => {
       expect(context.restore).toHaveBeenCalledWith()
     })
 
-    it('should reset _doredraw', () => {
+    it('should draw the image, then child scenes, then entities', () => {
       x1.visible = true
       x1._doredraw = true
+      var order = []
+      context.drawImage.and.callFake(() => order.push('image'))
+      spyOn(x1, 'drawScenes').and.callFake(() => order.push('scenes'))
+      spyOn(x1, 'drawEntities').and.callFake(() => order.push('entities'))
 
       x1.draw(context)
 
-      expect(x1._doredraw).toBeFalsy()
+      expect(order).toEqual(['image', 'scenes', 'entities'])
     })
   })
 })

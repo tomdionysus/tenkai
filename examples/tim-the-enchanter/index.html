@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tim the Enchanter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Alegreya+Sans:ital,wght@0,400;0,500;1,400&display=swap">
+  <style>
+    /* One torch-lit room: the game canvas framed as a window into the dungeon, controls and credits beneath */
+    :root {
+      --stone: #191613;
+      --stone-raised: #231f1a;
+      --mortar: #3b332a;
+      --parchment: #ece0c4;
+      --dust: #a9997c;
+      --torch: #e7a23c;
+      --display: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
+      --body: "Alegreya Sans", "Gill Sans", "Trebuchet MS", sans-serif;
+      color-scheme: dark;
+    }
+  
+    html, body { background: var(--stone); color: var(--parchment); }
+    body {
+      font-family: var(--body);
+      font-size: 17px;
+      line-height: 1.55;
+      padding-inline: 16px;
+      padding-block: 28px 48px;
+    }
+  
+    .room {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      gap: 22px;
+    }
+  
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px 24px;
+    }
+    h1 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(2rem, 1.4rem + 2.6vw, 3.1rem);
+      line-height: 1.05;
+      letter-spacing: 0.01em;
+      margin: 0;
+      text-wrap: balance;
+    }
+    header p {
+      margin: 0;
+      color: var(--dust);
+      font-style: italic;
+      max-width: 46ch;
+    }
+  
+    /* The window into the room */
+    .stage {
+      margin: 0;
+      position: relative;
+      border: 1px solid var(--mortar);
+      background: #000;
+      box-shadow: 0 0 0 6px var(--stone-raised), 0 18px 60px -20px rgba(231, 162, 60, 0.28);
+    }
+    .stage canvas {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      aspect-ratio: 9 / 5;
+      image-rendering: pixelated;
+      outline: none;
+    }
+    .stage:focus-within { border-color: var(--torch); }
+  
+    .wake {
+      position: absolute;
+      inset: auto 12px 12px auto;
+      margin: 0;
+      padding: 6px 12px;
+      background: rgba(25, 22, 19, 0.85);
+      border: 1px solid var(--mortar);
+      color: var(--dust);
+      font-size: 0.85rem;
+      pointer-events: none;
+    }
+  
+    .bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    button {
+      font: 500 0.95rem/1 var(--body);
+      color: var(--parchment);
+      background: var(--stone-raised);
+      border: 1px solid var(--mortar);
+      padding: 10px 16px;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    button:hover { border-color: var(--dust); }
+    button:focus-visible { outline: 2px solid var(--torch); outline-offset: 2px; }
+    button[aria-pressed="true"] { border-color: var(--torch); color: var(--torch); }
+    .mode-note { color: var(--dust); font-size: 0.95rem; }
+  
+    /* Arrows for touch screens, held to walk */
+    .pad {
+      display: none;
+      grid-template-columns: repeat(3, 56px);
+      grid-template-rows: repeat(2, 56px);
+      gap: 6px;
+      justify-content: center;
+    }
+    .pad button { padding: 0; font-size: 1.3rem; user-select: none; -webkit-user-select: none; }
+    .pad [data-code="ArrowUp"] { grid-column: 2; grid-row: 1; }
+    .pad [data-code="ArrowLeft"] { grid-column: 1; grid-row: 2; }
+    .pad [data-code="ArrowDown"] { grid-column: 2; grid-row: 2; }
+    .pad [data-code="ArrowRight"] { grid-column: 3; grid-row: 2; }
+    @media (pointer: coarse) { .pad { display: grid; } }
+  
+    .notes {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 28px;
+      border-top: 1px solid var(--mortar);
+      padding-top: 22px;
+    }
+    @media (max-width: 760px) { .notes { grid-template-columns: minmax(0, 1fr); } }
+    h2 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: 1.35rem;
+      margin: 0 0 10px;
+      color: var(--torch);
+    }
+    .keys-wrap { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+    th, td { text-align: left; padding: 6px 10px 6px 0; vertical-align: top; border-bottom: 1px solid var(--mortar); }
+    th { font-weight: 500; color: var(--dust); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    kbd {
+      font: 500 0.85rem/1 var(--body);
+      padding: 2px 6px;
+      border: 1px solid var(--mortar);
+      border-bottom-width: 2px;
+      background: var(--stone-raised);
+      white-space: nowrap;
+    }
+    .credits p { margin: 0 0 10px; color: var(--dust); font-size: 0.95rem; }
+    .credits strong { color: var(--parchment); font-weight: 500; }
+    a { color: var(--torch); text-underline-offset: 3px; }
+    a:focus-visible { outline: 2px solid var(--torch); outline-offset: 2px; }
+  </style>
+</head>
+<body>
+<main class="room">
+  <header>
+    <h1>Tim the Enchanter</h1>
+    <p>Gallagher the cat explores a dungeon room, one flagstone at a time, behind the chairs and up onto them. A 2018 prototype, rebuilt on the current Tenkai engine.</p>
+  </header>
+
+  <figure class="stage" id="stage">
+    <div id="game" width="1152" height="640"></div>
+    <p class="wake" id="wake">Click the room, then use the arrow keys</p>
+  </figure>
+
+  <div class="bar">
+    <button type="button" id="mode" aria-pressed="false">Open the map editor</button>
+    <span class="mode-note" id="mode-note">Walk into a chair to hop onto it, or find a way out.</span>
+  </div>
+
+  <div class="pad" aria-label="Walk">
+    <button type="button" data-code="ArrowUp" aria-label="Up">&#8593;</button>
+    <button type="button" data-code="ArrowLeft" aria-label="Left">&#8592;</button>
+    <button type="button" data-code="ArrowDown" aria-label="Down">&#8595;</button>
+    <button type="button" data-code="ArrowRight" aria-label="Right">&#8594;</button>
+  </div>
+
+  <section class="notes">
+    <div>
+      <h2>Controls</h2>
+      <div class="keys-wrap">
+        <table>
+          <thead><tr><th>Key</th><th>Walking</th><th>Map editor</th></tr></thead>
+          <tbody>
+            <tr><td><kbd>Arrows</kbd></td><td>Walk; hold to keep going</td><td>Move the cursor, or click a cell</td></tr>
+            <tr><td><kbd>Tab</kbd></td><td>Open the editor</td><td>Back to walking</td></tr>
+            <tr><td><kbd>Q</kbd> <kbd>E</kbd></td><td></td><td>Previous or next tile layer</td></tr>
+            <tr><td><kbd>A</kbd> <kbd>D</kbd> <kbd>W</kbd> <kbd>S</kbd></td><td></td><td>Step the cell's tile through the tileset</td></tr>
+            <tr><td><kbd>Backspace</kbd></td><td></td><td>Clear the layer in this cell</td></tr>
+            <tr><td><kbd>O</kbd> <kbd>Enter</kbd></td><td></td><td>Choose a piece of furniture; place it at the cursor</td></tr>
+            <tr><td><kbd>B</kbd></td><td></td><td>Force a cell solid or open, or back to what its tiles say</td></tr>
+            <tr><td><kbd>Z</kbd> <kbd>X</kbd></td><td></td><td>Keep the map in this browser; revert to the original</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="credits">
+      <h2>Credits</h2>
+      <p><strong>Game, design and map</strong> by Tom Cully, built with the Tenkai engine.</p>
+      <p><strong>Dungeon tileset</strong> by Stephen Challener (Redshrike), commissioned by OpenGameArt.org: <a href="https://opengameart.org/content/16x16-indoor-rpg-tileset-the-baseline" target="_blank" rel="noopener">16x16 Indoor RPG Tileset: The Baseline</a>, CC-BY 3.0 / OGA-BY 3.0, scaled to 64 px tiles.</p>
+      <p><strong>Gallagher</strong> by <a href="https://www.pinterest.nz/pin/280560251767070376" target="_blank" rel="noopener">Elizabeth Gray</a>.</p>
+    </div>
+  </section>
+</main>
+
+<script src="bundle.js"></script>
+<script>
+  (function () {
+    var stage = document.getElementById('stage')
+    var wake = document.getElementById('wake')
+    var modeButton = document.getElementById('mode')
+    var modeNote = document.getElementById('mode-note')
+
+    // The canvas takes keyboard focus when clicked, so the arrow keys reach the game
+    function focusGame () {
+      var canvas = stage.querySelector('canvas')
+      if (!canvas) return
+      canvas.tabIndex = 0
+      canvas.focus({ preventScroll: true })
+      wake.hidden = true
+    }
+    stage.addEventListener('pointerdown', focusGame)
+
+    function syncMode () {
+      var editing = window.game && window.game.mode === window.game.editor
+      modeButton.setAttribute('aria-pressed', editing ? 'true' : 'false')
+      modeButton.textContent = editing ? 'Back to walking' : 'Open the map editor'
+      modeNote.textContent = editing
+        ? 'Solid cells show red and doors green. Click a cell to select it.'
+        : 'Walk into a chair to hop onto it, or find a way out.'
+    }
+    modeButton.addEventListener('click', function () {
+      if (!window.game || !window.game.running) return
+      var game = window.game
+      game.setMode(game.mode === game.play ? game.editor : game.play)
+      syncMode()
+      focusGame()
+    })
+    // Tab switches modes in the game's next step
+    window.addEventListener('keydown', function (e) { if (e.code === 'Tab') setTimeout(syncMode, 50) })
+
+    // Touch arrows press and release the same keys the keyboard does
+    document.querySelectorAll('.pad button').forEach(function (button) {
+      var code = button.getAttribute('data-code')
+      function release () {
+        if (window.game) window.game.input.keyUp({ code: code })
+      }
+      button.addEventListener('pointerdown', function (e) {
+        e.preventDefault()
+        if (!window.game || !window.game.running) return
+        wake.hidden = true
+        window.game.input.keyDown({ code: code })
+      })
+      button.addEventListener('pointerup', release)
+      button.addEventListener('pointercancel', release)
+      button.addEventListener('pointerleave', release)
+    })
+  })()
+</script>
+</body>
+</html>

@@ -43,18 +43,41 @@ describe('Scene', () => {
     expect(x1.rotate).toEqual('ROTATE')
   })
 
+  describe('animate', () => {
+    it('should animate child scenes and entities', () => {
+      var x1 = new Scene()
+      var child = new Scene()
+      var entity = { animate: jasmine.createSpy('animate') }
+      x1.addScene('child', child)
+      x1.addEntity('entity', entity)
+      spyOn(child, 'animate')
+
+      x1.animate(16)
+
+      expect(child.animate).toHaveBeenCalledWith(16)
+      expect(entity.animate).toHaveBeenCalledWith(16)
+    })
+  })
+
   describe('draw', () => {
+    it('should draw subscenes and then entities', () => {
+      var x1 = new Scene()
+      var context = new ContextMock2D()
+      var order = []
+      spyOn(x1, 'drawScenes').and.callFake(() => order.push('scenes'))
+      spyOn(x1, 'drawEntities').and.callFake(() => order.push('entities'))
+
+      x1.draw(context)
+
+      expect(x1.drawScenes).toHaveBeenCalledWith(context)
+      expect(x1.drawEntities).toHaveBeenCalledWith(context)
+      expect(order).toEqual(['scenes', 'entities'])
+    })
+
     var x1, context
     beforeEach(() => {
       x1 = new Scene({ asset: { element: { width: 'WIDTH', height: 'HEIGHT' } } })
       context = new ContextMock2D()
-    })
-
-    it('should return immediately if _doredraw is false', () => {
-      x1.visible = true
-      x1._doredraw = false
-      x1.draw(context)
-      expect(context.save).not.toHaveBeenCalled()
     })
 
     it('should return immediately if visible is false', () => {
@@ -80,15 +103,6 @@ describe('Scene', () => {
       expect(context.scale).toHaveBeenCalledWith(6, 6)
       expect(context.rotate).toHaveBeenCalledWith(7)
       expect(context.restore).toHaveBeenCalledWith()
-    })
-
-    it('should reset _doredraw', () => {
-      x1.visible = true
-      x1._doredraw = true
-
-      x1.draw(context)
-
-      expect(x1._doredraw).toBeFalsy()
     })
   })
 })

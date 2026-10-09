@@ -5,7 +5,7 @@ const Asset = require('../lib/Asset')
 const Audio = require('../lib/Audio')
 const Util = require('../lib/Util')
 
-describe('Entity', () => {
+describe('GameEngine', () => {
   it('should allow New', () => {
     var x1 = new GameEngine()
     var x2 = new GameEngine()
@@ -76,6 +76,13 @@ describe('Entity', () => {
   })
 
   describe('_bindMouseWheel', () => {
+    it('should bind to a real EventTarget without throwing', () => {
+      var x1 = new GameEngine()
+      x1.element = new EventTarget()
+
+      expect(() => x1._bindMouseWheel()).not.toThrow()
+    })
+
     it('should use addEventListener if defined on element', () => {
       var x1 = new GameEngine({ enableScroll: false, enableZoom: false })
       var ele = generateSpyObject(['addEventListener'])
@@ -89,20 +96,7 @@ describe('Entity', () => {
       expect(ele.addEventListener).toHaveBeenCalledWith('mouseup', jasmine.any(Function))
     })
 
-    it('should use attachEvent if defined on element', () => {
-      var x1 = new GameEngine({ enableScroll: false, enableZoom: false })
-      var ele = generateSpyObject(['attachEvent'])
-
-      x1.element = ele
-
-      x1._bindMouseWheel()
-
-      expect(ele.attachEvent).toHaveBeenCalledWith('mousemove', jasmine.any(Function), false)
-      expect(ele.attachEvent).toHaveBeenCalledWith('mousedown', jasmine.any(Function))
-      expect(ele.attachEvent).toHaveBeenCalledWith('mouseup', jasmine.any(Function))
-    })
-
-    it('should bind mousewheel and DOMMouseScroll if enableScroll and enableZoom are true', () => {
+    it('should bind wheel if enableScroll and enableZoom are true', () => {
       var x1 = new GameEngine({ enableScroll: true, enableZoom: true })
       var ele = generateSpyObject(['addEventListener'])
 
@@ -110,8 +104,7 @@ describe('Entity', () => {
 
       x1._bindMouseWheel()
 
-      expect(ele.addEventListener).toHaveBeenCalledWith('mousewheel', jasmine.any(Function), false)
-      expect(ele.addEventListener).toHaveBeenCalledWith('DOMMouseScroll', jasmine.any(Function), false)
+      expect(ele.addEventListener).toHaveBeenCalledWith('wheel', jasmine.any(Function), { passive: false })
     })
 
     it('should call correct ongoing functions on events', () => {
@@ -137,15 +130,13 @@ describe('Entity', () => {
   })
 
   describe('init', () => {
-    it('should log debug and call callback', () => {
+    it('should call callback', () => {
       var x1 = new GameEngine()
       var cb = generateSpyObject(['callback'])
 
-      spyOn(console, 'debug')
       x1.init(cb.callback)
 
       expect(cb.callback).toHaveBeenCalledWith()
-      expect(console.debug).toHaveBeenCalledWith('init')
     })
   })
 
@@ -220,27 +211,10 @@ describe('Entity', () => {
     })
   })
 
-  describe('redraw', () => {
-    it('should set _doredraw and call redrawScenes and redrawEntities', () => {
-      var x1 = new GameEngine()
-
-      spyOn(x1, 'redrawScenes')
-      spyOn(x1, 'redrawEntities')
-
-      x1.redraw()
-
-      expect(x1._doredraw).toBeTruthy()
-
-      expect(x1.redrawScenes).toHaveBeenCalledWith()
-      expect(x1.redrawEntities).toHaveBeenCalledWith()
-    })
-  })
-
   describe('recomputeFullScreen', () => {
     it('should reset width and height from element, redraw and trigger resize', () => {
       var x1 = new GameEngine()
 
-      spyOn(x1, 'redraw')
       spyOn(x1, 'trigger')
 
       x1.window = { innerWidth: 789, innerHeight: 1112 }
@@ -252,7 +226,6 @@ describe('Entity', () => {
       expect(x1.width).toEqual(263)
       expect(x1.height).toEqual(371)
 
-      expect(x1.redraw).toHaveBeenCalledWith()
       expect(x1.trigger).toHaveBeenCalledWith('resize', x1)
     })
   })
@@ -298,6 +271,17 @@ describe('Entity', () => {
   })
 
   describe('_enforceScrollLimits', () => {
+    it('should enforce limits of zero', () => {
+      var x1 = new GameEngine({ minX: 0, minY: 0 })
+      x1.x = -10
+      x1.y = -20
+
+      x1._enforceScrollLimits()
+
+      expect(x1.x).toEqual(0)
+      expect(x1.y).toEqual(0)
+    })
+
     it('should reset x and y coordinates to minimums respecting scale', () => {
       var x1 = new GameEngine()
 
@@ -338,7 +322,6 @@ describe('Entity', () => {
       var x1 = new GameEngine()
 
       spyOn(x1, '_setMouseCoords')
-      spyOn(x1, 'redraw')
       spyOn(x1, 'trigger')
 
       var e = generateSpyObject(['preventDefault', 'stopPropagation'])
@@ -346,7 +329,6 @@ describe('Entity', () => {
       x1._move(e)
 
       expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
-      expect(x1.redraw).toHaveBeenCalledWith()
       expect(x1.trigger).toHaveBeenCalledWith('mousemove', x1, e)
 
       expect(e.preventDefault).toHaveBeenCalledWith()
@@ -369,6 +351,16 @@ describe('Entity', () => {
 
       expect(x1.mouseX).toEqual(-30)
       expect(x1.mouseY).toEqual(-10)
+    })
+
+    it('should map client coordinates to canvas pixels when the canvas is offset and scaled by CSS', () => {
+      var x1 = new GameEngine()
+      x1.element = { width: 640, height: 400, getBoundingClientRect: () => ({ left: 100, top: 50, width: 1280, height: 800 }) }
+
+      x1._setMouseCoords({ clientX: 740, clientY: 450, x: 740, y: 450 })
+
+      expect(x1.mouseX).toEqual(320)
+      expect(x1.mouseY).toEqual(200)
     })
   })
 
@@ -454,21 +446,18 @@ describe('Entity', () => {
       })
 
       x1.element = { getContext: () => {}, width: 200, height: 300 }
-      x1._doredraw = true
       x1.running = true
 
       spyOn(x1.element, 'getContext').and.returnValue(context)
 
-      addSpies(x1, ['redraw', 'sortScenesZ', 'sortEntitiesZ', 'drawScenes', 'drawEntities'])
+      addSpies(x1, ['update', 'sortScenesZ', 'drawScenes', 'drawEntities'])
 
       var f
       spyOn(window, 'requestAnimationFrame').and.callFake((fn) => { f = fn })
 
       x1._tick()
 
-      expect(x1.redraw).toHaveBeenCalledWith()
       expect(x1.sortScenesZ).toHaveBeenCalledWith()
-      expect(x1.sortEntitiesZ).toHaveBeenCalledWith()
       expect(x1.drawScenes).toHaveBeenCalledWith(context)
       expect(x1.drawEntities).toHaveBeenCalledWith(context)
 
@@ -481,7 +470,7 @@ describe('Entity', () => {
       expect(window.requestAnimationFrame).toHaveBeenCalledWith(jasmine.any(Function), 0)
     })
 
-    it('should not call sortScenesZ or sortEntitiesZ if order maps exist', () => {
+    it('should not call sortScenesZ if order maps exist', () => {
       var context = generateSpyObject(['save', 'fillRect', 'scale', 'translate', 'restore'])
 
       var x1 = new GameEngine({
@@ -496,19 +485,16 @@ describe('Entity', () => {
       })
 
       x1.element = { getContext: () => {}, width: 200, height: 300 }
-      x1._doredraw = true
 
       x1._sceneOrderMap = {}
-      x1._entityOrderMap = {}
 
       spyOn(x1.element, 'getContext').and.returnValue(context)
 
-      addSpies(x1, ['redraw', 'sortScenesZ', 'sortEntitiesZ', 'drawScenes', 'drawEntities'])
+      addSpies(x1, ['update', 'sortScenesZ', 'drawScenes', 'drawEntities'])
 
       x1._tick()
 
       expect(x1.sortScenesZ).not.toHaveBeenCalledWith()
-      expect(x1.sortEntitiesZ).not.toHaveBeenCalledWith()
     })
 
     it('should call _drawHUD if showHUD is set', () => {
@@ -527,18 +513,135 @@ describe('Entity', () => {
       })
 
       x1.element = { getContext: () => {}, width: 200, height: 300 }
-      x1._doredraw = true
 
       x1._sceneOrderMap = {}
-      x1._entityOrderMap = {}
 
       spyOn(x1.element, 'getContext').and.returnValue(context)
 
-      addSpies(x1, ['redraw', 'sortScenesZ', 'sortEntitiesZ', 'drawScenes', 'drawEntities', '_drawHUD'])
+      addSpies(x1, ['update', 'sortScenesZ', 'drawScenes', 'drawEntities', '_drawHUD'])
 
       x1._tick()
 
       expect(x1._drawHUD).toHaveBeenCalledWith(context)
+    })
+  })
+
+  describe('steps', () => {
+    var x1, context
+    beforeEach(() => {
+      context = generateSpyObject(['save', 'fillRect', 'scale', 'translate', 'restore'])
+      x1 = new GameEngine()
+      x1.element = { getContext: () => context, width: 200, height: 300 }
+      addSpies(x1, ['drawScenes', 'drawEntities'])
+    })
+
+    it('should run fixed steps for the time since the last frame, carrying the remainder', () => {
+      spyOn(x1, 'update')
+      spyOn(Date, 'now').and.returnValues(1000, 1040, 1050)
+      x1._tick()
+      expect(x1.update).not.toHaveBeenCalled()
+      x1._tick()
+      expect(x1.update.calls.count()).toEqual(2)
+      expect(x1.update.calls.argsFor(0)).toEqual([1 / 60])
+      x1._tick()
+      expect(x1.update.calls.count()).toEqual(3)
+    })
+
+    it('should catch up at most a quarter of a second', () => {
+      spyOn(x1, 'update')
+      spyOn(Date, 'now').and.returnValues(1000, 9000)
+      x1._tick()
+      x1._tick()
+      expect(x1.update.calls.count()).toEqual(15)
+    })
+
+    it('should follow the step rate', () => {
+      x1.stepRate = 30
+      spyOn(x1, 'update')
+      x1.step()
+      expect(x1.update).toHaveBeenCalledWith(1 / 30)
+    })
+
+    it('should sample input, update, run timers, then animate, in each step', () => {
+      var order = []
+      spyOn(x1.input, 'beginStep').and.callFake(() => order.push('input'))
+      spyOn(x1, 'update').and.callFake(() => order.push('update'))
+      x1.after(0, () => order.push('timer'))
+      spyOn(x1, 'animateScenes').and.callFake((ms) => order.push('scenes ' + Math.round(ms)))
+      spyOn(x1, 'animateEntities').and.callFake((ms) => order.push('entities ' + Math.round(ms)))
+      x1.step()
+      expect(order).toEqual(['input', 'update', 'timer', 'scenes 17', 'entities 17'])
+    })
+
+    it('should count game time', () => {
+      x1.step()
+      x1.step()
+      expect(x1.time).toBeCloseTo(2 / 60, 9)
+    })
+  })
+
+  describe('timers', () => {
+    var x1
+    beforeEach(() => { x1 = new GameEngine() })
+
+    it('should call a function after some game time', () => {
+      var fn = jasmine.createSpy('fn')
+      x1.after(0.05, fn)
+      x1.step(); x1.step()
+      expect(fn).not.toHaveBeenCalled()
+      x1.step()
+      expect(fn).toHaveBeenCalled()
+    })
+
+    it('should call a function repeatedly', () => {
+      var fn = jasmine.createSpy('fn')
+      x1.every(0.1, fn)
+      for (var i = 0; i < 30; i++) x1.step()
+      expect(fn.calls.count()).toEqual(5)
+    })
+
+    it('should cancel a timer, and all timers', () => {
+      var a = jasmine.createSpy('a')
+      var b = jasmine.createSpy('b')
+      x1.after(0.01, a).cancel()
+      x1.every(0.01, b)
+      x1.clearTimers()
+      for (var i = 0; i < 5; i++) x1.step()
+      expect(a).not.toHaveBeenCalled()
+      expect(b).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('modes', () => {
+    it('should exit the old mode and enter the new one, passing the old one', () => {
+      var x1 = new GameEngine()
+      var a = { exit: jasmine.createSpy('exit') }
+      var b = { enter: jasmine.createSpy('enter') }
+      x1.setMode(a)
+      x1.setMode(b)
+      expect(a.exit).toHaveBeenCalled()
+      expect(b.enter).toHaveBeenCalledWith(a)
+      expect(x1.mode).toBe(b)
+    })
+
+    it('should update the mode each step by default', () => {
+      var x1 = new GameEngine()
+      var mode = { update: jasmine.createSpy('update') }
+      x1.setMode(mode)
+      x1.step()
+      expect(mode.update).toHaveBeenCalledWith(1 / 60)
+    })
+
+    it('should draw the mode over the scenes', () => {
+      var context = generateSpyObject(['save', 'fillRect', 'scale', 'translate', 'restore'])
+      var x1 = new GameEngine()
+      x1.element = { width: 10, height: 10 }
+      var order = []
+      spyOn(x1, 'drawScenes').and.callFake(() => order.push('scenes'))
+      spyOn(x1, 'drawEntities').and.callFake(() => order.push('entities'))
+      x1.setMode({ draw: () => order.push('mode') })
+      x1.draw(context)
+      expect(order).toEqual(['scenes', 'entities', 'mode'])
     })
   })
 
@@ -557,7 +660,7 @@ describe('Entity', () => {
         enableScroll: false
       })
 
-      addSpies(x1, ['_enforceScrollLimits', '_setMouseCoords', 'redraw'])
+      addSpies(x1, ['_enforceScrollLimits', '_setMouseCoords'])
 
       var e = generateSpyObject(['preventDefault', 'stopPropagation'])
 
@@ -568,7 +671,6 @@ describe('Entity', () => {
 
       expect(x1._enforceScrollLimits).toHaveBeenCalledWith()
       expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
-      expect(x1.redraw).toHaveBeenCalledWith()
 
       expect(e.preventDefault).toHaveBeenCalledWith()
       expect(e.stopPropagation).toHaveBeenCalledWith()
@@ -594,7 +696,7 @@ describe('Entity', () => {
       x1.width = 400
       x1.height = 500
 
-      addSpies(x1, ['_enforceScrollLimits', '_setMouseCoords', 'redraw'])
+      addSpies(x1, ['_enforceScrollLimits', '_setMouseCoords'])
 
       var e = generateSpyObject(['preventDefault', 'stopPropagation'])
 
@@ -606,7 +708,6 @@ describe('Entity', () => {
 
       expect(x1._enforceScrollLimits).toHaveBeenCalledWith()
       expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
-      expect(x1.redraw).toHaveBeenCalledWith()
 
       expect(e.preventDefault).toHaveBeenCalledWith()
       expect(e.stopPropagation).toHaveBeenCalledWith()
@@ -634,7 +735,7 @@ describe('Entity', () => {
       x1.width = 400
       x1.height = 500
 
-      addSpies(x1, ['_enforceScrollLimits', '_setMouseCoords', 'redraw'])
+      addSpies(x1, ['_enforceScrollLimits', '_setMouseCoords'])
 
       var e = generateSpyObject(['preventDefault', 'stopPropagation'])
 
@@ -646,7 +747,6 @@ describe('Entity', () => {
 
       expect(x1._enforceScrollLimits).toHaveBeenCalledWith()
       expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
-      expect(x1.redraw).toHaveBeenCalledWith()
 
       expect(e.preventDefault).toHaveBeenCalledWith()
       expect(e.stopPropagation).toHaveBeenCalledWith()
@@ -674,7 +774,7 @@ describe('Entity', () => {
       x1.width = 400
       x1.height = 500
 
-      addSpies(x1, ['_enforceScrollLimits', '_setMouseCoords', 'redraw'])
+      addSpies(x1, ['_enforceScrollLimits', '_setMouseCoords'])
 
       var e = generateSpyObject(['preventDefault', 'stopPropagation'])
 
@@ -686,7 +786,6 @@ describe('Entity', () => {
 
       expect(x1._enforceScrollLimits).toHaveBeenCalledWith()
       expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
-      expect(x1.redraw).toHaveBeenCalledWith()
 
       expect(e.preventDefault).toHaveBeenCalledWith()
       expect(e.stopPropagation).toHaveBeenCalledWith()
@@ -713,7 +812,7 @@ describe('Entity', () => {
       x1.width = 400
       x1.height = 500
 
-      addSpies(x1, ['_enforceScrollLimits', '_setMouseCoords', 'redraw'])
+      addSpies(x1, ['_enforceScrollLimits', '_setMouseCoords'])
 
       var e = generateSpyObject(['preventDefault', 'stopPropagation'])
 
@@ -724,7 +823,6 @@ describe('Entity', () => {
 
       expect(x1._enforceScrollLimits).toHaveBeenCalledWith()
       expect(x1._setMouseCoords).toHaveBeenCalledWith(e)
-      expect(x1.redraw).toHaveBeenCalledWith()
 
       expect(e.preventDefault).toHaveBeenCalledWith()
       expect(e.stopPropagation).toHaveBeenCalledWith()
@@ -738,7 +836,7 @@ describe('Entity', () => {
     it('should correctly call methods', () => {
       var x1 = new GameEngine()
 
-      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick', 'redraw'])
+      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick'])
 
       x1.loadAssets.and.callFake((f) => { f() })
       x1.loadAudio.and.callFake((f) => { f() })
@@ -749,7 +847,7 @@ describe('Entity', () => {
 
       spyOn(console, 'debug')
       var fn
-      spyOn(global, 'setImmediate').and.callFake((f) => { fn = f })
+      spyOn(global, 'setTimeout').and.callFake((f) => { fn = f })
 
       x1.start(cb.callback)
 
@@ -761,11 +859,10 @@ describe('Entity', () => {
       expect(console.debug).toHaveBeenCalledWith('starting')
       expect(console.debug).toHaveBeenCalledWith('started')
 
-      expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 0)
 
       fn()
       expect(x1._tick).toHaveBeenCalledWith()
-      expect(x1.redraw).toHaveBeenCalledWith()
 
       expect(cb.callback).toHaveBeenCalledWith()
     })
@@ -773,7 +870,7 @@ describe('Entity', () => {
     it('should correctly call methods with no callback', () => {
       var x1 = new GameEngine()
 
-      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick', 'redraw'])
+      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick'])
 
       x1.loadAssets.and.callFake((f) => { f() })
       x1.loadAudio.and.callFake((f) => { f() })
@@ -782,7 +879,7 @@ describe('Entity', () => {
 
       spyOn(console, 'debug')
       var fn
-      spyOn(global, 'setImmediate').and.callFake((f) => { fn = f })
+      spyOn(global, 'setTimeout').and.callFake((f) => { fn = f })
 
       x1.start()
 
@@ -794,17 +891,16 @@ describe('Entity', () => {
       expect(console.debug).toHaveBeenCalledWith('starting')
       expect(console.debug).toHaveBeenCalledWith('started')
 
-      expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 0)
 
       fn()
       expect(x1._tick).toHaveBeenCalledWith()
-      expect(x1.redraw).toHaveBeenCalledWith()
     })
 
     it('should call error if subinit calls back error', () => {
       var x1 = new GameEngine()
 
-      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick', 'redraw'])
+      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick'])
 
       x1.loadAssets.and.callFake((f) => { f() })
       x1.loadAudio.and.callFake((f) => { f() })
@@ -814,7 +910,7 @@ describe('Entity', () => {
       spyOn(console, 'debug')
       spyOn(console, 'error')
       var fn
-      spyOn(global, 'setImmediate').and.callFake((f) => { fn = f })
+      spyOn(global, 'setTimeout').and.callFake((f) => { fn = f })
 
       x1.start()
 
@@ -827,7 +923,7 @@ describe('Entity', () => {
       expect(console.debug).not.toHaveBeenCalledWith('started')
       expect(console.error).toHaveBeenCalledWith('error while starting', 'ERROR')
 
-      expect(global.setImmediate).not.toHaveBeenCalledWith()
+      expect(global.setTimeout).not.toHaveBeenCalled()
 
       expect(x1.fn).toBeUndefined()
     })
@@ -835,7 +931,7 @@ describe('Entity', () => {
     it('should call error if subinit calls back error and call callback', () => {
       var x1 = new GameEngine()
 
-      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick', 'redraw'])
+      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick'])
 
       x1.loadAssets.and.callFake((f) => { f() })
       x1.loadAudio.and.callFake((f) => { f() })
@@ -845,7 +941,7 @@ describe('Entity', () => {
       spyOn(console, 'debug')
       spyOn(console, 'error')
       var fn
-      spyOn(global, 'setImmediate').and.callFake((f) => { fn = f })
+      spyOn(global, 'setTimeout').and.callFake((f) => { fn = f })
 
       var cb = generateSpyObject(['callback'])
       x1.start(cb.callback)
@@ -859,36 +955,36 @@ describe('Entity', () => {
       expect(console.debug).not.toHaveBeenCalledWith('started')
       expect(console.error).toHaveBeenCalledWith('error while starting', 'ERROR')
 
-      expect(global.setImmediate).not.toHaveBeenCalledWith()
+      expect(global.setTimeout).not.toHaveBeenCalled()
 
       expect(x1.fn).toBeUndefined()
 
       expect(cb.callback).toHaveBeenCalledWith('ERROR')
     })
 
-    it('should should set document.onkeyup callback if processKey', () => {
-      var x1 = new GameEngine()
-
-      x1.processKey = () => {}
-
-      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick', 'redraw', 'processKey'])
-
-      x1.loadAssets.and.callFake((f) => { f() })
-      x1.loadAudio.and.callFake((f) => { f() })
-      x1.bootElement.and.callFake((f) => { f() })
-      x1.init.and.callFake((f) => { f('ERROR') })
-
+    it('should start when init takes no callback, or returns a promise', (done) => {
+      var plain = new GameEngine()
+      var later = new GameEngine()
+      for (var x of [plain, later]) addSpies(x, ['loadAssets', 'loadAudio', 'bootElement', '_tick'])
+      for (var y of [plain, later]) {
+        // The first frame runs after this spec, with the spies gone, so give it something to draw on
+        y.element = { width: 1, height: 1, getContext: () => generateSpyObject(['save', 'fillRect', 'scale', 'translate', 'restore']) }
+        y.loadAssets.and.callFake((f) => f())
+        y.loadAudio.and.callFake((f) => f())
+        y.bootElement.and.callFake((f) => f())
+      }
+      plain.init = function () {}
+      later.init = async function () { await Promise.resolve() }
       spyOn(console, 'debug')
-      spyOn(console, 'error')
-      spyOn(global, 'setImmediate')
-
-      var cb = generateSpyObject(['callback'])
-      x1.start(cb.callback)
-
-      expect(document.onkeyup).toEqual(jasmine.any(Function))
-
-      document.onkeyup('key')
-      expect(x1.processKey).toHaveBeenCalledWith('key')
+      plain.start(() => {
+        expect(plain.running).toBe(true)
+        later.start(() => {
+          expect(later.running).toBe(true)
+          plain.stop()
+          later.stop()
+          done()
+        })
+      })
     })
   })
 })

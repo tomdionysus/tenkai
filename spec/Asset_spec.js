@@ -45,9 +45,9 @@ describe('Asset', () => {
       var x1 = new Asset({ src: 'SOURCE' })
 
       x1.load(cb.cb)
-      ele.onload({ returnValue: false })
+      ele.onerror()
 
-      expect(cb.cb).toHaveBeenCalledWith(false, x1)
+      expect(cb.cb).toHaveBeenCalledWith(new Error('Asset failed to load: SOURCE'), x1)
     })
   })
 })

@@ -1,4 +1,5 @@
 global.document = {
+  addEventListener: () => {},
   createElement: () => {
     return {
       onload: () => {},

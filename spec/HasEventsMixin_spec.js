@@ -111,6 +111,20 @@ describe('HasEventsMixin', () => {
   })
 
   describe('trigger', () => {
+    it('should call every listener once when several are bound', () => {
+      x1.defineEvent('multi')
+      var calls = []
+      var fns = []
+      x1.on('multi', (v) => calls.push('A' + v))
+      x1.on('multi', (v) => calls.push('B' + v))
+      spyOn(global, 'setTimeout').and.callFake((fn) => { fns.push(fn) })
+
+      x1.trigger('multi', 1)
+      fns.forEach((fn) => fn())
+
+      expect(calls).toEqual(['A1', 'B1'])
+    })
+
     it('should throw on bad event', () => {
       expect(function () { x1.trigger('bad') }).toThrow('trigger: no such event bad')
     })
@@ -122,10 +136,10 @@ describe('HasEventsMixin', () => {
       spyOn(cb, 'callback')
 
       x1.on('test', cb.callback)
-      spyOn(global, 'setImmediate').and.callFake((fn) => { f = fn })
+      spyOn(global, 'setTimeout').and.callFake((fn) => { f = fn })
       x1.trigger('test', { one: 1 }, 2)
 
-      expect(global.setImmediate).toHaveBeenCalledWith(jasmine.any(Function))
+      expect(global.setTimeout).toHaveBeenCalledWith(jasmine.any(Function), 0)
       f()
       expect(cb.callback).toHaveBeenCalledWith({ one: 1 }, 2)
     })

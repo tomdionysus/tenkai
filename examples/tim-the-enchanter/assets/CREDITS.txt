@@ -1,0 +1,27 @@
+Tim the Enchanter - asset credits
+
+tileset_dungeon.png
+  Art by Stephen Challener (Redshrike), commissioned by OpenGameArt.org.
+  "16x16 Indoor RPG Tileset: The Baseline"
+  https://opengameart.org/content/16x16-indoor-rpg-tileset-the-baseline
+  Licensed CC-BY 3.0 / OGA-BY 3.0. Scaled to 64x64 tiles, with editor marker tiles added.
+
+gallagher.png
+  Gallagher the cat, by Elizabeth Gray.
+  https://www.pinterest.nz/pin/280560251767070376
+  Scaled to 64x64 frames.
+
+catdog.png
+  Cat and dog sprites by Cait.
+  "Updated Cat & Dog Sprites", RPG Maker Central
+  https://www.rpgmakercentral.com/topic/24679-updated-cat-dog-sprites
+
+animals.png
+  Animal sprites in the same style, including Cait's cat and dog. Brought over from the original
+  Tim the Enchanter project, which did not record the source of the other animals.
+
+tileset_world.png
+  World map tileset, brought over from the original Tim the Enchanter project, which did not record
+  its source.
+
+All are open assets, used here with credit. The game, its design and the map are by Tom Cully.

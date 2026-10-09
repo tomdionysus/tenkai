@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Arkanoid - Tenkai Example</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #0b1a2b;
+    }
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Scale the 640x720 canvas to fit the window, keeping its aspect ratio */
+    canvas.gamescreen {
+      display: block;
+      height: min(100vh, 720px, 112.5vw);
+      width: auto;
+      aspect-ratio: 8 / 9;
+    }
+  </style>
+</head>
+<body>
+  <div id="game" width="640" height="720"></div>
+  <script src="bundle.js"></script>
+</body>
+</html>

@@ -28,6 +28,7 @@ describe('Audio', () => {
       expect(ele.appendChild).toHaveBeenCalledWith(ele)
 
       expect(x1.element).toBe(ele)
+      expect(ele.preload).toEqual('auto')
 
       expect(ele.src).toEqual('SOURCE')
       expect(ele.type).toEqual('TYPE')
@@ -39,6 +40,24 @@ describe('Audio', () => {
   })
 
   describe('play', () => {
+    it('should ignore AbortError from an interrupted play() but report other errors', (done) => {
+      var x1 = new Audio({})
+      var aborted = Promise.reject(Object.assign(new Error('interrupted'), { name: 'AbortError' }))
+      var failed = Promise.reject(Object.assign(new Error('not allowed'), { name: 'NotAllowedError' }))
+      x1.element = { play: () => aborted }
+      spyOn(console, 'error')
+
+      x1.play()
+      x1.element = { play: () => failed }
+      x1.play()
+
+      setTimeout(() => {
+        expect(console.error).toHaveBeenCalledTimes(1)
+        expect(console.error.calls.argsFor(0)[1].name).toEqual('NotAllowedError')
+        done()
+      }, 0)
+    })
+
     it('should call play on element', () => {
       var ele = { play: () => {} }
       spyOn(ele, 'play')
@@ -347,6 +366,19 @@ describe('Audio', () => {
 
       expect(ele.pause).not.toHaveBeenCalledWith()
       expect(ele.currentTime).toEqual(1.5)
+    })
+
+    it('should loop to the beginning when no startTime is set', () => {
+      var ele = { pause: () => {}, currentTime: 3 }
+
+      var x1 = new Audio()
+      x1.element = ele
+      x1.endTime = 3000
+      x1.loop = true
+
+      x1._ontimeupdate()
+
+      expect(ele.currentTime).toEqual(0)
     })
 
     it('should do nothing if currentTime is not greater than endTime and loop', () => {

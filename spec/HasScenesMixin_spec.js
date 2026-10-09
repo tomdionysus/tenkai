@@ -36,13 +36,33 @@ describe('HasScenesMixin', () => {
 
     it('should call removeScene on scene parent if it is already defined', () => {
       var oldcontainer = { removeScene: () => {} }
-      var ent = { scene: 'SCENE', parent: oldcontainer }
+      var ent = { scene: 'SCENE', name: 'OLDNAME', parent: oldcontainer }
 
       spyOn(oldcontainer, 'removeScene')
 
       x1.addScene('NAME', ent)
 
-      expect(oldcontainer.removeScene).toHaveBeenCalledWith('NAME')
+      expect(oldcontainer.removeScene).toHaveBeenCalledWith('OLDNAME')
+      expect(x1.getScene('NAME')).toBe(ent)
+    })
+
+    it('should keep the scene when re-added to the same container', () => {
+      var ent = { scene: 'SCENE' }
+
+      x1.addScene('NAME', ent)
+      x1.addScene('NAME', ent)
+
+      expect(x1.getScene('NAME')).toBe(ent)
+    })
+
+    it('should reset the scene order so the new scene is drawn', () => {
+      x1._sceneOrder = []
+      x1._sceneOrderMap = {}
+
+      x1.addScene('NAME', { scene: 'SCENE' })
+
+      expect(x1._sceneOrder).toBeNull()
+      expect(x1._sceneOrderMap).toBeNull()
     })
   })
 
@@ -73,15 +93,6 @@ describe('HasScenesMixin', () => {
       x1.removeScene('NAME')
 
       expect(x1._scenes.NAME).toBeUndefined()
-    })
-
-    it('should call redraw if defined on container', () => {
-      x1.redraw = () => {}
-      spyOn(x1, 'redraw')
-
-      x1.removeScene('NAME')
-
-      expect(x1.redraw).toHaveBeenCalledWith()
     })
   })
 
@@ -174,7 +185,7 @@ describe('HasScenesMixin', () => {
   })
 
   describe('sortScenesZ', () => {
-    it('should set _sceneOrder and _sceneOrderMap to correct values ', () => {
+    it('should set _sceneOrder and _sceneOrderMap to correct values, keeping the order of equal z', () => {
       var ent1 = { scene: 'SCENE1', redraw: () => {}, z: 22 }
       var ent2 = { scene: 'SCENE2', redraw: () => {}, z: 0 }
       var ent3 = { scene: 'SCENE3', redraw: () => {}, z: 4 }
@@ -189,30 +200,13 @@ describe('HasScenesMixin', () => {
 
       x1.sortScenesZ()
 
-      expect(x1._sceneOrder).toEqual([ent2, ent5, ent4, ent3, ent1])
+      expect(x1._sceneOrder).toEqual([ent2, ent4, ent5, ent3, ent1])
       expect(x1._sceneOrderMap).toEqual({
-        2: [ent5, ent4],
+        2: [ent4, ent5],
         22: [ent1],
         0: [ent2],
         4: [ent3]
       })
-    })
-  })
-
-  describe('redrawScenes', () => {
-    it('should call redraw on all _scenes', () => {
-      var ent1 = { scene: 'SCENE1', redraw: () => {} }
-      var ent2 = { scene: 'SCENE2', redraw: () => {} }
-
-      x1._scenes.NAME1 = ent1
-      x1._scenes.NAME2 = ent2
-      spyOn(ent1, 'redraw')
-      spyOn(ent2, 'redraw')
-
-      x1.redrawScenes('NAME')
-
-      expect(ent1.redraw).toHaveBeenCalledWith()
-      expect(ent2.redraw).toHaveBeenCalledWith()
     })
   })
 })

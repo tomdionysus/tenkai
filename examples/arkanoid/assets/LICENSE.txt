@@ -1,0 +1,8 @@
+Sprites from "Puzzle Game Art" by Kenney Vleugels (www.kenney.nl)
+https://opengameart.org/content/puzzle-game-art
+
+License: CC0 1.0 Universal (public domain dedication)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+From the pack's readme: "You may use these graphics in personal and commercial projects.
+Credit (www.kenney.nl) would be nice but is not mandatory."

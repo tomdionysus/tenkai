@@ -42,6 +42,13 @@ describe('sortBy', () => {
     var r4 = { o: 6 }
     expect(Util.sortBy([r1, r2, r3, r4], 'o')).toEqual([r3, r2, r1, r4])
   })
+
+  it('should keep the order of objects with equal values', () => {
+    var list = []
+    for (var i = 0; i < 20; i++) list.push({ o: i % 2, i })
+    var sorted = Util.sortBy(list.slice(), 'o')
+    expect(sorted.map((x) => x.i)).toEqual([0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19])
+  })
 })
 
 describe('delay', () => {
