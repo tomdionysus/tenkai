@@ -201,6 +201,18 @@ describe('Entity', () => {
       expect(e.tile).toEqual([1, 1])
     })
 
+    it('should start a stopped clip again when it is asked for', () => {
+      e.play('walk')
+      e.animate(150)
+      e.stop()
+      e.tile = [9, 9]
+      e.play('walk')
+      expect(e.animating).toBe(true)
+      expect(e.tile).toEqual([0, 1])
+      e.animate(100)
+      expect(e.tile).toEqual([1, 1])
+    })
+
     it('should play a clip again once it has completed', () => {
       e.play('die')
       e.animate(300)
