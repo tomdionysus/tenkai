@@ -21,7 +21,8 @@ Then open http://localhost:8048.
 
 | Key | Play | Editor |
 |-----|------|--------|
-| Arrow keys | Walk (hold to keep walking); walk into a chair to hop onto its seat | Move the cursor (or click a cell) |
+| Arrow keys | Walk (hold to keep walking); walk off something to hop down | Move the cursor (or click a cell) |
+| Space | Jump up onto a chair, the bed or a table, the way he faces or the arrow held | |
 | Tab | Open the editor | Back to the game |
 | Q / E | | Previous / next layer |
 | A / D, W / S | | Step the tile in this layer across / down the tileset |
@@ -36,8 +37,8 @@ save it with Z and paste the JSON from the console into `map.json`.
 
 ## What it shows
 
-- `TiledScene` in depth: Gallagher passes behind the chairs and tables, hops onto a seat and stays behind
-  its back, and walks in front of them, with no drawing code of his own.
+- `TiledScene` in depth: Gallagher passes behind and in front of the furniture, and jumps up onto chairs,
+  the bed and the tables, with no drawing code of his own.
 - A tileset described as data (`assets/tileset_dungeon.json`): which tiles are flat and which upright, how
   high each is, which row its object stands in, which are solid, and the furniture as whole objects.
 - A map that is plain data (`map.json`), with solidity coming from the tiles.

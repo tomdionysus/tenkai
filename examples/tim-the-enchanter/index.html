@@ -173,7 +173,7 @@
 
   <div class="bar">
     <button type="button" id="mode" aria-pressed="false">Open the map editor</button>
-    <span class="mode-note" id="mode-note">Walk into a chair to hop onto it, or find a way out.</span>
+    <span class="mode-note" id="mode-note">Space jumps up onto the chairs, the bed and the tables.</span>
   </div>
 
   <div class="pad" aria-label="Walk">
@@ -191,6 +191,7 @@
           <thead><tr><th>Key</th><th>Walking</th><th>Map editor</th></tr></thead>
           <tbody>
             <tr><td><kbd>Arrows</kbd></td><td>Walk; hold to keep going</td><td>Move the cursor, or click a cell</td></tr>
+            <tr><td><kbd>Space</kbd></td><td>Jump up onto a chair, the bed or a table</td><td></td></tr>
             <tr><td><kbd>Tab</kbd></td><td>Open the editor</td><td>Back to walking</td></tr>
             <tr><td><kbd>Q</kbd> <kbd>E</kbd></td><td></td><td>Previous or next tile layer</td></tr>
             <tr><td><kbd>A</kbd> <kbd>D</kbd> <kbd>W</kbd> <kbd>S</kbd></td><td></td><td>Step the cell's tile through the tileset</td></tr>
@@ -235,7 +236,7 @@
       modeButton.textContent = editing ? 'Back to walking' : 'Open the map editor'
       modeNote.textContent = editing
         ? 'Solid cells show red and doors green. Click a cell to select it.'
-        : 'Walk into a chair to hop onto it, or find a way out.'
+        : 'Space jumps up onto the chairs, the bed and the tables.'
     }
     modeButton.addEventListener('click', function () {
       if (!window.game || !window.game.running) return

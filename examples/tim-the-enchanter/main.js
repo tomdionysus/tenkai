@@ -19,7 +19,7 @@ const SAVE_KEY = 'tenkai-tim-the-enchanter-map'
 
 /**
  * Tim the Enchanter: Gallagher the cat explores a dungeon room, one tile at a time. The room is a
- * depth-sorted TiledScene, so Gallagher passes behind the chairs and tables, and can hop up onto a seat.
+ * depth-sorted TiledScene, so Gallagher passes behind and in front of the furniture, and jumps up onto it.
  * Tab switches to the map editor.
  */
 class TimTheEnchanter extends GameEngine {
@@ -28,7 +28,7 @@ class TimTheEnchanter extends GameEngine {
       enableScroll: false,
       enableZoom: false,
       pixelated: true,
-      keys: { up: ['ArrowUp'], down: ['ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'], mode: ['Tab'] }
+      keys: { up: ['ArrowUp'], down: ['ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'], jump: ['Space'], mode: ['Tab'] }
     }, options))
     this.addAsset('dungeon', 'assets/tileset_dungeon.png')
     this.addAsset('gallagher', 'assets/gallagher.png')
@@ -68,8 +68,9 @@ class TimTheEnchanter extends GameEngine {
 
     for (var old of this.torches || []) this.room.removeEntity(old.name)
     this.torches = map.torches.map((t, i) => {
-      // A torch hangs on the face of the wall, so it stands just in front of the wall's base line
-      var torch = new Entity({ sheet: this.dungeon, anchor: [TILE / 2, TILE + 1], x: t.x * TILE + TILE / 2, y: t.y * TILE + TILE + 1 })
+      // A torch hangs on the face of the wall, which stands at the top of its row, so the torch stands just in
+      // front of that line, behind anything on the floor below it
+      var torch = new Entity({ sheet: this.dungeon, anchor: [TILE / 2, 1], x: t.x * TILE + TILE / 2, y: t.y * TILE + 1 })
       this.room.addEntity('torch' + i, torch).play('torch')
       return torch
     })
@@ -123,14 +124,16 @@ class TimTheEnchanter extends GameEngine {
 }
 
 /**
- * Gallagher: which cell he is in, which way he faces, and how high he stands. He moves a cell at a time,
- * walking on the floor and hopping onto and off chair seats.
+ * Gallagher: which cell he is in, which way he faces, and how high he stands. He walks a cell at a time on
+ * the floor, or along the top of something at the same height, and jumps up onto things: a chair seat, the
+ * bed, a table. Walking off something hops him down to the floor.
  */
 class Cat {
   constructor (game, entity) {
     this.game = game
     this.entity = entity
     this.step = null
+    this.height = 0
   }
 
   place (x, y, facing) {
@@ -138,7 +141,8 @@ class Cat {
     this.y = y
     this.facing = facing
     this.step = null
-    this.moveEntity(x, y, this.standingHeight(x, y))
+    this.height = 0
+    this.moveEntity(x, y, 0)
     this.stand()
   }
 
@@ -148,12 +152,16 @@ class Cat {
     this.entity.elevation = Math.round(elevation)
   }
 
-  // How high Gallagher stands in a cell: on the floor, on a seat, or null where he cannot go
-  standingHeight (x, y) {
+  // Whether the floor of a cell is open to walk on
+  floorOpen (x, y) {
+    return !this.game.room.isSolid(x, y)
+  }
+
+  // The height of the lowest thing in a cell he could stand on top of, or null
+  surfaceAt (x, y) {
     var room = this.game.room
-    var seat = room.tilesAt(x, y).map((t) => room.sheet.info(t.tile, t.overrides)).find((info) => info.seat)
-    if (seat) return seat.elevation
-    return room.isSolid(x, y) ? null : 0
+    var heights = room.tilesAt(x, y).map((t) => room.sheet.info(t.tile, t.overrides).surface).filter((h) => h != null)
+    return heights.length ? Math.min(...heights) : null
   }
 
   stand () {
@@ -161,19 +169,32 @@ class Cat {
     this.entity.tile = [1, DIRECTIONS[this.facing].row]
   }
 
-  // Face a direction and step that way if the way is open. Returns whether a step started.
+  // Walk a cell: along the floor, along the top of something at his height, or down off it. Returns whether
+  // a step started.
   go (dir) {
     var d = DIRECTIONS[dir]
     this.facing = dir
-    var toX = this.x + d.dx
-    var toY = this.y + d.dy
-    var to = this.standingHeight(toX, toY)
-    if (to === null) {
-      this.stand()
-      return false
-    }
-    var from = this.standingHeight(this.x, this.y)
-    this.step = { fromX: this.x, fromY: this.y, toX, toY, from, to, t: 0 }
+    var x = this.x + d.dx
+    var y = this.y + d.dy
+    var to = null
+    if (this.height > 0 && this.surfaceAt(x, y) === this.height) to = this.height
+    else if (this.floorOpen(x, y)) to = 0
+    return to === null ? (this.stand(), false) : this.startStep(x, y, to, dir)
+  }
+
+  // Jump a cell: up onto whatever can be stood on there, or down to the floor, or a hop along it
+  jump (dir) {
+    var d = DIRECTIONS[dir]
+    this.facing = dir
+    var x = this.x + d.dx
+    var y = this.y + d.dy
+    var surface = this.surfaceAt(x, y)
+    var to = surface !== null ? surface : (this.floorOpen(x, y) ? 0 : null)
+    return to === null ? (this.stand(), false) : this.startStep(x, y, to, dir, true)
+  }
+
+  startStep (x, y, to, dir, jumping = false) {
+    this.step = { fromX: this.x, fromY: this.y, toX: x, toY: y, from: this.height, to, arc: jumping || to !== this.height, t: 0 }
     this.entity.play(dir)
     return true
   }
@@ -183,11 +204,12 @@ class Cat {
     var s = this.step
     if (!s) return null
     s.t = Math.min(1, s.t + dt / STEP_TIME)
-    var hop = s.from !== s.to ? Math.sin(Math.PI * s.t) * HOP_HEIGHT : 0
+    var hop = s.arc ? Math.sin(Math.PI * s.t) * HOP_HEIGHT : 0
     this.moveEntity(s.fromX + (s.toX - s.fromX) * s.t, s.fromY + (s.toY - s.fromY) * s.t, s.from + (s.to - s.from) * s.t + hop)
     if (s.t < 1) return null
     this.x = s.toX
     this.y = s.toY
+    this.height = s.to
     this.step = null
     return [this.x, this.y]
   }
@@ -197,16 +219,19 @@ class Cat {
 class Play {
   constructor (game) {
     this.game = game
-    this.help = ['Arrow keys: walk', 'Walk into a chair to hop onto it', 'Tab: map editor']
+    this.help = ['Arrow keys: walk', 'Space: jump up onto a chair, the bed or a table', 'Tab: map editor']
   }
 
   enter () {
+    this.jumpWanted = false
     this.game.cat.stand()
   }
 
   update (dt) {
     var game = this.game
     var cat = game.cat
+    // A jump asked for in the middle of a step happens when the step ends
+    if (game.input.pressed('jump')) this.jumpWanted = true
     var arrived = cat.update(dt)
     if (arrived) {
       var trigger = game.map.triggers.find((t) => t.x === arrived[0] && t.y === arrived[1])
@@ -214,8 +239,12 @@ class Play {
     }
     if (cat.step) return
 
-    // Keep walking while an arrow is held; the most recently pressed arrow wins
+    // The most recently pressed arrow that is still held; he keeps walking while it is held
     var dir = game.input.latest('up', 'down', 'left', 'right')
+    if (this.jumpWanted) {
+      this.jumpWanted = false
+      return cat.jump(dir || cat.facing)
+    }
     if (!dir) return cat.stand()
     cat.go(dir)
   }

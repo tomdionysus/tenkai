@@ -110,8 +110,13 @@ as data, grid movement, and modes.
 - Walls and furniture are upright, with an elevation.
 - A chair back, a table top and a bed head stand one row below where they are drawn (`stand: 1`), with
   the seat, legs or foot they belong to.
-- Walls, seats and table legs are solid.
-- Chair seats are marked `seat` for the game.
+- Walls, seats and the bed are solid.
+- The top wall stands at the line along its top (`stand: -1`) and is not solid, so its own row is the floor in
+  front of it: he walks right up against the wall, and the map's edge above holds him in.
+- The bookcase stands on that floor against the wall, and the round table at the line behind its legs, so
+  he walks in front of their lower halves.
+- Things he can stand on carry a `surface` height for the game: chair seats, the bed, the tables, the
+  bench.
 
 It also lists the furniture as objects, and holds the torch's clip. The game spreads it into a `Sheet`.
 
@@ -129,10 +134,15 @@ The torch is an entity standing just in front of the wall's base line, so the wa
 
 **Moving.** Gallagher is a small `Cat` object: which cell he is in, which way he faces, and how high he
 stands. The `Play` mode asks `input.latest('up', 'down', 'left', 'right')` for the most recently pressed
-arrow that is still held, so changing direction mid-walk feels right. `standingHeight` decides where he
-can go: 0 on open floor, the seat's elevation on a chair seat, nowhere if the cell is solid. A step
-glides him to the next cell over `STEP_TIME`, rising in a small arc when the height changes. He keeps
-walking while the arrow is held. Reaching a door shows a message for three seconds, cleared by a timer.
+arrow that is still held, so changing direction mid-walk feels right.
+- **Walking** goes along open floor, or along the top of something at his height, or down off it. It never
+  climbs: walking into furniture just bumps.
+- **Jumping** (Space) goes one cell, up onto the lowest `surface` there, or down to the floor. A press in
+  the middle of a step is kept until the step ends.
+
+A step glides him to the next cell over `STEP_TIME`, rising in a small arc for a jump or a change of
+height. He keeps walking while the arrow is held. Reaching a door shows a message for three seconds,
+cleared by a timer.
 
 **Animation.** The cat's sheet defines a walk clip for each direction, the columns `0, 1, 2, 1` of one row.
 `play(dir)` is called at every step he takes, and since the clip is already playing the walk runs on

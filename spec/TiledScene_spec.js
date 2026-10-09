@@ -178,6 +178,16 @@ describe('TiledScene', () => {
       expect(catAt(380)).toEqual(['128,64@0,256', '128,0@0,192', 'cat'])
     })
 
+    it('should stand a tile with a negative stand on a row above, so a character in its row is in front', () => {
+      sheet.tiles['3,0'] = { elevation: 48, stand: -1 }
+      room.setTile(1, 1, 4, [3, 0])
+      var cat = new Entity({ sheet: new Sheet({ image: { width: 64, height: 64 }, anchor: [32, 64] }), x: 96, y: 320 })
+      cat.draw = () => drawn.push('cat')
+      room.addEntity('cat', cat)
+      room.draw(context)
+      expect(drawn.indexOf('192,0@64,256')).toBeLessThan(drawn.indexOf('cat'))
+    })
+
     it('should redraw changes made with setTile', () => {
       room.draw(context)
       room.setTile(1, 1, 3, [2, 0])

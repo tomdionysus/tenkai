@@ -23,7 +23,7 @@ const dungeon = new Sheet({
     '6,0': { flat: true },                                      // floor
     '0,0': { flat: true, elevation: 1 },                        // rug, over the floor
     '3,2': { elevation: 48, stand: 1 },                         // chair back, belongs to the seat below
-    '3,3': { elevation: 24, solid: true, seat: true }           // chair seat
+    '3,3': { elevation: 24, solid: true, surface: 24 }          // chair seat, something to stand on
   },
   objects: { chair: { tiles: [[3, 2], [3, 3]], anchor: [0, 1] } }
 })
@@ -92,11 +92,11 @@ What a tile is, with defaults filled in. `overrides` replaces the sheet's values
 |-------|---------|---------|
 | `flat` | see below | Lies on the ground, like floor or a rug, and is drawn under everything upright. |
 | `elevation` | `0` | Height in pixels. Among things standing on the same line, lower is drawn first. |
-| `stand` | `0` | How many rows below this tile its object stands. A chair back drawn one row above its seat has `stand: 1`. |
+| `stand` | `0` | How many rows below this tile its object stands. A chair back drawn one row above its seat has `stand: 1`. Negative is above: the lower half of a bookcase against the back wall, drawn over the floor in front, stands at the wall with `stand: -1`, so characters walk in front of it. |
 | `solid` | `false` | Blocks movement. |
 
 A tile is flat unless its description gives `stand` or `elevation`, or says `flat: false`, so a tile with
-no description at all is floor. Any other fields in a description, such as `seat: true`, are passed
-through for the game to use.
+no description at all is floor. Any other fields in a description, such as Tim the Enchanter's `surface: 24`
+for something a character can stand on, are passed through for the game to use.
 
 See [TiledScene](TiledScene.md) for how these drive drawing in depth.
