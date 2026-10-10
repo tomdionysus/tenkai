@@ -1,5 +1,5 @@
-const HasScenesMixin = require('../lib/HasScenesMixin')
-const ContextMock2D = require('./mocks/ContextMock2D')
+import HasScenesMixin from '../lib/HasScenesMixin.js'
+import ContextMock2D from './mocks/ContextMock2D.js'
 
 describe('HasScenesMixin', () => {
   var x1

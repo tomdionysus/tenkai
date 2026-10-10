@@ -21,7 +21,7 @@ error naming the file.
 ## Using one directly
 
 ```js
-const { Asset } = require('tenkai')
+import { Asset } from 'tenkai'
 
 var asset = new Asset({ name: 'tiles', src: 'assets/tiles.png' })
 asset.load((err, asset) => {

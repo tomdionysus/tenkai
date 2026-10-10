@@ -57,9 +57,13 @@ the instance, bound to it, and runs its `init`. See [Mixin](api/Mixin.md).
 2. `bootElement()` replaces the element with id `targetId` with a `<canvas class="gamescreen">`. The canvas
    takes the element's `width` and `height` attributes, or fills the window when `fullscreen` is set. It
    then attaches the mouse and wheel listeners.
-3. It calls `init()`. Override this to build your scenes and entities. It can simply return, be `async`,
+3. With the `startScreen` option, it shows a "click or press any key to start" screen and waits. Browsers
+   only let a page play sound after the player has done something, so a game with sound needs this
+   gesture before it starts. When the player clicks or presses a key, the engine unlocks a shared
+   `audioContext` and triggers `audiounlocked`.
+4. It calls `init()`. Override this to build your scenes and entities. It can simply return, be `async`,
    or take a callback to call when done.
-4. It sets `running`, triggers the `running` event, calls the `start()` callback, and begins running.
+5. It sets `running`, triggers the `running` event, calls the `start()` callback, and begins running.
 
 Declare assets in your constructor, so they are ready by the time `init` runs and `getAsset(name)` works
 there.

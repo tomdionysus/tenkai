@@ -1,5 +1,5 @@
-const Cursor = require('../lib/Cursor')
-const ContextMock2D = require('./mocks/ContextMock2D')
+import Cursor from '../lib/Cursor.js'
+import ContextMock2D from './mocks/ContextMock2D.js'
 
 describe('Cursor', () => {
   it('should draw a cursor with its hotspot at the mouse', () => {

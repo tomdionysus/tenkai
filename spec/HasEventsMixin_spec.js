@@ -1,4 +1,4 @@
-const HasEventsMixin = require('../lib/HasEventsMixin')
+import HasEventsMixin from '../lib/HasEventsMixin.js'
 
 describe('HasEventsMixin', () => {
   var x1
@@ -145,7 +145,7 @@ describe('HasEventsMixin', () => {
     })
   })
 
-  describe('trigger', () => {
+  describe('trigger with no listeners', () => {
     it('should not throw on ok event that is not defined', () => {
       x1.defineEvent('item')
       expect(function () { x1.trigger('item') }).not.toThrow()

@@ -44,3 +44,20 @@ See [Point-and-click adventures](docs/point-and-click.md) for how they fit toget
 * [Arkanoid](examples/arkanoid) - a minimal brick breaker in one short file, the place to start. Run it with `npm run example:arkanoid` and open http://localhost:8046.
 * [1945](examples/1945) - a vertically scrolling shoot-em-up. Run it with `npm run example:1945` and open http://localhost:8045.
 * [Tim the Enchanter](examples/tim-the-enchanter) - a cat in a tile-based dungeon room, with a built-in map editor. Run it with `npm run example:tim` and open http://localhost:8048.
+
+## License
+
+Copyright (C) 2018-2026 Tom Cully <tomhughcully@gmail.com>
+
+Tenkai is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
+later version.
+
+Tenkai is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along with Tenkai, in [LICENSE](LICENSE). If
+not, see <https://www.gnu.org/licenses/>.
+
+The example games' assets keep their own licences; see each example's README.

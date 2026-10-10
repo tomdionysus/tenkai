@@ -1,5 +1,5 @@
-const HasEntitiesMixin = require('../lib/HasEntitiesMixin')
-const ContextMock2D = require('./mocks/ContextMock2D')
+import HasEntitiesMixin from '../lib/HasEntitiesMixin.js'
+import ContextMock2D from './mocks/ContextMock2D.js'
 
 describe('HasEntitiesMixin', () => {
   var x1
@@ -117,6 +117,17 @@ describe('HasEntitiesMixin', () => {
       x1.drawEntities(context)
 
       expect(order).toEqual(['C', 'D', 'A', 'B'])
+    })
+
+    it('should put an entity with a negative sortOffset behind others at its depth', () => {
+      var order = []
+      x1.perspectiveMode = 2
+      x1._entities = {
+        rider: { y: 10, draw: () => order.push('rider') },
+        car: { y: 10, sortOffset: -0.5, draw: () => order.push('car') }
+      }
+      x1.drawEntities(context)
+      expect(order).toEqual(['car', 'rider'])
     })
 
     it('should draw entities in z order if perspectiveMode is not set, keeping insertion order for ties', () => {

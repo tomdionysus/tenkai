@@ -1,4 +1,4 @@
-module.exports = class ContextMock2D {
+export default class ContextMock2D {
   constructor () {
     spyOn(this, 'save')
     spyOn(this, 'translate')

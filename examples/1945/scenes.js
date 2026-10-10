@@ -1,4 +1,4 @@
-const { Scene } = require('../../index')
+import { Scene } from '../../index.js'
 
 /**
  * The sea: a flat colour with scrolling wave highlights, drawn underneath its entities (the islands).
@@ -83,4 +83,4 @@ class Hud extends Scene {
   }
 }
 
-module.exports = { Ocean, Hud }
+export { Ocean, Hud }

@@ -8,7 +8,7 @@ in fixed steps and draws it every frame. It owns the keyboard (`input`), game-ti
 mode. Write your game as a subclass.
 
 ```js
-const { GameEngine, Scene } = require('tenkai')
+import { GameEngine, Scene } from 'tenkai'
 
 class MyGame extends GameEngine {
   constructor (options) {
@@ -51,6 +51,8 @@ new MyGame({ targetId: 'game' }).start()
 | `globalAlpha` | `1` | Opacity for everything drawn. |
 | `enableScroll` | `true` | The mouse wheel pans the viewport. |
 | `enableZoom` | `true` | Shift with the mouse wheel zooms. |
+| `startScreen` | none | Before `init`, show a screen asking the player to click or press a key, so sound can play: `true`, or `{ title, prompt, background, color, font, titleFont }`. See [Sound and the start screen](#sound-and-the-start-screen). |
+| `audioContext` | none | An `AudioContext` to share, instead of the one `unlockAudio` creates. |
 
 ## Properties
 
@@ -66,6 +68,54 @@ new MyGame({ targetId: 'game' }).start()
 | `x`, `y`, `scale`, `globalAlpha` | The viewport. Change them at any time. |
 | `assets`, `audio` | The loaded `Asset` and `Audio` objects, by name. |
 | `running` | Whether the game is running. |
+| `audioContext` | The shared `AudioContext`, once `unlockAudio` has run (the start screen runs it). |
+| `audioUnlocked` | Whether the player has clicked or pressed a key to let sound play. |
+
+## Sound and the start screen
+
+Browsers do not let a page play sound until the player has interacted with it: a click, a tap or a key
+press. Before that, a Web Audio `AudioContext` stays suspended and `<audio>` elements refuse to play, so a
+game that starts its music in `init` would start in silence.
+
+The `startScreen` option deals with this. After loading, the engine draws a screen on the canvas with the
+game's title and a gently pulsing "Click or press any key to start", and waits. When the player clicks, taps
+or presses a key, it creates or resumes the shared `audioContext`, sets `audioUnlocked`, triggers
+`audiounlocked`, and only then calls `init`, so the game can start its sound straight away:
+
+```js
+class MyGame extends GameEngine {
+  constructor (options) {
+    super(Object.assign({ startScreen: { title: 'My Game' } }, options))
+  }
+
+  init () {
+    this.sounds = new SoundManager({ context: this.audioContext })
+    this.sounds.playMusic('music/theme.mp3')
+  }
+}
+```
+
+| Start screen option | Default | Meaning |
+|---------------------|---------|---------|
+| `title` | the page's title | Large text above the prompt; `''` for none. |
+| `prompt` | `'Click or press any key to start'` | The line asking the player to start. |
+| `background`, `color` | `'black'`, `'#e8e8e8'` | Fill and text colours. |
+| `titleFont`, `font` | sans-serif sized to the canvas | CSS fonts for the title and the prompt. |
+
+Tab and modifier keys on their own do not start the game, so keyboard users can move focus without
+starting it. A game without sound needs no start screen. A game that wants its own title screen can leave
+the option out and call `unlockAudio()` from its own click or key handler instead.
+
+### `unlockAudio()`
+
+Creates the shared `audioContext` if there is none, resumes it, sets `audioUnlocked` and triggers
+`audiounlocked`. Call it from inside a click, tap or key handler: browsers only allow it there. Returns the
+context, or `null` in a browser without Web Audio.
+
+### `showStartScreen(callback)`
+
+Draws the start screen and calls `callback` once the player has clicked or pressed a key and audio is
+unlocked. `start()` calls it when the `startScreen` option is set.
 
 ## Time
 
@@ -146,7 +196,8 @@ Cancels every timer.
 
 ### `start(callback)`
 
-Loads assets and audio, boots the canvas, calls `init`, then starts the game and triggers `running`. The
+Loads assets and audio, boots the canvas, shows the start screen if there is one and waits for the player,
+calls `init`, then starts the game and triggers `running`. The
 optional `callback(err)` is called when this has finished or failed.
 
 ### `stop()`
@@ -201,6 +252,7 @@ Sets `globalAlpha`.
 | `mouseup` | `(engine, event)` | A mouse button was released on the canvas. |
 | `mousemove` | `(engine, event)` | The mouse moved over the canvas. |
 | `resize` | `(engine)` | The canvas was resized to the window, in fullscreen mode. |
+| `audiounlocked` | `(engine)` | The player clicked or pressed a key, so sound may play (see `unlockAudio`). |
 
 `mouseX` and `mouseY` are updated before the event is triggered. Handlers run just after the DOM event, so
 use `engine.mouseX` rather than the event's own coordinates.

@@ -7,7 +7,7 @@ can be any image, such as a pointing hand or a forward arrow. Hide the system cu
 using it.
 
 ```js
-const { Cursor } = require('tenkai')
+import { Cursor } from 'tenkai'
 
 var cursor = new Cursor()
 cursor.define('hand', handImage, 6, 1)     // the click point is 6 pixels in, 1 down

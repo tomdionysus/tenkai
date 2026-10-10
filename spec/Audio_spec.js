@@ -1,4 +1,4 @@
-const Audio = require('../lib/Audio')
+import Audio from '../lib/Audio.js'
 
 describe('Audio', () => {
   it('should allow New', () => {
@@ -274,6 +274,7 @@ describe('Audio', () => {
 
     it('should not call callback if value is reached and callback is undefined', () => {
       var ele = { pause: () => {}, duration: 3, volume: 2 }
+      var fn
       spyOn(global, 'setTimeout').and.callFake((f) => { fn = f })
 
       var x1 = new Audio()

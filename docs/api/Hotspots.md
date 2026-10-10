@@ -7,7 +7,7 @@ and handlers for click, press, drag and release. `enabled` and `cursor` may be f
 follow game state without being rebuilt.
 
 ```js
-const { Hotspots } = require('tenkai')
+import { Hotspots } from 'tenkai'
 
 var hotspots = new Hotspots()
 hotspots.add({ rect: [214, 0, 525, 332], cursor: 'forward', onClick: () => goTo('path') })

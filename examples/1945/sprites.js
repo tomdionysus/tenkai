@@ -1,4 +1,4 @@
-const { Sheet } = require('../../index')
+import { Sheet } from '../../index.js'
 
 // Regions of assets/sprite.png. The image is laid out as several grids of different sized tiles separated by
 // 1-2px borders, so each region is its own Sheet over the same image. Within a region, tile [x, y] is the x-th
@@ -80,7 +80,7 @@ const REGIONS = {
  * Make a Sheet for each region of the sprite image.
  * @returns {object} Sheets by name
  */
-module.exports = function sheets (image) {
+export default function sheets (image) {
   var out = {}
   for (var name in REGIONS) {
     var r = REGIONS[name]

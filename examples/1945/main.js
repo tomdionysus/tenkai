@@ -1,7 +1,7 @@
-const { GameEngine, Entity, Scene } = require('../../index')
-const sheets = require('./sprites')
-const Actor = require('./actor')
-const { Ocean, Hud } = require('./scenes')
+import { GameEngine, Entity, Scene } from '../../index.js'
+import sheets from './sprites.js'
+import Actor from './actor.js'
+import { Ocean, Hud } from './scenes.js'
 
 // Pixels per second
 const OCEAN_SPEED = 50

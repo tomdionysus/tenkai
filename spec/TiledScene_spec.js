@@ -1,7 +1,7 @@
-const TiledScene = require('../lib/TiledScene')
-const Sheet = require('../lib/Sheet')
-const Entity = require('../lib/Entity')
-const ContextMock2D = require('./mocks/ContextMock2D')
+import TiledScene from '../lib/TiledScene.js'
+import Sheet from '../lib/Sheet.js'
+import Entity from '../lib/Entity.js'
+import ContextMock2D from './mocks/ContextMock2D.js'
 
 describe('TiledScene', () => {
   it('should allow New', () => {
@@ -230,5 +230,22 @@ describe('TiledScene', () => {
   it('should find the cell at a point', () => {
       expect(room.cellAt(70, 10)).toEqual([1, 0])
     })
+  })
+})
+
+describe('TiledScene culling', () => {
+  it('should draw only the cells that can be seen', () => {
+    var sheet = { tileWidth: 10, tileHeight: 10, draw: jasmine.createSpy('draw'), info: () => ({}) }
+    var row = []
+    for (var i = 0; i < 100; i++) row.push([0, 0])
+    var layers = [[row, row, row, row, row]]
+    var scene = new TiledScene({ sheet, layers })
+    var context = jasmine.createSpyObj('context', ['save', 'restore', 'translate', 'scale', 'rotate'])
+    context.canvas = { width: 30, height: 20 }
+    context.getTransform = () => ({ a: 1, b: 0, c: 0, d: 1, e: -500, f: 0 })
+    scene.draw(context)
+    // Columns 50 to 52, rows 0 and 1
+    expect(sheet.draw.calls.count()).toEqual(6)
+    expect(sheet.draw).toHaveBeenCalledWith(context, [0, 0], 500, 0)
   })
 })

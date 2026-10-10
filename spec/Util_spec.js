@@ -1,4 +1,4 @@
-const Util = require('../lib/Util')
+import Util from '../lib/Util.js'
 
 describe('intersects', () => {
   it('should return true when rectangles intersect, case 1', () => {

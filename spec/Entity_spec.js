@@ -1,7 +1,7 @@
-const Entity = require('../lib/Entity')
-const Sheet = require('../lib/Sheet')
-const Scene = require('../lib/Scene')
-const ContextMock2D = require('./mocks/ContextMock2D')
+import Entity from '../lib/Entity.js'
+import Sheet from '../lib/Sheet.js'
+import Scene from '../lib/Scene.js'
+import ContextMock2D from './mocks/ContextMock2D.js'
 
 describe('Entity', () => {
   var image, sheet

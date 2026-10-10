@@ -1,5 +1,5 @@
-const Scene = require('../lib/Scene')
-const ContextMock2D = require('./mocks/ContextMock2D')
+import Scene from '../lib/Scene.js'
+import ContextMock2D from './mocks/ContextMock2D.js'
 
 describe('Scene', () => {
   it('should allow New', () => {
@@ -104,5 +104,24 @@ describe('Scene', () => {
       expect(context.rotate).toHaveBeenCalledWith(7)
       expect(context.restore).toHaveBeenCalledWith()
     })
+  })
+})
+
+describe('Scene clipping and visible bounds', () => {
+  it('should clip to a polygon when given one', () => {
+    var scene = new Scene({ clip: [[0, 0], [10, 0], [5, 8]] })
+    var context = jasmine.createSpyObj('context', ['save', 'restore', 'translate', 'scale', 'rotate', 'beginPath', 'moveTo', 'lineTo', 'closePath', 'clip'])
+    scene.draw(context)
+    expect(context.moveTo).toHaveBeenCalledWith(0, 0)
+    expect(context.lineTo).toHaveBeenCalledWith(5, 8)
+    expect(context.clip).toHaveBeenCalled()
+  })
+
+  it('should work out what can be seen from the transform and canvas', () => {
+    var scene = new Scene()
+    // Scaled by 2, translated by (10, 20): the canvas's 200 by 100 shows scene x -5 to 95, y -10 to 40
+    var context = { canvas: { width: 200, height: 100 }, getTransform: () => ({ a: 2, b: 0, c: 0, d: 2, e: 10, f: 20 }) }
+    expect(scene.visibleBounds(context)).toEqual([-5, -10, 95, 40])
+    expect(scene.visibleBounds({})).toBeNull()
   })
 })

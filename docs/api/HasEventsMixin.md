@@ -1,13 +1,13 @@
 # HasEventsMixin
 
 `lib/HasEventsMixin.js`. Internal: not exported from the package index, so use
-`require('tenkai/lib/HasEventsMixin')`. See [Mixin](Mixin.md).
+`import HasEventsMixin from 'tenkai/lib/HasEventsMixin.js'`. See [Mixin](Mixin.md).
 
 Named events with handler lists, used by [GameEngine](GameEngine.md). An event must be defined before
 handlers can be added to it or it can be triggered.
 
 ```js
-const HasEventsMixin = require('tenkai/lib/HasEventsMixin')
+import HasEventsMixin from 'tenkai/lib/HasEventsMixin.js'
 
 class Door {
   constructor () {

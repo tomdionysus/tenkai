@@ -1,4 +1,4 @@
-const Input = require('../lib/Input')
+import Input from '../lib/Input.js'
 
 describe('Input', () => {
   var input, listeners

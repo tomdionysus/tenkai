@@ -115,4 +115,4 @@ class Editor {
   }
 }
 
-module.exports = Editor
+export default Editor

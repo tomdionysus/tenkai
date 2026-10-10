@@ -1,4 +1,4 @@
-const { Entity } = require('../../index')
+import { Entity } from '../../index.js'
 
 /**
  * An Actor is a game object: a Tenkai Entity plus the state the game needs to move it and collide it.
@@ -78,4 +78,4 @@ class Actor {
   }
 }
 
-module.exports = Actor
+export default Actor

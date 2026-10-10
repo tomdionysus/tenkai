@@ -124,5 +124,6 @@ Call after changing the map in place by other means.
 
 ## Performance
 
-Every tile is drawn every frame, including tiles that are off screen. Keep maps modest, or split large
-worlds into several scenes.
+Drawn flat (`PERSPECTIVE_OVERHEAD`), only the cells that can be seen are drawn, worked out from the canvas
+and the transform in effect ([`Scene.visibleBounds`](Scene.md)), so large maps cost little. In depth mode
+every piece is drawn every frame; keep those maps modest, or split large worlds into several scenes.

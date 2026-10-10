@@ -1,4 +1,4 @@
-const AssetCache = require('../lib/AssetCache')
+import AssetCache from '../lib/AssetCache.js'
 
 describe('AssetCache', () => {
   var elements

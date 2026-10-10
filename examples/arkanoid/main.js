@@ -1,4 +1,4 @@
-const { GameEngine, Scene, Entity, Sheet } = require('../../index')
+import { GameEngine, Scene, Entity, Sheet } from '../../index.js'
 
 const COLUMNS = 10
 const BRICK_WIDTH = 64

@@ -1,6 +1,7 @@
 # Util
 
-`lib/Util.js`. Internal: not exported from the package index, so use `require('tenkai/lib/Util')`.
+`lib/Util.js`. Internal: not exported from the package index, so use
+`import Util from 'tenkai/lib/Util.js'`.
 
 Static helpers used by the engine.
 

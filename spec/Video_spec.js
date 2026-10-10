@@ -1,5 +1,5 @@
-const Video = require('../lib/Video')
-const ContextMock2D = require('./mocks/ContextMock2D')
+import Video from '../lib/Video.js'
+import ContextMock2D from './mocks/ContextMock2D.js'
 
 function fakeElement () {
   return {

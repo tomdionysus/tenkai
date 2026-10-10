@@ -1,5 +1,5 @@
-const Sheet = require('../lib/Sheet')
-const ContextMock2D = require('./mocks/ContextMock2D')
+import Sheet from '../lib/Sheet.js'
+import ContextMock2D from './mocks/ContextMock2D.js'
 
 describe('Sheet', () => {
   var image = { width: 200, height: 100 }

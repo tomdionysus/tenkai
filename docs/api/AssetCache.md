@@ -7,7 +7,7 @@ to declare up front with `addAsset`, such as the hundreds of pre-rendered views 
 adventure.
 
 ```js
-const { AssetCache } = require('tenkai')
+import { AssetCache } from 'tenkai'
 
 var images = new AssetCache({ base: 'images/' })
 

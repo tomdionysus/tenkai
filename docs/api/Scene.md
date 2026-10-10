@@ -30,6 +30,7 @@ game.addScene('board', new Scene({
 | `timeScale` | `1` | Speed of animation for everything in the scene; 0 pauses it. |
 | `background` | none | `(context) => {}`, drawn under the children. |
 | `foreground` | none | `(context) => {}`, drawn over the children. |
+| `clip` | none | A polygon, `[[x, y], ...]` in the scene's coordinates: nothing of the scene is drawn outside it. For a view inside a shaped frame, as many games framed their play area. |
 
 `z` is read when the parent sorts its scenes, which happens when a scene is added or removed. If you change
 `z` afterwards, call `parent.sortScenesZ()`.
@@ -50,6 +51,13 @@ Applies the scene's transform (translate, scale, rotate), then draws `background
 ### `background(context)` / `foreground(context)`
 
 Override these, or pass them as options, to paint under and over the scene's children.
+
+### `visibleBounds(context)`
+
+The part of the scene that can be seen, in its own coordinates, as `[left, top, right, bottom]`, worked out
+from the context's current transform and its canvas. Call it while drawing, with the scene's transform
+applied, to skip what is off screen (as [TiledScene](TiledScene.md) does). Null when the context cannot tell,
+in which case draw everything.
 
 ### `drawContent(context)`
 

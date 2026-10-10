@@ -1,9 +1,12 @@
-const path = require('path')
+import path from 'path'
+import { fileURLToPath } from 'url'
 
-const GameEngine = require('../lib/GameEngine')
-const Asset = require('../lib/Asset')
-const Audio = require('../lib/Audio')
-const Util = require('../lib/Util')
+import GameEngine from '../lib/GameEngine.js'
+import Asset from '../lib/Asset.js'
+import Audio from '../lib/Audio.js'
+import Util from '../lib/Util.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 describe('GameEngine', () => {
   it('should allow New', () => {
@@ -960,6 +963,66 @@ describe('GameEngine', () => {
       expect(x1.fn).toBeUndefined()
 
       expect(cb.callback).toHaveBeenCalledWith('ERROR')
+    })
+
+    it('should wait on the start screen for the player before init, and unlock audio', () => {
+      var x1 = new GameEngine({ startScreen: { title: 'Test' } })
+      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick'])
+      x1.loadAssets.and.callFake((f) => f())
+      x1.loadAudio.and.callFake((f) => f())
+      var listeners = {}
+      var target = () => ({ addEventListener: (type, fn) => { listeners[type] = fn }, removeEventListener: (type) => { delete listeners[type] } })
+      var context = generateSpyObject(['save', 'fillRect', 'fillText', 'restore'])
+      var audio = { state: 'suspended', resume: jasmine.createSpy('resume') }
+      x1.bootElement.and.callFake((f) => {
+        x1.element = Object.assign(target(), { width: 320, height: 200, getContext: () => context })
+        x1.window = Object.assign(target(), { AudioContext: function () { return audio } })
+        f()
+      })
+      x1.init.and.callFake((f) => f())
+      spyOn(console, 'debug')
+      // Events are delivered on a timeout; collect them to run by hand
+      var queued = []
+      spyOn(global, 'setTimeout').and.callFake((f) => queued.push(f))
+      var unlocked = jasmine.createSpy('audiounlocked')
+      x1.on('audiounlocked', unlocked)
+
+      x1.start()
+      expect(context.fillText).toHaveBeenCalledWith('Test', 160, jasmine.any(Number))
+      expect(context.fillText).toHaveBeenCalledWith('Click or press any key to start', 160, jasmine.any(Number))
+      expect(x1.init).not.toHaveBeenCalled()
+
+      // Tab alone does not start the game; another key does
+      listeners.keydown({ type: 'keydown', key: 'Tab' })
+      expect(x1.init).not.toHaveBeenCalled()
+      listeners.keydown({ type: 'keydown', key: 'Enter' })
+      expect(x1.init).toHaveBeenCalled()
+      expect(x1.audioContext).toBe(audio)
+      expect(audio.resume).toHaveBeenCalled()
+      expect(x1.audioUnlocked).toBe(true)
+      queued.filter((f) => f.length === 0 && f !== x1._tick).forEach((f) => { try { f() } catch (e) {} })
+      expect(unlocked).toHaveBeenCalledWith(x1)
+      expect(listeners.keydown).toBeUndefined()
+      expect(listeners.pointerdown).toBeUndefined()
+    })
+
+    it('should not show a start screen unless asked', () => {
+      var x1 = new GameEngine()
+      expect(x1.startScreen).toBe(null)
+      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick', 'showStartScreen'])
+      for (var m of ['loadAssets', 'loadAudio', 'bootElement', 'init']) x1[m].and.callFake((f) => f())
+      spyOn(console, 'debug')
+      spyOn(global, 'setTimeout')
+      x1.start()
+      expect(x1.showStartScreen).not.toHaveBeenCalled()
+      expect(x1.init).toHaveBeenCalled()
+    })
+
+    it('should resume an existing audio context when unlocking', () => {
+      var audio = { state: 'suspended', resume: jasmine.createSpy('resume') }
+      var x1 = new GameEngine({ audioContext: audio })
+      expect(x1.unlockAudio()).toBe(audio)
+      expect(audio.resume).toHaveBeenCalled()
     })
 
     it('should start when init takes no callback, or returns a promise', (done) => {

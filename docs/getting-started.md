@@ -9,7 +9,8 @@ npm install tenkai
 npm install --save-dev esbuild
 ```
 
-Tenkai is CommonJS. Any bundler that understands `require` works; this page uses esbuild.
+Tenkai is written as ES modules (`import` and `export`). Any bundler that understands them works; this page
+uses esbuild.
 
 ## The page
 
@@ -35,7 +36,7 @@ set the canvas size.
 
 ```js
 // main.js
-const { GameEngine, Scene, Entity, Sheet } = require('tenkai')
+import { GameEngine, Scene, Entity, Sheet } from 'tenkai'
 
 class MyGame extends GameEngine {
   constructor (options) {
@@ -103,5 +104,9 @@ Images must be served over HTTP, not opened from `file://`, or the browser will 
   entities with `play('walk')`. See [Entity](api/Entity.md).
 - Use several scenes with different `z` values as layers, such as background, play area and HUD.
 - Split the game into modes (title, play, game over) with `setMode`. See [GameEngine](api/GameEngine.md).
+- Add sound. Browsers will not play any until the player clicks or presses a key, so give the engine the
+  `startScreen` option: it asks the player to start, unlocks audio, then calls `init`. See
+  [Sound and the start screen](api/GameEngine.md#sound-and-the-start-screen) and
+  [SoundManager](api/SoundManager.md).
 - Read the [examples](examples.md): Arkanoid is a whole game in one short file.
 - Read the [architecture](architecture.md) for time, drawing order and depth.

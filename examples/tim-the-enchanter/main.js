@@ -1,7 +1,7 @@
-const { GameEngine, TiledScene, Entity, Sheet } = require('../../index')
-const ORIGINAL_MAP = require('./map.json')
-const TILESET = require('./assets/tileset_dungeon.json')
-const Editor = require('./editor')
+import { GameEngine, TiledScene, Entity, Sheet } from '../../index.js'
+import ORIGINAL_MAP from './map.json' with { type: 'json' }
+import TILESET from './assets/tileset_dungeon.json' with { type: 'json' }
+import Editor from './editor.js'
 
 const TILE = 64
 // Seconds to walk one tile, and how high a hop rises above the higher of its two ends, in pixels

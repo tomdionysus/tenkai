@@ -15,10 +15,11 @@ docs and the code disagree, the code in `lib/` wins.
 - [Examples](examples.md): a walkthrough of the Arkanoid, 1945 and Tim the Enchanter example games.
 - [Point-and-click adventures](point-and-click.md): building a Myst-style game with `BufferedScene`,
   `Video`, `Hotspots`, `Cursor`, `SoundManager` and `AssetCache`.
+- [Origin](ORIGIN.md): where Tenkai and its name come from.
 
 ## API reference
 
-Everything below is exported from the package (`require('tenkai')`) unless marked as internal.
+Everything below is exported from the package (`import { ... } from 'tenkai'`) unless marked as internal.
 
 ### Engine
 
@@ -33,14 +34,34 @@ Everything below is exported from the package (`require('tenkai')`) unless marke
 - [TiledScene](api/TiledScene.md): a scene drawn from a tile map, flat or in depth with characters among
   the scenery.
 - [BufferedScene](api/BufferedScene.md): a back buffer and screen with dissolve and wipe transitions.
+- [IndexedScene](api/IndexedScene.md): shows an indexed surface through a palette, with layers such as a
+  cursor over it.
 
 ### Sprites and tiles
 
 - [Sheet](api/Sheet.md): an image divided into tiles, with an anchor, animation clips, and for tilesets,
   what each tile is.
+- [BitmapFont](api/BitmapFont.md): text from a sheet of glyph cells, recoloured, wrapped, measured and
+  clipped, for the fonts of old games.
 - [Entity](api/Entity.md): a sprite showing a tile of a sheet, positioned by its anchor, playing clips, with
   child entities.
 - [Video](api/Video.md): an entity that plays a movie.
+
+### Isometric
+
+- [IsometricProjection](api/IsometricProjection.md): world (x, y, z) to screen and back, for any isometric or
+  dimetric view.
+- [IsometricWorld](api/IsometricWorld.md): the game's model of the world: regions, typed colliders with
+  handlers, and bodies that move and block each other.
+- [IsometricScene](api/IsometricScene.md): shows the world: entities placed by world position, drawn in
+  depth order over a ground, with a camera.
+
+### Indexed colour
+
+- [Palette](api/Palette.md): colours for indexed images, with colour cycling, scaling for fades, and
+  nearest-colour search.
+- [IndexedSurface](api/IndexedSurface.md): a picture of palette indices, opaque or with transparency, with
+  fills and blits.
 
 ### Images and sound
 

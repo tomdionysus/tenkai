@@ -60,7 +60,7 @@ The view is a `BufferedScene`. It draws its screen, then any movie entities, the
 progress, then its `foreground`, which is where the cursor goes, on top of all of that:
 
 ```js
-const { GameEngine, BufferedScene, AssetCache, Hotspots, Cursor, SoundManager, Video } = require('tenkai')
+import { GameEngine, BufferedScene, AssetCache, Hotspots, Cursor, SoundManager, Video } from 'tenkai'
 
 const W = 640
 const H = 400

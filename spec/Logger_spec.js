@@ -1,4 +1,4 @@
-const Logger = require('../lib/Logger')
+import Logger from '../lib/Logger.js'
 
 describe('Logger', () => {
   var x1

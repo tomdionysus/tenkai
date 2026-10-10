@@ -11,7 +11,7 @@ onto each instance that uses it.
 ## Defining a mixin
 
 ```js
-const { Mixin } = require('tenkai')
+import { Mixin } from 'tenkai'
 
 class HasHealth {
   static init (obj, options = {}) {
@@ -33,7 +33,7 @@ module.exports = Mixin.export(HasHealth)
 ## Using a mixin
 
 ```js
-const HasHealth = require('./HasHealth')
+import HasHealth from './HasHealth.js'
 
 class Enemy extends Entity {
   constructor (options) {

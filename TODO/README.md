@@ -16,6 +16,8 @@ state. Do them in order; within a phase, items are roughly in priority order.
 | 3 | [03-engine-core.md](03-engine-core.md) | Fixed-step game loop, input, rendering fixes |
 | 3a | [03a-animation-redesign.md](03a-animation-redesign.md) | Shared clips, game-controlled animation, fixed-step time |
 | 3b | [03b-depth-sorted-tiles.md](03b-depth-sorted-tiles.md) | Tilesets with heights and solidity; characters sorted among tiled scenery |
+| 3c | [03c-monkey-island-2-port.md](03c-monkey-island-2-port.md) | In progress: Monkey Island 2 on Tenkai, no SCUMM left; Tenkai gains what it needs |
+| 3d | [03d-wreckers.md](03d-wreckers.md) | In progress: a remake of Wreckers (Amiga, 1991); Tenkai gains isometric scenes |
 | 4 | [04-docs-and-release.md](04-docs-and-release.md) | Example game, real docs, 1.0 on npm with provenance |
 
 ## Guiding decisions

@@ -1,5 +1,5 @@
-const BufferedScene = require('../lib/BufferedScene')
-const ContextMock2D = require('./mocks/ContextMock2D')
+import BufferedScene from '../lib/BufferedScene.js'
+import ContextMock2D from './mocks/ContextMock2D.js'
 
 function fakeCanvas () {
   var context = new ContextMock2D()

@@ -1,4 +1,4 @@
-const Hotspots = require('../lib/Hotspots')
+import Hotspots from '../lib/Hotspots.js'
 
 describe('Hotspots', () => {
   var spots

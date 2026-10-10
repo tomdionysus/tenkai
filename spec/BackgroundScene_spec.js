@@ -1,5 +1,5 @@
-const BackgroundScene = require('../lib/BackgroundScene')
-const ContextMock2D = require('./mocks/ContextMock2D')
+import BackgroundScene from '../lib/BackgroundScene.js'
+import ContextMock2D from './mocks/ContextMock2D.js'
 
 describe('BackgroundScene', () => {
   it('should allow New', () => {

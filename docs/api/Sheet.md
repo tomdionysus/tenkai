@@ -30,7 +30,8 @@ const dungeon = new Sheet({
 ```
 
 A sheet's description is plain data, so it can live in a JSON file next to its image and be spread into
-the constructor: `new Sheet(Object.assign({ image }, require('./tileset.json')))`.
+the constructor: `new Sheet(Object.assign({ image }, tileset))`, after
+`import tileset from './tileset.json' with { type: 'json' }`.
 
 ## Constructor options
 

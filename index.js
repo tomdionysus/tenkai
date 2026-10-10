@@ -1,32 +1,41 @@
-module.exports = {
-  // Primitives
-  Logger: require('./lib/Logger'),
-  Mixin: require('./lib/Mixin'),
-  Asset: require('./lib/Asset'),
-  AssetCache: require('./lib/AssetCache'),
-  Sheet: require('./lib/Sheet'),
-  Input: require('./lib/Input'),
-  Audio: require('./lib/Audio'),
-  SoundManager: require('./lib/SoundManager'),
+// Primitives
+export { default as Logger } from './lib/Logger.js'
+export { default as Mixin } from './lib/Mixin.js'
+export { default as Asset } from './lib/Asset.js'
+export { default as AssetCache } from './lib/AssetCache.js'
+export { default as Sheet } from './lib/Sheet.js'
+export { default as BitmapFont } from './lib/BitmapFont.js'
+export { default as Input } from './lib/Input.js'
+export { default as Audio } from './lib/Audio.js'
+export { default as SoundManager } from './lib/SoundManager.js'
 
-  // Point-and-click
-  Hotspots: require('./lib/Hotspots'),
-  Cursor: require('./lib/Cursor'),
+// Indexed colour
+export { default as Palette } from './lib/Palette.js'
+export { default as IndexedSurface } from './lib/IndexedSurface.js'
 
-  // Game Engine
-  GameEngine: require('./lib/GameEngine'),
+// Isometric
+export { default as IsometricProjection } from './lib/IsometricProjection.js'
+export { default as IsometricWorld } from './lib/IsometricWorld.js'
 
-  // Mixins
-  HasEntitiesMixin: require('./lib/HasEntitiesMixin'),
-  HasScenesMixin: require('./lib/HasScenesMixin'),
+// Point-and-click
+export { default as Hotspots } from './lib/Hotspots.js'
+export { default as Cursor } from './lib/Cursor.js'
 
-  // Entities
-  Entity: require('./lib/Entity'),
-  Video: require('./lib/Video'),
+// Game Engine
+export { default as GameEngine } from './lib/GameEngine.js'
 
-  // Scenes
-  Scene: require('./lib/Scene'),
-  BackgroundScene: require('./lib/BackgroundScene'),
-  BufferedScene: require('./lib/BufferedScene'),
-  TiledScene: require('./lib/TiledScene')
-}
+// Mixins
+export { default as HasEntitiesMixin } from './lib/HasEntitiesMixin.js'
+export { default as HasScenesMixin } from './lib/HasScenesMixin.js'
+
+// Entities
+export { default as Entity } from './lib/Entity.js'
+export { default as Video } from './lib/Video.js'
+
+// Scenes
+export { default as Scene } from './lib/Scene.js'
+export { default as BackgroundScene } from './lib/BackgroundScene.js'
+export { default as BufferedScene } from './lib/BufferedScene.js'
+export { default as TiledScene } from './lib/TiledScene.js'
+export { default as IndexedScene } from './lib/IndexedScene.js'
+export { default as IsometricScene } from './lib/IsometricScene.js'

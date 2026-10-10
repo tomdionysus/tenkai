@@ -1,4 +1,4 @@
-const Asset = require('../lib/Asset')
+import Asset from '../lib/Asset.js'
 
 describe('Asset', () => {
   it('should allow New', () => {

@@ -1,4 +1,4 @@
-const Mixin = require('../lib/Mixin')
+import Mixin from '../lib/Mixin.js'
 
 describe('Mixin', () => {
   class Base {

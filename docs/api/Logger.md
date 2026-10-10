@@ -6,7 +6,7 @@ Console logging with levels and printf-style formatting (through `sprintf-js`). 
 with an ISO timestamp and the level.
 
 ```js
-const { Logger } = require('tenkai')
+import { Logger } from 'tenkai'
 
 var log = new Logger({ logLevel: 'info' })
 log.info('Loaded %d cards in %.1fs', 309, 1.24)
