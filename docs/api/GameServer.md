@@ -1,0 +1,94 @@
+# Game state, server and client
+
+`lib/Place.js`, `lib/GameState.js`, `lib/StateDiff.js`, `lib/GameServer.js`, `lib/LocalSocket.js`,
+`lib/GameClient.js`
+
+A game's logic can run apart from its drawing: the state is ticked by a server, and the page is a client that
+sends its player's commands and draws what it is sent. The server can be in the same page, in a Worker, or on
+another machine; the client talks to it through one interface with the browser `WebSocket`'s shape and does not
+know which. Several clients make a multiplayer game.
+
+```js
+import { Place, GameState, GameServer, GameClient, LocalSocket } from 'tenkai'
+
+const deck = new Place({ name: 'deck', agents: [doors, aliens, lifts] })
+const state = new GameState({ places: [deck], maxPlayers: 3 })
+const server = new GameServer({ state, tickTime: 0.07 })
+server.start()
+
+const client = new GameClient({ socket: new LocalSocket(server), name: 'Ann' })
+// later, the same client against a server elsewhere:
+// new GameClient({ socket: new WebSocket('ws://host:8080'), name: 'Ann' })
+client.onEvent = (event) => { if (event.name === 'sound') sound.play(event.data) }
+// each frame:
+client.command({ stick: 'up', fire: true })
+draw(client.previous, client.state)
+```
+
+## Place
+
+One level, room, map or station: its agents, ticked in order. An **agent** is any object with
+`tick(place, commands)`, and, to be saved and sent, `snapshot()` and `restore(snapshot)`. Agents report what
+happened with `place.emit({ name, data, to })`.
+
+| Member | |
+|---|---|
+| `new Place({ name, agents })` | |
+| `add(agent)`, `remove(agent)` | |
+| `emit(event)` | from an agent: `to` omitted (everyone in this place) or `{ player }` |
+| `tick(commands)` | ticks every agent; returns the tick's events |
+| `snapshot()`, `restore(snapshot)` | the agents' snapshots in order |
+
+## GameState
+
+The whole game: places, players and the tick count. Subclass it for a game's rules.
+
+| Member | |
+|---|---|
+| `new GameState({ places, maxPlayers })` | |
+| `join(name, wish)` | a player `{ number, name, place }` numbered from 1, or null if full or refused |
+| `leave(number)`, `player(number)` | |
+| `tick(commands)` | commands `{ player, ... }` go to each player's place, in player order; returns the events, each with its `place` |
+| `isFor(event, player)` | whether a player is sent an event |
+| `snapshot()`, `restore(snapshot)` | |
+| `view(player)` | override: what a player is sent (default everything) |
+| `rules(events)`, `joined(player, wish)`, `left(player)` | override: the game's rules; set up or refuse a joining player (return false); a player gone |
+
+## GameServer
+
+Ticks a `GameState` and talks to its clients in JSON strings: `join`, `command` (applied at the tick it names, or
+the next one run) and `leave` from clients; `welcome` (the player and the state), `tick` (a `StateDiff` patch and
+the player's events) and `refused` to them.
+
+| Member | |
+|---|---|
+| `new GameServer({ state, tickTime })` | `tickTime` in seconds (default 1/20) |
+| `start()`, `stop()` | its own clock |
+| `advance(seconds)` | the caller's clock: runs the ticks due (a page ticking it with its frames) |
+| `step()` | one tick now |
+| `connect(send)`, `receive(connection, text)`, `disconnect(connection)` | for a transport: `LocalSocket`, a Worker's port, a WebSocket server |
+
+## LocalSocket
+
+A connection to a server in the same page with the `WebSocket` surface: `send`, `close`, `readyState`
+(`CONNECTING`, `OPEN`, `CLOSING`, `CLOSED`), `onopen`, `onmessage`, `onclose`, `onerror` and `addEventListener`.
+Messages are strings both ways and arrive later, never inside `send`. `new LocalSocket(server, { schedule })`:
+`schedule(fn)` decides when a message arrives (default a new task; `(fn) => fn()` for at once).
+
+## GameClient
+
+| Member | |
+|---|---|
+| `new GameClient({ socket, name, wish })` | joins when the socket opens |
+| `player` | `{ number, name, place }` once welcomed |
+| `state`, `previous`, `tick` | the last two states sent, to draw between |
+| `refused` | the reason, if refused |
+| `command(fields)` | for the next tick |
+| `leave()` | |
+| `onWelcome`, `onTick(client, events)`, `onEvent(event)`, `onClose(event)` | |
+
+## StateDiff
+
+`StateDiff.diff(a, b)` is a patch turning plain state `a` into `b` (undefined if equal);
+`StateDiff.apply(a, patch)` returns the new state without changing `a`. The server uses it to send each client
+only what changed.

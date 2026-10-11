@@ -18,6 +18,14 @@ export { default as IsometricProjection } from './lib/IsometricProjection.js'
 export { default as IsometricWorld } from './lib/IsometricWorld.js'
 export { default as Motion } from './lib/Motion.js'
 
+// Game state, server and client
+export { default as Place } from './lib/Place.js'
+export { default as GameState } from './lib/GameState.js'
+export { default as StateDiff } from './lib/StateDiff.js'
+export { default as GameServer } from './lib/GameServer.js'
+export { default as GameClient } from './lib/GameClient.js'
+export { default as LocalSocket } from './lib/LocalSocket.js'
+
 // Point-and-click
 export { default as Hotspots } from './lib/Hotspots.js'
 export { default as Cursor } from './lib/Cursor.js'
