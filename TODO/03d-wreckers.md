@@ -410,3 +410,41 @@ Still to learn from the original: the outside (spacesuit) view, the Battlepod, d
 its panels, the aliens' behaviour, and the sound.
 
 Gaps found go into this section as they turn up, as in `local/monkey2/TENKAI-GAPS.md`.
+
+## To do
+
+### A resizable HUD
+
+The HUD is one 320 by 200 picture (`remake/data/hud.png`, captured from the original) framing a fixed 256 by
+128 view at (32, 7). To let the view grow (wider screens, a larger scale, more of the station on show), break
+it into its main pieces so the frame can be rebuilt at any size, with the plain runs of the four borders tiled
+and the ornaments kept whole:
+
+- **Fixed pieces, anchored to a corner or an edge:**
+  - top left: the pipe junction and the score box (with the score digits drawn over it);
+  - top right: the corner holding the quit icon;
+  - bottom left: the droid slot cluster (slots 1-10 at their own offsets) and the commander's face;
+  - bottom middle: the long range scanner;
+  - bottom right: the status LED panel, the lifeforce panel and the self-destruct countdown pipe;
+  - the status line (ticker) plate, whose window is 128 pixels wide.
+- **Tiled runs, repeated to fill the space between the fixed pieces:**
+  - the top border (the double rail over the view);
+  - the left border (the vertical pipes);
+  - the right border (the rail down to the countdown pipe);
+  - the bottom border (the rail under the view and the cable runs between the panels).
+
+Work:
+
+1. Find each border's repeating period by comparing pixel columns (top and bottom) and rows (left and right)
+   of `hud.png`, and cut the tileable segment and the pieces between them. Write a tool for it
+   (`tools/hudpieces.py`), so the cut can be redone from a fresh capture.
+2. Export the pieces as one atlas, with a layout file: each piece's source rectangle, its anchor (corner or
+   edge), its offset from the anchor, and whether it is fixed or tiled along an axis.
+3. Place the moving parts relative to their pieces' anchors, not by absolute position: the score digits, the
+   ticker window, the LEDs, the lifeforce trace, the countdown, the scanner, the droid slots and the clickable
+   regions. All are absolute positions in `remake/src` at present.
+4. Build the frame in the remake from the layout for a given view size (the original's 256 by 128 must give
+   back exactly the captured picture), and let the view and its clip follow.
+5. Tenkai: a general frame or panel builder (nine-slice and beyond: fixed corners, tiled edge runs, anchored
+   ornaments of any number), so other games with pre-drawn frames can do the same. Log it in
+   `local/monkey2/TENKAI-GAPS.md`.
