@@ -78,8 +78,9 @@ The solid bodies other than `body` whose boxes would overlap its box at a positi
 ### move(body, dx, dy, dz)
 
 Move a body if it may go: the colliders at the destination are asked in turn through their types' handlers,
-then other bodies. Returns `{ moved, collider, blocker, region }`: when stopped, the collider or body that
-stopped it; `region` is where the body is afterwards.
+then other bodies. A body it overlaps already (one put down on top of it, say) stops it only from coming
+closer, so the two can part. Returns `{ moved, collider, blocker, region }`: when stopped, the collider or
+body that stopped it; `region` is where the body is afterwards.
 
 ## Static methods
 

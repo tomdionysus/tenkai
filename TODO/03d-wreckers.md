@@ -38,18 +38,15 @@ the plasmozomb grab, the outside spray.
 
 Left, in this order:
 
-1. **Save and load.** `remake/src/savegame.js` is written and committed (`cantSave`, `snapshot`, `restore`)
-   but not wired into `main.js`. Following the user's decision, the original's disk listing and disk
-   preparation are dropped; the visual conventions stay. To wire: save and load through the browser's file
-   behaviour (a JSON download, a file picker), the high score table to and from a file (localStorage
-   `wreckers-hiscores`), and quicksave and quickload on K and L into sessionStorage.
-2. **The game control menu (mode 6) and the Battlepod long-range scanner (mode 3, key B).** An agent was
-   building them as `remake/src/menu.js`, `remake/src/scanner.js`, `tools/menu_scanner_data.py` and a
-   `menu.html` test page; check whether those files exist and integrate them.
-3. **The original's pointer mode** (Space or the button; the joystick moves a pointer).
-4. **Small gaps:** the Battlepod hum retune, spore clipping at the frame's edge, seed 32, Q's extra
+1. Done (2026-10-11): **save and load, the game control menu and the long range scanner** are in the game
+   (`remake/src/menu.js`, `scanner.js`, `savegame.js`; notes/menu.md). G or the lifeforce panel opens the
+   menu, B or the scanner panel the scanner; S and L save to and load from a JSON file at once (no
+   confirmation), RS and RL (and K and L in play) the quick save in sessionStorage, HS and HL the high score
+   table to and from a file. Not done: the monitor's counter shared with the terminal, factory and bulb desks.
+2. **The original's pointer mode** (Space or the button; the joystick moves a pointer).
+3. **Small gaps:** the Battlepod hum retune, spore clipping at the frame's edge, seed 32, Q's extra
    conditions.
-5. **Monte Carlo fidelity runs** of the remake against the emulator, which can run unattended.
+4. **Monte Carlo fidelity runs** of the remake against the emulator, which can run unattended.
 
 Then the improvements in [03e](03e-wreckers-improvements.md).
 

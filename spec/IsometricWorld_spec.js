@@ -74,6 +74,19 @@ describe('IsometricWorld', () => {
     expect(world.bodies).toEqual([a])
   })
 
+  it('should let bodies that overlap already part, but not come closer', () => {
+    var a = world.addBody({ x: 10, y: 10, z: 0, size: [8, 8, 32] })
+    var b = world.addBody({ x: 14, y: 10, z: 0, size: [8, 8, 32] })
+    expect(world.move(a, 0, 0).moved).toBe(true)
+    expect(world.move(a, 0, 2).moved).toBe(true)
+    var r = world.move(a, 2, 0)
+    expect(r.moved).toBe(false)
+    expect(r.blocker).toBe(b)
+    expect(world.move(a, -4, 0).moved).toBe(true)
+    // Apart, they block as before
+    expect(world.move(a, 2, -2).moved).toBe(false)
+  })
+
   it('should let only the first collider at a point decide, when asked', () => {
     var setup = (w) => {
       w.addCollider({ x0: 0, x1: 10, y0: 0, y1: 10, type: 'hatch' })

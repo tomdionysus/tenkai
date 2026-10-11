@@ -3,7 +3,7 @@
 `lib/Input.js`
 
 The keyboard, sampled once per game step. Keys are bound to named actions, so game code asks about
-`'jump'` rather than `'KeyX'`, and one action can have several keys. Every [GameEngine](GameEngine.md)
+`'jump'` rather than `'KeyX'`; one action can have several keys, and one key can be in several actions. Every [GameEngine](GameEngine.md)
 has one, as `game.input`, and samples it at the start of each step.
 
 ```js

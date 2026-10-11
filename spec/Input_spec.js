@@ -23,6 +23,18 @@ describe('Input', () => {
     expect(input.down('left')).toBe(false)
   })
 
+  it('should let one key be in several actions', () => {
+    input.bind({ space: ['Space'] })
+    key('keydown', 'Space')
+    input.beginStep()
+    expect(input.pressed('fire')).toBe(true)
+    expect(input.pressed('space')).toBe(true)
+    key('keyup', 'Space')
+    input.beginStep()
+    expect(input.released('fire')).toBe(true)
+    expect(input.released('space')).toBe(true)
+  })
+
   it('should prevent the default action of bound keys only', () => {
     expect(key('keydown', 'Space').preventDefault).toHaveBeenCalled()
     expect(key('keydown', 'KeyQ').preventDefault).not.toHaveBeenCalled()
