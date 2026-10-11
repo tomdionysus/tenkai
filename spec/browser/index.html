@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tenkai specs</title>
+  <style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; background: #111; color: #ccc; font: 14px/1.5 system-ui, sans-serif; }
+    main { max-width: 1000px; margin: 0 auto; padding: 16px; }
+    h1 { margin: 0 0 4px; font-size: 18px; color: #eee; }
+    #summary { margin-bottom: 12px; }
+    .bar { height: 6px; background: #333; margin-bottom: 12px; }
+    .bar div { height: 100%; width: 0; background: #6c6; }
+    .suite { margin: 6px 0 2px; color: #eee; }
+    .spec { margin-left: 16px; }
+    .passed { color: #6c6; }
+    .failed { color: #e66; }
+    .pending, .excluded { color: #888; }
+    pre { margin: 2px 0 6px 32px; color: #e99; white-space: pre-wrap; font: 12px/1.4 ui-monospace, monospace; }
+    button { font: inherit; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Tenkai specs</h1>
+  <div id="summary">starting</div>
+  <div class="bar"><div id="progress"></div></div>
+  <button id="again" hidden>Run again</button>
+  <div id="results"></div>
+</main>
+<script>
+  // Results stream in from the server as Jasmine runs (spec/browser/server.js); window.specResults has the
+  // totals when it is done
+  function run () {
+    const results = document.getElementById('results')
+    const summary = document.getElementById('summary')
+    const progress = document.getElementById('progress')
+    results.textContent = ''
+    document.getElementById('again').hidden = true
+    let total = 0
+    const counts = { passed: 0, failed: 0, pending: 0, excluded: 0 }
+    window.specResults = null
+    const source = new EventSource('/run')
+    const add = (cls, text) => {
+      const div = document.createElement('div')
+      div.className = cls
+      div.textContent = text
+      results.appendChild(div)
+      div.scrollIntoView({ block: 'nearest' })
+      return div
+    }
+    source.onmessage = (m) => {
+      const e = JSON.parse(m.data)
+      if (e.event === 'started') total = e.total
+      else if (e.event === 'suite') add('suite', e.full)
+      else if (e.event === 'spec') {
+        counts[e.status] = (counts[e.status] || 0) + 1
+        add('spec ' + e.status, (e.status === 'passed' ? 'pass  ' : e.status === 'failed' ? 'FAIL  ' : 'skip  ') + e.name)
+        for (const f of e.failures) {
+          const pre = document.createElement('pre')
+          pre.textContent = f
+          results.appendChild(pre)
+        }
+        const n = counts.passed + counts.failed + counts.pending + counts.excluded
+        progress.style.width = (100 * n / Math.max(1, total)) + '%'
+        progress.style.background = counts.failed ? '#e66' : '#6c6'
+        summary.textContent = n + ' of ' + total + ' specs: ' + counts.passed + ' passed, ' + counts.failed + ' failed'
+      } else if (e.event === 'stderr') add('failed', e.text)
+      else if (e.event === 'exit') {
+        source.close()
+        window.specResults = Object.assign({ total }, counts)
+        summary.textContent += counts.failed ? '' : ' - all passed'
+        document.getElementById('again').hidden = false
+      }
+    }
+  }
+  document.getElementById('again').onclick = run
+  run()
+</script>
+</body>
+</html>

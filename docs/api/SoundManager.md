@@ -75,7 +75,7 @@ and expect anything played before then to be silent.
 
 ## Methods
 
-### `play(src, { channel, loop, volume, offset, loopStart, loopEnd })`
+### `play(src, { channel, loop, volume, offset, loopStart, loopEnd, rate })`
 
 Play a sound and return its handle. `src` is a URL, or a list of layers that start together, each a URL or
 `{ src, loop }`. The sound starts once all its layers have loaded, at the same moment; the handle works at
@@ -88,6 +88,7 @@ once, so the sound can be stopped or sought before it starts.
 | `volume` | 1 | Its own volume, under the channel's. |
 | `offset` | 0 | Start this many seconds in. |
 | `loopStart`, `loopEnd` | whole sound | For looping layers: play from the start, then repeat this region (seconds), as sampled instruments and engine hums do. A layer can give its own. |
+| `rate` | 1 | Playback rate: 2 is an octave up and twice as fast. An old sound chip played a sample at another period; the rate is the recorded period over the new one. |
 
 The handle has:
 
@@ -96,7 +97,7 @@ The handle has:
 - `stop()`;
 - `seek(seconds)`: restart every layer at that time. Looping layers wrap round; a layer that does not loop
   and is shorter than that stays silent. For keeping recorded music in step with a game that skips ahead.
-- `volume`, which can be set.
+- `volume` and `rate`, which can be set; a new rate applies at once.
 
 ```js
 // Music in layers: the intro plays once, the drums loop under it

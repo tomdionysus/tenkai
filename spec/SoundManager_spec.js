@@ -16,6 +16,7 @@ function fakeContext () {
     },
     createBufferSource: () => {
       var source = {
+        playbackRate: { value: 1 },
         connect: (next) => next,
         start: jasmine.createSpy('start'),
         stop: jasmine.createSpy('stop').and.callFake(() => source.onended && source.onended())
@@ -63,6 +64,15 @@ describe('SoundManager', () => {
     ctx.sources[0].onended()
     await played
     expect(sounds.effectPlaying).toBe(false)
+  })
+
+  it('should play at a given rate, and change the rate while playing', async () => {
+    var handle = sounds.play('a.wav', { rate: 0.5 })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(ctx.sources[0].playbackRate.value).toEqual(0.5)
+    handle.rate = 2
+    expect(handle.rate).toEqual(2)
+    expect(ctx.sources[0].playbackRate.value).toEqual(2)
   })
 
   it('should let effects overlap by default', async () => {
