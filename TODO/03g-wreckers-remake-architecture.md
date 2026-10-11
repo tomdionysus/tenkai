@@ -297,6 +297,21 @@ A second station with content of its own, and how officers travel to it, is not 
 allows it from step 2, and what it is (another beacon, a different map, a reason to go there) is a design for the
 user when the rest is done.
 
+## Status
+
+- **Step 1 (2026-10-12): done, with two parts moved.** No address is named anywhere in `remake/src` (wreckers
+  commit 44bd282): every comment says what its rule is; the links to the original's routines and tables are in
+  `notes/sources/<Class>.md` (`tools/sources.mjs`, from commit 98e0c29). `tools/noaddresses.mjs` keeps it so, and
+  `tools/samecode.mjs` showed the pass changed comments only. Moved into step 2, since the same code is rewritten
+  there: each class loading its own data, and naming the magic numbers of each class as it becomes an agent.
+  Not done: renaming the keys of the data files, which needs the export tools changed and re-run against the
+  emulator's captures; until then the classes read the files' keys as they are.
+- **Tenkai (2026-10-12):** `Place`, `GameState`, `StateDiff`, `GameServer`, `GameClient` and `LocalSocket` are in
+  `lib/` with specs and docs (`docs/api/GameServer.md`), ahead of the Wreckers steps that use them.
+- **Step 2 (in progress):** pause, quick save and load, file save and load and the menu's RS, RL, S and L are gone
+  (the buttons drawn but inert, like F and ?); `SaveGame` is deleted. The game freezing under the menu, the factory
+  desk and the letter stays until step 5, since it is part of how the one-player game plays.
+
 ## Gates (all of them, as in 03f)
 
 - Frame baselines for every game, identical unless re-saved on purpose with the reason noted.
