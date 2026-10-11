@@ -1,7 +1,20 @@
-# Wreckers: improvements beyond the original
+# Phase 3e: Wreckers improvements beyond the original
 
-The Wreckers remake ([03d-wreckers.md](03d-wreckers.md)) aims first at fidelity: as close to the original as
-possible, entirely on Tenkai. The items here go beyond the original, and wait until that is done.
+The Wreckers remake ([03d-wreckers.md](03d-wreckers.md)) is past its fidelity phase (the user, 2026-10-11:
+"we're beyond fidelity now"): changes that improve on the original are welcome, and no more checks against the
+original are run. Baselines a change alters are re-saved on purpose, with the reason noted. Improvements are
+built on the architecture of [03g](03g-wreckers-remake-architecture.md): the larger ones here (the resizable HUD,
+the fonts) are client work and sit best after 03g's step 3, when the HUD and the screens are drawn by the client
+from the engine's state through the socket; small ones go in whenever they come up. Multiplayer itself (three
+officers, three players) and further stations are not improvements here but 03g's goal and structure.
+
+## Done (2026-10-11)
+
+- The factory desk's description text starts at x 80, lined up with the headings above it (the original: 72).
+- The factory desk no longer covers the HUD's slot 1 (its captured picture is drawn whole only over the view,
+  lines 0-134, and below that only from x 40): no more stale white face on slot 1 after choosing an empty port.
+- The droid faces in the HUD slots sit one pixel right of the original's place (`Slots.js`, `NUDGE`).
+- The officer dossier (mode 9) exists (it was missing from 1.0.0); see 03d.
 
 ## A resizable HUD
 

@@ -54,14 +54,14 @@ phase; everything here lands together as 1.0.
 
 ## Audio
 
-- [ ] Move from `<audio>` elements to the Web Audio API (`AudioContext`,
+- [x] Move from `<audio>` elements to the Web Audio API (`AudioContext`,
       `decodeAudioData`, `AudioBufferSourceNode`). The current `playRange`
       relies on `timeupdate`, which fires only every ~250ms, so range ends and
       loops are audibly imprecise and overlapping sound effects are not
-      possible.
-- [ ] Handle the autoplay policy: resume the `AudioContext` on the first user
-      gesture, and expose that state so games can show "click to start".
-- [ ] Simple buses: master, music and sfx gain nodes.
+      possible. (Done: `SoundManager`, Web Audio buffers with channels.)
+- [x] Handle the autoplay policy: resume the `AudioContext` on the first user
+      gesture, and expose that state so games can show "click to start". (Done: `unlockAudio()` and the `StartScreen`.)
+- [x] Simple buses: master, music and sfx gain nodes. (Done: `SoundManager` channels with their own volumes.)
 
 ## Done when
 

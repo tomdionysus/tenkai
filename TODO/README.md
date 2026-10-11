@@ -10,16 +10,20 @@ state. Do them in order; within a phase, items are roughly in priority order.
 
 | Phase | File | Outcome |
 |-------|------|---------|
-| 0 | [00-make-it-run.md](00-make-it-run.md) | Engine boots in a real browser; tests green on the current stack |
-| 1 | [01-tooling.md](01-tooling.md) | ESM, current Node, Vitest, lint, GitHub Actions, docs built in CI |
-| 2 | [02-api-modernisation.md](02-api-modernisation.md) | Promises, no mixins, no legacy deps, Web Audio |
-| 3 | [03-engine-core.md](03-engine-core.md) | Fixed-step game loop, input, rendering fixes |
-| 3a | [03a-animation-redesign.md](03a-animation-redesign.md) | Shared clips, game-controlled animation, fixed-step time |
-| 3b | [03b-depth-sorted-tiles.md](03b-depth-sorted-tiles.md) | Tilesets with heights and solidity; characters sorted among tiled scenery |
-| 3c | [03c-monkey-island-2-port.md](03c-monkey-island-2-port.md) | In progress: Monkey Island 2 on Tenkai, no SCUMM left; Tenkai gains what it needs |
-| 3d | [03d-wreckers.md](03d-wreckers.md) | In progress: a remake of Wreckers (Amiga, 1991), nearly feature complete; Tenkai gains isometric scenes |
-| 3e | [03e-wreckers-improvements.md](03e-wreckers-improvements.md) | After 3d: extensions beyond the original (a resizable HUD, cleaner fonts) |
-| 4 | [04-docs-and-release.md](04-docs-and-release.md) | Example game, real docs, 1.0 on npm with provenance |
+| 0 | [00-make-it-run.md](00-make-it-run.md) | Done but for small fixes: engine boots in a real browser; tests green |
+| 1 | [01-tooling.md](01-tooling.md) | Partly: ESM done; Node engines field, types, Vitest, lint, CI to do |
+| 2 | [02-api-modernisation.md](02-api-modernisation.md) | Partly: Web Audio done; promises, dependencies, mixins to do |
+| 3 | [03-engine-core.md](03-engine-core.md) | Partly: fixed-step loop, input; camera, HiDPI, pointer events to do |
+| 3a | [03a-animation-redesign.md](03a-animation-redesign.md) | Done: shared clips, game-controlled animation, fixed-step time |
+| 3b | [03b-depth-sorted-tiles.md](03b-depth-sorted-tiles.md) | Done: tilesets with heights and solidity; characters sorted among scenery |
+| 3c | [03c-monkey-island-2-port.md](03c-monkey-island-2-port.md) | In progress: Monkey Island 2 on Tenkai, no SCUMM left |
+| 3d | [03d-wreckers.md](03d-wreckers.md) | 1.0.0 (2026-10-11): Wreckers (Amiga, 1991) remade; fidelity work closed (user, 2026-10-11) |
+| 3g | [03g-wreckers-remake-architecture.md](03g-wreckers-remake-architecture.md) | The Wreckers plan from here (2026-10-12): no 68k constants in the code, no god classes, agents in stations in a sector (several stations allowed), the game engine behind a WebSocket-shaped interface in the browser (the main milestone), then a real WebSocket and three players (pause and saves go); holds the order of the work |
+| 3f | [03f-wreckers-on-tenkai.md](03f-wreckers-on-tenkai.md) | The Tenkai side of 3g: which mechanisms move into `lib/` as which classes, at which step; `Motion`, the frame baselines and the remake's file structure done |
+| 3e | [03e-wreckers-improvements.md](03e-wreckers-improvements.md) | Open (fidelity is over): improvements beyond the original; three already made, the larger ones after 3g's step 3 |
+
+Phases 3d to 3g are one piece of work; 3g is its plan and order, 3f the Tenkai side, 3e the improvements, 3d the record.
+| 4 | [04-docs-and-release.md](04-docs-and-release.md) | Example games, real docs, 1.0 on npm with provenance |
 
 ## Guiding decisions
 
@@ -40,10 +44,13 @@ state. Do them in order; within a phase, items are roughly in priority order.
 - **Breaking changes are fine.** Nothing meaningful depends on 0.1.2 on npm.
   Phase 2 is a deliberate clean break; ship it as 1.0.
 
-## Known state at time of writing (2026-10-09)
+## State (2026-10-11, end of day)
 
-- `GameEngine.start()` fails in a real browser (unbound `addEventListener`).
-- 7 of 191 specs fail at HEAD; `spec/jsdoc/` stubs crash the runner entirely.
-- npm has 0.1.2 (May 2022); repo says 0.2.0.
-- Travis CI badge is dead; `docs/` HTML is committed and churns on every build.
-- Working tree has ~100 spurious 644 -> 755 mode changes.
+- The engine runs every example and port; 363 specs pass (Jasmine, `npx jasmine`).
+- Games: three examples (`examples/`: 1945, Arkanoid, Tim the Enchanter) and four local ports (`local/`, not
+  for release: Wreckers 1.0.0, Monkey Island 2, Golden Axe, Myst), all with the `StartScreen`.
+- Frame baselines for every game: `node tools/frames/frames.mjs check <script>`, scripts and baselines in
+  each game's `frames/` folder (see 3f). They need the game's dev server running (ports in each README or
+  LOCAL-ONLY.md) and are tied to this machine's Chrome and fonts.
+- Still true from 2026-10-09: npm has 0.1.2, the repository says 0.2.0; the Travis and Coveralls files are
+  dead (no CI); the runtime dependencies `async`, `moment`, `sprintf-js` and `uuid` are still listed.

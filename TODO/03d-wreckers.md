@@ -1,4 +1,4 @@
-# Phase 3d: Wreckers Remake (in progress)
+# Phase 3d: Wreckers Remake (1.0.0, 2026-10-11)
 
 Goal: a remake of Wreckers (Audiogenic, 1991, developed by Denton Designs, designed by John Heap) on Tenkai,
 using the original's graphics, sound, maps and rules, recovered by reverse engineering the Amiga version. And,
@@ -24,30 +24,35 @@ The remake is in `local/wreckers/remake/` (served by esbuild at http://127.0.0.1
 title, `check.html` runs the station and movement checks in the browser), its asset and data tools in
 `local/wreckers/tools/`, and the reverse-engineering notes per subsystem in `local/wreckers/notes/`.
 
-## Status (2026-10-11)
+## Status: 1.0.0 (2026-10-11)
 
-Done and checked against the original (station checks: all 12 traces identical; move checks for seeds 11-14
-identical): the station simulation (aliens, spores, waves, the plasmozomb and its grab, droids with targeting,
-orders, the elevator queue and speech, bulbs, the factory), movement, lifts, the airlock and the outside, the HUD
-(ticker, score, slots and their palette split), the map and info screens with View Droid, the terminals and
-promotion letters, the front end (start screen, title, credits, ending, high scores), the game control menu with
-save and load, the long range scanner, the original's key rules (F_0DBE), and the sound (FLAC, lossless).
+Released as 1.0.0: tag `1.0.0` and branch `original` in `local/wreckers` (commit 4f4531d). Work now goes on under
+[3g](03g-wreckers-remake-architecture.md) (the remake's own architecture: no 68k constants, no god classes, agents,
+the game state in a server) and [3f](03f-wreckers-on-tenkai.md) (what Tenkai gains from it), with
+[3e](03e-wreckers-improvements.md) for improvements beyond the original. This file is the record of the
+reverse engineering and of 1.0.0.
 
-Built but not yet traced against the emulator in a full run: the Battlepod (tether, tractor beam, catch boxes,
+Checked against the original (station checks: all 12 traces identical; move checks for seeds 11-14 identical):
+the station simulation (aliens, spores, waves, the plasmozomb and its grab, droids with targeting, orders, the
+elevator queue and speech, bulbs, the factory), movement, lifts, the airlock and the outside, the HUD (ticker,
+score, slots and their palette split), the map and info screens with View Droid, the terminals and promotion
+letters, the front end (title, credits, ending, high scores), the game control menu with save and load, the long
+range scanner, the original's key rules (F_0DBE), and the sound (FLAC, lossless).
+
+Built but not traced against the emulator in a full run: the Battlepod (tether, tractor beam, catch boxes,
 starfield; its hum retune and spore clipping were checked in the emulator on their own), the plasmozomb grab,
 the outside spray.
 
 Deliberate differences (the user's decisions): no pointer mode (Space fires, the mouse is the pointer); save
-and load use the browser's files with no disk listing, name entry or confirmation.
+and load use the browser's files with no disk listing, name entry or confirmation. Measured and kept as the
+original: once docked, the Battlepod cannot be left (notes/battlepod.md).
 
-Left:
-
-1. **Monte Carlo fidelity runs** of the remake against the emulator, which can run unattended.
-2. Small: the monitor's counter shared between the menu, terminal, factory and bulb desks; clicks taken only
-   with the pointer on and refused in door sequences in the original; Q in plain play restarting the hum and
-   recentring the view (F_B9AC).
-
-Then the improvements in [03e](03e-wreckers-improvements.md).
+Fidelity work closed (the user, 2026-10-11: "we're beyond fidelity now", "no need for any more fidelity
+tests"). Done since 1.0.0: droid fire hurts the officer and the officer's fire hurts droids, as the original's
+F_1809C / F_1826A; the officer dossier (mode 9, `remake/src/Dossier.js`, from `tools/dossier.py`'s capture).
+Left as they are (not pursued unless they come up as improvements, 03e): the Monte Carlo runs, the shared
+monitor counter, clicks only with the pointer on, Q recentring the view, the airlock's 4-pixel offset in Y, and
+two oddities each seen once (a bay door that did not open, solid green droid heads in the Battlepod).
 
 ## The game
 
@@ -465,6 +470,6 @@ Gaps found go into this section as they turn up, as in `local/monkey2/TENKAI-GAP
 
 ## Improvements
 
-The remake aims first at fidelity: as close to the original as possible, entirely on Tenkai. Changes beyond the
-original (such as a resizable HUD) wait until that is done, and are listed in
-[03e-wreckers-improvements.md](03e-wreckers-improvements.md).
+Fidelity came first and is done. Changes beyond the original (such as a resizable HUD) are listed in
+[03e-wreckers-improvements.md](03e-wreckers-improvements.md) and go in whenever they are worth doing; the
+architecture they are built on is [03g](03g-wreckers-remake-architecture.md)'s.

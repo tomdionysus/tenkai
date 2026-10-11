@@ -10,8 +10,8 @@ suite is green. No refactoring yet; this is the baseline to compare against.
       `git config core.fileMode false`).
 - [x] Delete `spec/jsdoc/` (broken stubs; `lib/jsdoc/*` are typedef-only files
       with nothing to test).
-- [ ] Commit the pending `lib/` doc fixes and `HasEntitiesMixin.drawEntities`
-      refactor separately from the `package-lock.json` churn.
+- [x] Commit the pending `lib/` doc fixes and `HasEntitiesMixin.drawEntities`
+      refactor separately from the `package-lock.json` churn. (Committed.)
 
 ## Bugs that stop it running
 

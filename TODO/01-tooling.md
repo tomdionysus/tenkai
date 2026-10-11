@@ -7,11 +7,12 @@ library does. Library behaviour should not change in this phase.
 
 - [ ] `engines.node: ">=24"` (current LTS) for development tooling. Add
       `.nvmrc` / `.node-version`.
-- [ ] Convert to ESM: `"type": "module"`, `import` / `export` throughout,
-      `index.js` re-exports with named exports.
+- [x] Convert to ESM: `"type": "module"`, `import` / `export` throughout,
+      `index.js` re-exports with named exports. (Done: `"type": "module"`, ES modules throughout.)
 - [ ] Add an `exports` map in `package.json` (`"."` -> `./index.js`, plus
       `types`). Add `"files"` so only `lib/`, `index.js` and types are
-      published; `"sideEffects": false`.
+      published; `"sideEffects": false`. (Partly: `exports` has `.` and
+      `./lib/*`; no `types`, `files` or `sideEffects` yet.)
 - [ ] Delete `package-lock.json` and regenerate from scratch once dependencies
       are replaced (the current lockfile is mostly for tools being removed).
 
