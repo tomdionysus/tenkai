@@ -20,9 +20,11 @@ const client = new GameClient({ socket: new LocalSocket(server), name: 'Ann' })
 // later, the same client against a server elsewhere:
 // new GameClient({ socket: new WebSocket('ws://host:8080'), name: 'Ann' })
 client.onEvent = (event) => { if (event.name === 'sound') sound.play(event.data) }
-// each frame:
-client.command({ stick: 'up', fire: true })
+// each frame: what the player holds (sent when it changes, given to every tick)
+client.input({ up: true, fire: true })
 draw(client.previous, client.state)
+// a click on a button: done at once, the new state sent straight back
+client.act({ open: 'map' })
 ```
 
 ## Place
@@ -49,6 +51,7 @@ The whole game: places, players and the tick count. Subclass it for a game's rul
 | `join(name, wish)` | a player `{ number, name, place }` numbered from 1, or null if full or refused |
 | `leave(number)`, `player(number)` | |
 | `tick(commands)` | commands `{ player, ... }` go to each player's place, in player order; returns the events, each with its `place` |
+| `act(player, action)` | an action done at once, given to the player's place (`place.act(action, player)`); returns its events |
 | `isFor(event, player)` | whether a player is sent an event |
 | `snapshot()`, `restore(snapshot)` | |
 | `view(player)` | override: what a player is sent (default everything) |
@@ -56,9 +59,11 @@ The whole game: places, players and the tick count. Subclass it for a game's rul
 
 ## GameServer
 
-Ticks a `GameState` and talks to its clients in JSON strings: `join`, `command` (applied at the tick it names, or
-the next one run) and `leave` from clients; `welcome` (the player and the state), `tick` (a `StateDiff` patch and
-the player's events) and `refused` to them.
+Ticks a `GameState` and talks to its clients in JSON strings. From clients: `join`; `input` (what the player
+holds, kept and given to every tick until it changes); `command` (once, at the tick it names, or the next one
+run); `act` (an action done at once, between ticks); `leave`. To them: `welcome` (the player and the state),
+`tick` (a `StateDiff` patch and the player's events, after each tick and each action) and `refused`. Each tick the
+state gets one command per player: `{ player, ...input, actions: [the commands due] }`.
 
 | Member | |
 |---|---|
@@ -83,7 +88,9 @@ Messages are strings both ways and arrive later, never inside `send`. `new Local
 | `player` | `{ number, name, place }` once welcomed |
 | `state`, `previous`, `tick` | the last two states sent, to draw between |
 | `refused` | the reason, if refused |
-| `command(fields)` | for the next tick |
+| `input(fields)` | what the player holds now: sent when it changes |
+| `command(fields)` | once, for the next tick |
+| `act(action)` | done by the server at once; the new state follows |
 | `leave()` | |
 | `onWelcome`, `onTick(client, events)`, `onEvent(event)`, `onClose(event)` | |
 

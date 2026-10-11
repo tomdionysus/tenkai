@@ -10,21 +10,31 @@ describe('GameServer, GameClient and LocalSocket', () => {
   const schedule = (fn) => queue.push(fn)
   const flush = () => { while (queue.length) queue.shift()() }
 
-  // Each player's counter goes up by their commands' `add`; a 'big' event goes to a player passing 10
+  // Each player's counter goes up by their commands' `add` and, every tick, by what they hold (`hold`); a 'big'
+  // event goes to a player passing 10
   const counters = () => ({
     n: {},
     tick (place, commands) {
       for (const c of commands) {
-        this.n[c.player] = (this.n[c.player] || 0) + c.add
+        const add = (c.actions || []).reduce((sum, a) => sum + (a.add || 0), 0) + (c.hold || 0)
+        if (!add) continue
+        this.n[c.player] = (this.n[c.player] || 0) + add
         if (this.n[c.player] > 10) place.emit({ name: 'big', to: { player: c.player } })
       }
     },
     snapshot () { return { n: Object.assign({}, this.n) } },
     restore (s) { this.n = s.n }
   })
+  // A place whose actions reset a player's counter at once
+  const place = (agent) => Object.assign(new Place({ agents: [agent] }), {
+    act (action, player) {
+      if (action.reset) agent.n[player.number] = 0
+      return [{ name: 'reset' }]
+    }
+  })
   const game = (maxPlayers = 3) => {
     const agent = counters()
-    const state = new GameState({ places: [new Place({ agents: [agent] })], maxPlayers })
+    const state = new GameState({ places: [place(agent)], maxPlayers })
     return { agent, state, server: new GameServer({ state, tickTime: 0.1 }) }
   }
 
@@ -75,6 +85,35 @@ describe('GameServer, GameClient and LocalSocket', () => {
     server.step()
     flush()
     expect(got).toEqual({ a: [], b: ['big'] })
+  })
+
+  it('should give what a player holds to every tick until it changes', () => {
+    const { server, agent } = game()
+    const client = new GameClient({ socket: new LocalSocket(server, { schedule }), name: 'a' })
+    flush()
+    client.input({ hold: 2 })
+    flush()
+    server.step()
+    server.step()
+    client.input({ hold: 0 })
+    flush()
+    server.step()
+    expect(agent.n).toEqual({ 1: 4 })
+  })
+
+  it('should do an action at once, and send the new state and its events straight after', () => {
+    const { server, agent } = game()
+    const client = new GameClient({ socket: new LocalSocket(server, { schedule: (fn) => fn() }), name: 'a' })
+    const got = []
+    client.onEvent = (e) => got.push(e.name)
+    client.input({ hold: 3 })
+    server.step()
+    expect(client.state.places[0].agents[0]).toEqual({ n: { 1: 3 } })
+    client.act({ reset: true })
+    expect(agent.n).toEqual({ 1: 0 })
+    expect(client.state.places[0].agents[0]).toEqual({ n: { 1: 0 } })
+    expect(client.tick).toEqual(1)
+    expect(got).toEqual(['reset'])
   })
 
   it('should drop the player when the socket closes', () => {
