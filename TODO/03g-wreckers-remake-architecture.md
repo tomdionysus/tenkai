@@ -286,8 +286,8 @@ only one.
    agent; the station holds the officers on board (one, for now). Ends with the snapshot check, including the
    two-station case.
 3. **The engine behind a socket, in the browser** (section 4): `GameServer`, `GameClient` and `LocalSocket` in
-   Tenkai; Wreckers' page becomes a client connected through `LocalSocket`. **The main milestone: playable, every
-   baseline identical.**
+   Tenkai; Wreckers' page becomes a client connected through `LocalSocket`. **The main milestone: playable, and plays
+   and looks as before.**
 4. **Worker, then Node and a real WebSocket** (section 5).
 5. **Three players** (section 6): the lobby, the other two officers joined, the rules over the officers on a
    station, the per-client view and HUD; the two- and three-player frame scripts.
@@ -312,11 +312,14 @@ user when the rest is done.
   (the buttons drawn but inert, like F and ?); `SaveGame` is deleted. The game freezing under the menu, the factory
   desk and the letter stays until step 5, since it is part of how the one-player game plays.
 
-## Gates (all of them, as in 03f)
+## Gates
 
-- Frame baselines for every game, identical unless re-saved on purpose with the reason noted.
-- The station and move checks identical (quick regression checks, seconds in Node).
-- New: the address grep returns nothing; the snapshot check (one station, and two stations each equal to itself
-  alone); the specs of every extracted class; the two- and three-player frame scripts.
-- Tenkai changes with specs and API docs; the other games checked and, where a new class removes code from them,
-  adopted with their own baseline checks.
+**Not the frame baselines (the user, 2026-10-12: "we're beyond that").** No comparing against saved frames and no
+re-saving them; where this file or 03f says "baselines identical", read "the game plays and looks as before".
+
+- The game run in headless Chrome after each change (no errors; a screenshot or two looked at), and longer runs
+  played live in the user's visible tab.
+- The station and move checks (quick logic regression checks, seconds in Node).
+- The address check (`tools/noaddresses.mjs`); the snapshot check (one station, and two stations each equal to
+  itself alone); the specs of every extracted class.
+- Tenkai changes with specs and API docs.
