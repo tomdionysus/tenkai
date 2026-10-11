@@ -325,7 +325,14 @@ user when the rest is done.
   and live: walking, firing, the lifts, the outside, the pods, the screens, the factory, death and the end, and the
   Battlepod (`frames/podflight.json`; the old `battlepod` script's walk never reached the bay, before this work
   too). Tenkai gained input and actions on `GameServer`.
-- **Next:** step 4 (the server in a Worker, then Node and a real WebSocket), then step 5 (three players).
+- **Step 4 (2026-10-12): done.** `?server=worker` runs the server in a Web Worker on its own clock
+  (`server-worker.js`, Tenkai's `WorkerSocket` and `GameServer.attach`); `?server=ws://127.0.0.1:8053/game` reaches
+  it under Node (`remake/server.mjs`, Tenkai's `lib/node/WebSocketServer.js`, no dependencies); `ServerLink` picks
+  which, and the page draws between ticks by the time since the last one arrived. Played live in headless Chrome
+  (`tools/frames/live.mjs`): with the Worker every script ends where it does in the page; under Node the goal-based
+  scripts do, and frame-counted key holds end a few ticks on, as a server on its own clock does. The game is held
+  under the menu, the commander screen and the letter by a `freeze` action (until step 5).
+- **Next:** step 5 (three players).
 
 ## Gates
 
