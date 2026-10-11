@@ -38,3 +38,19 @@ Work:
 5. Tenkai: a general frame or panel builder (nine-slice and beyond: fixed corners, tiled edge runs, anchored
    ornaments of any number), so other games with pre-drawn frames can do the same. Log it in
    `local/monkey2/TENKAI-GAPS.md`.
+
+## Fix the fonts
+
+The original's text looks clipped in places, and the remake reproduces it exactly (checked pixel for pixel
+against the original's frames): many glyphs of the large 8 by 8 font have a blank row through the middle, the
+line colour tables colour each row's last glyph line 0 (so the high score table's rows look cut), and in the
+title's scrolling credits some name lines are packed so tightly they touch ("PAUL SALMON" over "HERMAN
+SERRANO"). Offer cleaner text as an option, the original's look staying the default:
+
+1. Redraw the affected glyphs of the large font (the HUD, the screens, the high score table, the end texts) and
+   the title's credits font with the gaps filled, in the same sizes and colours, as an alternative glyph sheet.
+2. Space the scrolling credits' lines so none touch, rebuilding those blocks of the strip from the fonts
+   (tools/frontend_data.py already draws the remake's own credit block this way).
+3. On the high score table, colour every glyph line rather than letting the per-line colour table blank the
+   last one.
+4. A setting to switch between the original's fonts and the cleaned ones.
