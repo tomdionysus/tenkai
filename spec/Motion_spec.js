@@ -17,6 +17,22 @@ describe('Motion', () => {
     { steps: [[0, 0, 4, 5]], next: 0 }
   ]
 
+  it('should snapshot and restore its state through JSON, going on the same way', () => {
+    var a = { x: 0, y: 0, z: 0 }
+    var b = { x: 0, y: 0, z: 0 }
+    var m = new Motion({ scripts, table: [[0, 1], [0, 1]], world: world(), body: a })
+    m.setCommand(1)
+    m.tick()
+    var n = new Motion({ scripts, table: [[0, 1], [0, 1]], world: world(), body: b })
+    n.restore(JSON.parse(JSON.stringify(m.snapshot())))
+    Object.assign(b, a)
+    m.tick()
+    n.tick()
+    expect(n.snapshot()).toEqual(m.snapshot())
+    expect(b).toEqual(a)
+    expect(n.script).toBe(scripts[1])
+  })
+
   it('should choose a script from the table and take its steps, showing their frames', () => {
     var body = { x: 0, y: 0, z: 0 }
     var m = new Motion({ scripts, table: [[0, 1], [0, 1]], world: world(), body })
