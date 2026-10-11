@@ -23,7 +23,7 @@ The documentation is in [docs](docs/README.md):
 * [Point-and-click adventures](docs/point-and-click.md) - building a Myst-style game.
 * [API reference](docs/README.md#api-reference) - every class.
 
-Tenkai is a set of CommonJS classes. Bundle a game for the browser with any bundler that understands `require`; the examples use [esbuild](https://esbuild.github.io).
+Tenkai is a set of ES module classes (`import { GameEngine } from 'tenkai'`). Bundle a game for the browser with any ES module bundler; the examples use [esbuild](https://esbuild.github.io).
 
 ## Point-and-click adventures
 

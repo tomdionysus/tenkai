@@ -209,6 +209,6 @@ docs/               these pages
 TODO/               the modernisation plan
 ```
 
-The code is CommonJS in JavaScript Standard style. Bundle a game for the browser with any CommonJS-aware
+The code is ES modules in JavaScript Standard style. Bundle a game for the browser with any ES module
 bundler; the examples use esbuild. Run the specs with `node node_modules/jasmine/bin/jasmine.js`, or
 `npm test` for coverage.
