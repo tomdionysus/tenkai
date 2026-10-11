@@ -88,6 +88,14 @@ surface. The page: `new WorkerSocket(new Worker('server.js', { type: 'module' })
 `server.attach(self)` and `server.start()` (the server's own clock). `GameServer.attach(port)` serves one client on
 a port: the socket's open and close requests, and the game's strings.
 
+## WebSocketServer (Node)
+
+`lib/node/WebSocketServer.js`, not exported by the index (it needs Node's `http` and `crypto`). Real WebSockets for
+a `GameServer` under Node, with no dependencies: `new WebSocketServer({ http, server, path })` takes the HTTP
+server's upgrade requests on `path`; each connection becomes one of the game server's, its text messages the
+game's. The page connects with the browser's own `new WebSocket(url)`, which `GameClient` takes as it takes a
+`LocalSocket` or a `WorkerSocket`.
+
 ## GameClient
 
 | Member | |
