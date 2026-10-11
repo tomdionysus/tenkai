@@ -12,7 +12,9 @@ It holds three kinds of thing:
 - **Regions**: named boxes such as rooms, corridors or decks. A point is in the first region whose box
   contains it. Regions also scope colliders, so a large world stays fast.
 - **Colliders**: boxes with a `type`, such as walls, doors, lifts and consoles. A move into one is decided by
-  the handler for its type; without a handler it blocks.
+  the handler for its type; without a handler it blocks. Where colliders overlap, every one must allow the
+  move; with `new IsometricWorld({ firstCollider: true })` only the first one added decides, as in games that
+  look rectangles up in a list and stop at the first match (Wreckers' hatches sit inside walls this way).
 - **Bodies**: things that move, each with a size, that block one another.
 
 Boxes include their low edges and exclude their high ones (x from `x0` up to but not including `x1`). A box

@@ -73,4 +73,20 @@ describe('IsometricWorld', () => {
     world.removeBody(b)
     expect(world.bodies).toEqual([a])
   })
+
+  it('should let only the first collider at a point decide, when asked', () => {
+    var setup = (w) => {
+      w.addCollider({ x0: 0, x1: 10, y0: 0, y1: 10, type: 'hatch' })
+      w.addCollider({ x0: 0, x1: 20, y0: 0, y1: 20, type: 'wall' })
+      w.on('hatch', (body, c, world, to) => { to.x = 5; return true })
+      w.on('wall', () => false)
+      return w.addBody({ x: 2, y: 12 })
+    }
+    var all = new IsometricWorld()
+    expect(all.move(setup(all), 0, -4).moved).toBe(false)
+    var first = new IsometricWorld({ firstCollider: true })
+    var body = setup(first)
+    expect(first.move(body, 0, -4).moved).toBe(true)
+    expect([body.x, body.y]).toEqual([5, 8])
+  })
 })

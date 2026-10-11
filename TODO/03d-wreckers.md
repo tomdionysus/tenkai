@@ -371,6 +371,27 @@ at ticks 1, 5, 9, 13; X + 13 at the end of the first tick; a burst at X 1048, Z 
 `tools/overlay.py` draws the zones and collision rectangles, projected with the game's formula, over the
 composed map (`build/data/logic.png`): they sit on the corridors, walls and consoles of both decks.
 
+### The outside
+
+Details in `local/wreckers/notes/outside.md`. Through an airlock hatch (rectangle type 19; the hatch opens on a
+push, the next push takes the officer in, it closes, and 16 ticks later he is out) the officer drifts up above
+the roof (28 ticks), then flies with a jetpack: screen-relative eight directions, the velocity stepping 1 every
+other tick towards 8, turning 45 degrees a tick, clamped to the map, switching between the upper and lower
+outside zones (39, 40) with a coordinate swap that keeps the picture still. The view is the station's own map
+with a starfield behind black (1/4 parallax), the camera a dead zone across and a slide. His suit has power
+(-3 a 16 ticks while thrusting), oxygen (-2 a 16 ticks; out is death, a 96-tick struggle, no plasmozomb) and
+spray fluid (-1 every 4 ticks of spraying); the spray (7 particles a tick) lands on the hull and kills aliens
+still eating through it, 25 points. He comes back in only through the airlock he left by: lowered into it,
+the hatch opens and he walks in.
+
+The remake has all of this (`remake/src/outside.js`, `remake/src/doors.js` for the twelve bay and airlock doors),
+checked against the agent's emulator runs: out at (1028, 846, 952) after the drift (the original 842), full
+speed after 16 ticks, the drains, the spray catching a planted hull alien at the first landing, death and the
+float, re-entry to (1028, 814, 896) and in. The world now uses Tenkai's `firstCollider` rule (the first
+rectangle at a point decides, F_24F4), since a hatch sits inside a wall rectangle. Not yet: the Battlepod (the
+bays), the death struggle's exact frame table, the jet and spray drawn in the depth sort (they are drawn over
+the view).
+
 ## Tenkai: extending it for isometric games
 
 Principles: isometric support is added beside the 2D scenes, not into them; `Scene`, `TiledScene`, `Entity`
