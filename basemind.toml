@@ -1,0 +1,27 @@
+# basemind configuration — https://github.com/Goldziher/basemind
+# The index lives in basemind's machine-global cache, not in the repository.
+"$schema" = "v1"
+
+[scan]
+# .gitignore keeps local/ (the local-only ports and remakes, with their copyrighted data) out of git, but their
+# code should be searchable with the library's, so the walk ignores .gitignore and the excludes below keep out
+# what it would otherwise bring in: build output, bundles, coverage, disk images, manuals, ripped assets,
+# vendored code and exported game data.
+respect_gitignore = false
+exclude = [
+  "build/**",
+  "coverage/**",
+  ".nyc_output/**",
+  "docs/api/**/*.html",
+  "**/bundle.js",
+  "local/*/build/**",
+  "local/*/remake/out/**",
+  "local/*/remake/data/**",
+  "local/*/remake/traces/**",
+  "local/*/original/**",
+  "local/*/reference/**",
+  "local/*/assets/**",
+  "local/*/vendor/**",
+  "local/*/native/*.dylib",
+  "local/*/.venv/**",
+]
