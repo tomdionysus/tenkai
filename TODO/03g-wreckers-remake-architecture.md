@@ -308,9 +308,24 @@ user when the rest is done.
   emulator's captures; until then the classes read the files' keys as they are.
 - **Tenkai (2026-10-12):** `Place`, `GameState`, `StateDiff`, `GameServer`, `GameClient` and `LocalSocket` are in
   `lib/` with specs and docs (`docs/api/GameServer.md`), ahead of the Wreckers steps that use them.
-- **Step 2 (in progress):** pause, quick save and load, file save and load and the menu's RS, RL, S and L are gone
-  (the buttons drawn but inert, like F and ?); `SaveGame` is deleted. The game freezing under the menu, the factory
-  desk and the letter stays until step 5, since it is part of how the one-player game plays.
+- **Step 2 (2026-10-12): done in substance.** Pause, the saves and the menu's RS, RL, S and L are gone (drawn but
+  inert); the game freezing under the menu, the factory desk and the letter stays until step 5. The logic tick
+  reads one command (`GameKeys`, `Stick`, `Geometry`); the officer is `Officer`; `Station` (a Tenkai `Place`) owns
+  and ticks everything in the station, with its own map tiles (`MapTiles`), the player's screens' state
+  (`MapScreenState`, `ScreenMode`), `Speech`, the score, the game being over and the self-destruct's clock, and
+  raises events instead of calling the page (its one client hook is `emit`, used only in the page). Every part has
+  `snapshot` and `restore`; `tools/checks/roundtrip.mjs` restores a running station through JSON into a fresh one and
+  runs both on, identical at every tick. The client changes the station only through `Station.act`. Not done from
+  section 2's table: `Droids` and `Aliens` are still one class each (no `Droid`, `AlienHorde`, `Waves`...), and
+  `Wreckers` is still about 1,350 lines of client.
+- **Step 3 (2026-10-12): the milestone, first form.** `Sector` (a Tenkai `GameState`) holds the station and is run
+  by a `GameServer` in the page; the page is a `GameClient` on a `LocalSocket` (delivering at once, so ticks land in
+  the frame they run), sends what the player holds as input and everything else as actions, and draws from its own
+  `Station` restored from the JSON sent after every tick and action. Played through every frame script headless
+  and live: walking, firing, the lifts, the outside, the pods, the screens, the factory, death and the end, and the
+  Battlepod (`frames/podflight.json`; the old `battlepod` script's walk never reached the bay, before this work
+  too). Tenkai gained input and actions on `GameServer`.
+- **Next:** step 4 (the server in a Worker, then Node and a real WebSocket), then step 5 (three players).
 
 ## Gates
 
