@@ -26,27 +26,26 @@ title, `check.html` runs the station and movement checks in the browser), its as
 
 ## Status (2026-10-11)
 
-Done and checked against the original (station checks 11 of 12 identical, the 12th, seed 32, a known spit-burst
-difference at tick 1236; move checks for seeds 11-14 identical): the station simulation (aliens, spores, waves,
-the plasmozomb and its grab, droids with targeting, orders, the elevator queue and speech, bulbs, the factory),
-movement, lifts, the airlock and the outside, the HUD (ticker, score, slots and their palette split), the map
-and info screens with View Droid, the terminals and promotion letters, the front end (start screen, title,
-credits, ending, high scores), and the sound (FLAC, lossless).
+Done and checked against the original (station checks: all 12 traces identical; move checks for seeds 11-14
+identical): the station simulation (aliens, spores, waves, the plasmozomb and its grab, droids with targeting,
+orders, the elevator queue and speech, bulbs, the factory), movement, lifts, the airlock and the outside, the HUD
+(ticker, score, slots and their palette split), the map and info screens with View Droid, the terminals and
+promotion letters, the front end (start screen, title, credits, ending, high scores), the game control menu with
+save and load, the long range scanner, the original's key rules (F_0DBE), and the sound (FLAC, lossless).
 
-Built but not yet traced against the emulator: the Battlepod (tether, tractor beam, catch boxes, starfield),
-the plasmozomb grab, the outside spray.
+Built but not yet traced against the emulator in a full run: the Battlepod (tether, tractor beam, catch boxes,
+starfield; its hum retune and spore clipping were checked in the emulator on their own), the plasmozomb grab,
+the outside spray.
 
-Left, in this order:
+Deliberate differences (the user's decisions): no pointer mode (Space fires, the mouse is the pointer); save
+and load use the browser's files with no disk listing, name entry or confirmation.
 
-1. Done (2026-10-11): **save and load, the game control menu and the long range scanner** are in the game
-   (`remake/src/menu.js`, `scanner.js`, `savegame.js`; notes/menu.md). G or the lifeforce panel opens the
-   menu, B or the scanner panel the scanner; S and L save to and load from a JSON file at once (no
-   confirmation), RS and RL (and K and L in play) the quick save in sessionStorage, HS and HL the high score
-   table to and from a file. Not done: the monitor's counter shared with the terminal, factory and bulb desks.
-2. **The original's pointer mode** (Space or the button; the joystick moves a pointer).
-3. **Small gaps:** the Battlepod hum retune, spore clipping at the frame's edge, seed 32, Q's extra
-   conditions.
-4. **Monte Carlo fidelity runs** of the remake against the emulator, which can run unattended.
+Left:
+
+1. **Monte Carlo fidelity runs** of the remake against the emulator, which can run unattended.
+2. Small: the monitor's counter shared between the menu, terminal, factory and bulb desks; clicks taken only
+   with the pointer on and refused in door sequences in the original; Q in plain play restarting the hum and
+   recentring the view (F_B9AC).
 
 Then the improvements in [03e](03e-wreckers-improvements.md).
 
