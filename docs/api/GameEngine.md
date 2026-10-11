@@ -51,7 +51,7 @@ new MyGame({ targetId: 'game' }).start()
 | `globalAlpha` | `1` | Opacity for everything drawn. |
 | `enableScroll` | `true` | The mouse wheel pans the viewport. |
 | `enableZoom` | `true` | Shift with the mouse wheel zooms. |
-| `startScreen` | none | Before `init`, show a screen asking the player to click or press a key, so sound can play: `true`, or `{ title, subtitle, prompt, background, color, font, titleFont, subtitleFont, logo, logoColor, logoHeight }`. See [Sound and the start screen](#sound-and-the-start-screen). |
+| `startScreen` | none | Before `init`, show a [StartScreen](StartScreen.md) asking the player to click or press a key, so sound can play: `true`, or its options (`{ title, year, publisher, prompt, logo, ... }`). See [Sound and the start screen](#sound-and-the-start-screen). |
 | `audioContext` | none | An `AudioContext` to share, instead of the one `unlockAudio` creates. |
 
 ## Properties
@@ -77,8 +77,8 @@ Browsers do not let a page play sound until the player has interacted with it: a
 press. Before that, a Web Audio `AudioContext` stays suspended and `<audio>` elements refuse to play, so a
 game that starts its music in `init` would start in silence.
 
-The `startScreen` option deals with this. After loading, the engine draws a screen on the canvas with the
-game's title and a gently pulsing "Click or press any key to start", and waits. When the player clicks, taps
+The `startScreen` option deals with this. After loading, the engine shows a screen with the game's title and
+a gently pulsing "Click or press any key to start", and waits. When the player clicks, taps
 or presses a key, it creates or resumes the shared `audioContext`, sets `audioUnlocked`, triggers
 `audiounlocked`, and only then calls `init`, so the game can start its sound straight away:
 
@@ -95,16 +95,9 @@ class MyGame extends GameEngine {
 }
 ```
 
-| Start screen option | Default | Meaning |
-|---------------------|---------|---------|
-| `title` | the page's title | Large text above the prompt; `''` for none. |
-| `subtitle` | none | A smaller line under the title (a year and a publisher, say). |
-| `logo` | none | An image, or its URL (loaded by the engine, since the game's assets are not ready yet), drawn in the bottom right corner. |
-| `logoColor` | the logo's own | Draw the logo all in this colour (a black logo on the black screen, say). |
-| `logoHeight` | a seventh of the canvas | The logo's height; its width follows. |
-| `prompt` | `'Click or press any key to start'` | The line asking the player to start. |
-| `background`, `color` | `'black'`, `'#e8e8e8'` | Fill and text colours. |
-| `titleFont`, `subtitleFont`, `font` | sans-serif sized to the canvas | CSS fonts for the title, the subtitle and the prompt. |
+The screen is a [StartScreen](StartScreen.md): the title, the year and publisher under it, the prompt and
+Tenkai's logo in the corner, covering the window and laid out again as it changes size. Its options are
+listed there.
 
 Tab and modifier keys on their own do not start the game, so keyboard users can move focus without
 starting it. A game without sound needs no start screen. A game that wants its own title screen can leave
@@ -118,8 +111,9 @@ context, or `null` in a browser without Web Audio.
 
 ### `showStartScreen(callback)`
 
-Draws the start screen and calls `callback` once the player has clicked or pressed a key and audio is
-unlocked. `start()` calls it when the `startScreen` option is set.
+Shows a [StartScreen](StartScreen.md) with the `startScreen` options (as `startScreenView`) and calls
+`callback` once the player has clicked or pressed a key and audio is unlocked. `start()` calls it when the
+`startScreen` option is set.
 
 ## Time
 

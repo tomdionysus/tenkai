@@ -27,6 +27,7 @@ class TimTheEnchanter extends GameEngine {
     super(Object.assign({
       enableScroll: false,
       enableZoom: false,
+      startScreen: { title: 'Tim the Enchanter', subtitle: 'A Tenkai example' },
       pixelated: true,
       keys: { up: ['ArrowUp'], down: ['ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'], jump: ['Space'], mode: ['Tab'] }
     }, options))

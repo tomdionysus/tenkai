@@ -16,6 +16,7 @@ export { default as IndexedSurface } from './lib/IndexedSurface.js'
 // Isometric
 export { default as IsometricProjection } from './lib/IsometricProjection.js'
 export { default as IsometricWorld } from './lib/IsometricWorld.js'
+export { default as Motion } from './lib/Motion.js'
 
 // Point-and-click
 export { default as Hotspots } from './lib/Hotspots.js'
@@ -23,6 +24,8 @@ export { default as Cursor } from './lib/Cursor.js'
 
 // Game Engine
 export { default as GameEngine } from './lib/GameEngine.js'
+export { default as StartScreen } from './lib/StartScreen.js'
+export { default as TenkaiLogo } from './lib/TenkaiLogo.js'
 
 // Mixins
 export { default as HasEntitiesMixin } from './lib/HasEntitiesMixin.js'

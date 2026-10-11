@@ -22,6 +22,7 @@ class Game1945 extends GameEngine {
     super(Object.assign({
       enableScroll: false,
       enableZoom: false,
+      startScreen: { title: '1945', subtitle: 'A Tenkai example' },
       // Pixel art: scale sprites without blurring, which would also bleed the sheet's tile borders into the edges
       pixelated: true,
       keys: {

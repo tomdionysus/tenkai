@@ -1,0 +1,81 @@
+{
+  "url": "http://127.0.0.1:8048/",
+  "seed": 1,
+  "frames": 1530,
+  "events": [
+    {
+      "frame": 30,
+      "click": [
+        200,
+        200
+      ]
+    },
+    {
+      "frame": 90,
+      "key": "ArrowRight",
+      "hold": 60
+    },
+    {
+      "frame": 190,
+      "key": "ArrowDown",
+      "hold": 60
+    },
+    {
+      "frame": 270,
+      "key": "Space"
+    },
+    {
+      "frame": 350,
+      "key": "ArrowLeft",
+      "hold": 80
+    },
+    {
+      "frame": 450,
+      "key": "Space"
+    },
+    {
+      "frame": 530,
+      "key": "ArrowUp",
+      "hold": 60
+    },
+    {
+      "frame": 630,
+      "key": "Tab"
+    },
+    {
+      "frame": 670,
+      "key": "ArrowRight",
+      "hold": 10
+    },
+    {
+      "frame": 710,
+      "key": "KeyE"
+    },
+    {
+      "frame": 750,
+      "key": "KeyD"
+    },
+    {
+      "frame": 790,
+      "key": "KeyQ"
+    },
+    {
+      "frame": 830,
+      "key": "Tab"
+    },
+    {
+      "frame": 880,
+      "key": "ArrowRight",
+      "hold": 120
+    },
+    {
+      "frame": 1030,
+      "key": "Space"
+    },
+    {
+      "frame": 1130,
+      "key": "ArrowDown",
+      "hold": 100
+    }
+  ]
+}

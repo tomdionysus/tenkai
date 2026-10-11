@@ -1,0 +1,33 @@
+{
+  "url": "http://127.0.0.1:8046/",
+  "seed": 1,
+  "frames": 390,
+  "events": [
+    {
+      "frame": 40,
+      "key": "Space"
+    },
+    {
+      "frame": 60,
+      "key": "ArrowLeft",
+      "hold": 40
+    },
+    {
+      "frame": 150,
+      "key": "ArrowRight",
+      "hold": 60
+    },
+    {
+      "frame": 230,
+      "click": [
+        200,
+        400
+      ]
+    },
+    {
+      "frame": 290,
+      "key": "ArrowLeft",
+      "hold": 30
+    }
+  ]
+}

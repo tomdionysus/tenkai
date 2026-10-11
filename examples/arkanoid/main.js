@@ -14,6 +14,7 @@ class Arkanoid extends GameEngine {
     super(Object.assign({
       enableScroll: false,
       enableZoom: false,
+      startScreen: { title: 'ARKANOID', year: 1986, publisher: 'Taito' },
       keys: { left: ['ArrowLeft'], right: ['ArrowRight'], launch: ['Space'] }
     }, options))
     this.addAsset('paddle', 'assets/paddleBlu.png')

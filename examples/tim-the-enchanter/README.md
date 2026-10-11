@@ -37,6 +37,7 @@ save it with Z and paste the JSON from the console into `map.json`.
 
 ## What it shows
 
+- The engine's start screen (`startScreen`), which waits for a click or key before the game begins
 - `TiledScene` in depth: Gallagher passes behind and in front of the furniture, and jumps up onto chairs,
   the bed and the tables, with no drawing code of his own.
 - A tileset described as data (`assets/tileset_dungeon.json`): which tiles are flat and which upright, how

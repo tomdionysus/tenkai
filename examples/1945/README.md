@@ -32,6 +32,7 @@ Then open http://localhost:8045.
 
 ## What it shows
 
+- The engine's start screen (`startScreen`), which waits for a click or key so sound may play
 - `GameEngine` subclass with `init()` for setup and `update(dt)` for game logic
 - Scenes as draw layers: ocean, ships, aircraft, HUD (`Scene` z order)
 - Custom `Scene.draw()` for a procedural background (`Ocean`) and HUD text (`Hud`)

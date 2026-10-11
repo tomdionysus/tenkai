@@ -18,6 +18,8 @@ Move the paddle with the mouse or the arrow keys. Click or press Space to launch
 
 ## What it shows
 
+- The engine's start screen (`startScreen`): the title, the original's year and publisher, and the click
+  that browsers want before a game may play sound
 - A `GameEngine` subclass: assets in the constructor, setup in `init()`, game logic in `update(dt)`
 - One `Scene` subclass that draws a background and text around its entities
 - `Entity` sprites from individual image files, positioned by setting `x` and `y`
