@@ -51,7 +51,7 @@ new MyGame({ targetId: 'game' }).start()
 | `globalAlpha` | `1` | Opacity for everything drawn. |
 | `enableScroll` | `true` | The mouse wheel pans the viewport. |
 | `enableZoom` | `true` | Shift with the mouse wheel zooms. |
-| `startScreen` | none | Before `init`, show a screen asking the player to click or press a key, so sound can play: `true`, or `{ title, prompt, background, color, font, titleFont }`. See [Sound and the start screen](#sound-and-the-start-screen). |
+| `startScreen` | none | Before `init`, show a screen asking the player to click or press a key, so sound can play: `true`, or `{ title, subtitle, prompt, background, color, font, titleFont, subtitleFont, logo, logoColor, logoHeight }`. See [Sound and the start screen](#sound-and-the-start-screen). |
 | `audioContext` | none | An `AudioContext` to share, instead of the one `unlockAudio` creates. |
 
 ## Properties
@@ -98,9 +98,13 @@ class MyGame extends GameEngine {
 | Start screen option | Default | Meaning |
 |---------------------|---------|---------|
 | `title` | the page's title | Large text above the prompt; `''` for none. |
+| `subtitle` | none | A smaller line under the title (a year and a publisher, say). |
+| `logo` | none | An image, or its URL (loaded by the engine, since the game's assets are not ready yet), drawn in the bottom right corner. |
+| `logoColor` | the logo's own | Draw the logo all in this colour (a black logo on the black screen, say). |
+| `logoHeight` | a seventh of the canvas | The logo's height; its width follows. |
 | `prompt` | `'Click or press any key to start'` | The line asking the player to start. |
 | `background`, `color` | `'black'`, `'#e8e8e8'` | Fill and text colours. |
-| `titleFont`, `font` | sans-serif sized to the canvas | CSS fonts for the title and the prompt. |
+| `titleFont`, `subtitleFont`, `font` | sans-serif sized to the canvas | CSS fonts for the title, the subtitle and the prompt. |
 
 Tab and modifier keys on their own do not start the game, so keyboard users can move focus without
 starting it. A game without sound needs no start screen. A game that wants its own title screen can leave

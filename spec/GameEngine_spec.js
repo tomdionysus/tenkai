@@ -1006,6 +1006,24 @@ describe('GameEngine', () => {
       expect(listeners.pointerdown).toBeUndefined()
     })
 
+    it('should draw a subtitle and a logo in the corner on the start screen', () => {
+      var x1 = new GameEngine({ startScreen: { title: 'Test', subtitle: '1991 Somebody', logo: { complete: true, naturalWidth: 300, naturalHeight: 200 }, logoHeight: 20 } })
+      addSpies(x1, ['loadAssets', 'loadAudio', 'bootElement', 'init', '_tick'])
+      x1.loadAssets.and.callFake((f) => f())
+      x1.loadAudio.and.callFake((f) => f())
+      var context = generateSpyObject(['save', 'fillRect', 'fillText', 'restore', 'drawImage'])
+      x1.bootElement.and.callFake((f) => {
+        x1.element = { width: 320, height: 200, getContext: () => context, addEventListener: () => {} }
+        x1.window = { addEventListener: () => {} }
+        f()
+      })
+      spyOn(console, 'debug')
+      x1.start()
+      expect(context.fillText).toHaveBeenCalledWith('1991 Somebody', 160, jasmine.any(Number))
+      // 30 wide (300 x 200 at 20 high), at the bottom right with a 5-pixel margin
+      expect(context.drawImage).toHaveBeenCalledWith(x1.startScreen.logo, 285, 175, 30, 20)
+    })
+
     it('should not show a start screen unless asked', () => {
       var x1 = new GameEngine()
       expect(x1.startScreen).toBe(null)
