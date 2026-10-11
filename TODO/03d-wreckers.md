@@ -20,6 +20,39 @@ a recursive-descent disassembler, unpackers, and a small emulated Amiga (Musashi
 blitter, trapped disk loaders, save states, coverage, profiling and watchpoints). The game runs in it from
 boot through the title, commander selection and play.
 
+The remake is in `local/wreckers/remake/` (served by esbuild at http://127.0.0.1:8052, `?notitle` skips the
+title, `check.html` runs the station and movement checks in the browser), its asset and data tools in
+`local/wreckers/tools/`, and the reverse-engineering notes per subsystem in `local/wreckers/notes/`.
+
+## Status (2026-10-11)
+
+Done and checked against the original (station checks 11 of 12 identical, the 12th, seed 32, a known spit-burst
+difference at tick 1236; move checks for seeds 11-14 identical): the station simulation (aliens, spores, waves,
+the plasmozomb and its grab, droids with targeting, orders, the elevator queue and speech, bulbs, the factory),
+movement, lifts, the airlock and the outside, the HUD (ticker, score, slots and their palette split), the map
+and info screens with View Droid, the terminals and promotion letters, the front end (start screen, title,
+credits, ending, high scores), and the sound (FLAC, lossless).
+
+Built but not yet traced against the emulator: the Battlepod (tether, tractor beam, catch boxes, starfield),
+the plasmozomb grab, the outside spray.
+
+Left, in this order:
+
+1. **Save and load.** `remake/src/savegame.js` is written and committed (`cantSave`, `snapshot`, `restore`)
+   but not wired into `main.js`. Following the user's decision, the original's disk listing and disk
+   preparation are dropped; the visual conventions stay. To wire: save and load through the browser's file
+   behaviour (a JSON download, a file picker), the high score table to and from a file (localStorage
+   `wreckers-hiscores`), and quicksave and quickload on K and L into sessionStorage.
+2. **The game control menu (mode 6) and the Battlepod long-range scanner (mode 3, key B).** An agent was
+   building them as `remake/src/menu.js`, `remake/src/scanner.js`, `tools/menu_scanner_data.py` and a
+   `menu.html` test page; check whether those files exist and integrate them.
+3. **The original's pointer mode** (Space or the button; the joystick moves a pointer).
+4. **Small gaps:** the Battlepod hum retune, spore clipping at the frame's edge, seed 32, Q's extra
+   conditions.
+5. **Monte Carlo fidelity runs** of the remake against the emulator, which can run unattended.
+
+Then the improvements in [03e](03e-wreckers-improvements.md).
+
 ## The game
 
 Space station Beacon 04523N is attacked by plasmodian spores, the Wreckers. The player commands three officers
@@ -235,8 +268,8 @@ his lying script (about 128 ticks) while the aliens in his zone gather round the
 plasmozomb (its own scripts, frames 34-40 of the alien set): stunned 10 ticks by a shot, hurt only once a lull
 finds no aliens or spores (message 56), 32 a shot from 255, then bursting into eight big aliens for 950
 points; its tread shakes the view. Checked in the browser: rises 135 ticks after death, bursts on the 8th hit.
-Not yet: plasmozombs grabbing characters (needs a living officer, so the next commander), cleaner droids,
-droids at all, off-screen attrition, the outside.
+Since added: the plasmozomb's grab (aliens are not solid; the bump F_2B2A within 4, 4 and 32; command 5 holds
+the officer through event 10 and damages him), droids, and the outside (below).
 
 The HUD (details in `local/wreckers/notes/ui.md`): the status line is a ticker tape, messages scrolling left a
 pixel a frame (50 a second) through a 128 by 7 window at (32, 145) in the large LCD font, in red, each followed by
@@ -322,8 +355,8 @@ orders (F1-F10 or a slot click opens the map, a room click gives the order; the 
 first), patrol, combat with the original's line tests and rates of fire, damage per model (destroyed, shut
 down, retreating), off-screen fights, the HUD slots (faces, blinking when low), and markers on the map. Checked
 in the browser: the three walk to their rooms off screen and patrol; droid 1 sent to Cryogenics comes on
-screen, walks in, patrols, and shoots an alien put in its line. Crossing the decks is simplified (the droid is
-taken to the other deck's lobby; the elevator queue is not modelled yet).
+screen, walks in, patrols, and shoots an alien put in its line. Crossing the decks goes through the elevator
+queue as in the original (the head and 11 places at `$A4A4`, zone 34 the step for the other deck).
 
 Second stage, also checked in the browser: gravity at 24 or less floats every droid but cleaners (bobbing,
 drifting a fixed way), and above 32 they stand by where they are; a failed droid factory sends droids out of
@@ -339,7 +372,8 @@ F1-F10 picks the command port; the arrows browse the models and OK commissions o
 their rank, ACCESS DENIED blinking). Builds step every 8 ticks while the factory system is above 96; checked: a
 cleaner at port 4 appears at (1002, 778, 0) in zone 21 and reports "DROID FOUR COMPLETED" 16 steps later, as in
 the emulator. Text offsets in the screen buffer are 160 bytes a line, 8 bytes per 16 pixels (x = (b >> 3) x 16 +
-(b & 1) x 8). Not yet: the elevator queue, droid speech and the info screen.
+(b & 1) x 8). The elevator queue, droid speech (F_1246C, the original's memory block emulated) and the info
+screen are in since.
 
 ### Weapons and health
 
@@ -388,9 +422,10 @@ The remake has all of this (`remake/src/outside.js`, `remake/src/doors.js` for t
 checked against the agent's emulator runs: out at (1028, 846, 952) after the drift (the original 842), full
 speed after 16 ticks, the drains, the spray catching a planted hull alien at the first landing, death and the
 float, re-entry to (1028, 814, 896) and in. The world now uses Tenkai's `firstCollider` rule (the first
-rectangle at a point decides, F_24F4), since a hatch sits inside a wall rectangle. Not yet: the Battlepod (the
-bays), the death struggle's exact frame table, the jet and spray drawn in the depth sort (they are drawn over
-the view).
+rectangle at a point decides, F_24F4), since a hatch sits inside a wall rectangle. The Battlepod is in
+(`remake/src/battlepod.js`: the pod on its tether, the tractor beam, the catch boxes, the starfield), not yet
+traced. Not yet: the death struggle's exact frame table, the jet and spray drawn in the depth sort (they are
+drawn over the view).
 
 ## Tenkai: extending it for isometric games
 
@@ -427,8 +462,8 @@ foreground cut-outs of the art, each with a test of who is behind it. `Isometric
 entity, the occluders that hide it are drawn over it, clipped to its box. Block-based isometric games, whose
 scenery is separate pieces, can instead make the scenery entities and let the depth sort handle it.
 
-Still to learn from the original: the outside (spacesuit) view, the Battlepod, droid programming, the HUD and
-its panels, the aliens' behaviour, and the sound.
+Tenkai has gained along the way: `SoundManager` playback rate, the `GameEngine` start screen's subtitle and
+logo, and in-browser spec runs (`spec/browser/`).
 
 Gaps found go into this section as they turn up, as in `local/monkey2/TENKAI-GAPS.md`.
 
