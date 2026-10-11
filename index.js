@@ -25,6 +25,7 @@ export { default as StateDiff } from './lib/StateDiff.js'
 export { default as GameServer } from './lib/GameServer.js'
 export { default as GameClient } from './lib/GameClient.js'
 export { default as LocalSocket } from './lib/LocalSocket.js'
+export { default as WorkerSocket } from './lib/WorkerSocket.js'
 
 // Point-and-click
 export { default as Hotspots } from './lib/Hotspots.js'

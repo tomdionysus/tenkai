@@ -1,7 +1,7 @@
 # Game state, server and client
 
 `lib/Place.js`, `lib/GameState.js`, `lib/StateDiff.js`, `lib/GameServer.js`, `lib/LocalSocket.js`,
-`lib/GameClient.js`
+`lib/GameClient.js`, `lib/WorkerSocket.js`
 
 A game's logic can run apart from its drawing: the state is ticked by a server, and the page is a client that
 sends its player's commands and draws what it is sent. The server can be in the same page, in a Worker, or on
@@ -72,6 +72,7 @@ state gets one command per player: `{ player, ...input, actions: [the commands d
 | `advance(seconds)` | the caller's clock: runs the ticks due (a page ticking it with its frames) |
 | `step()` | one tick now |
 | `connect(send)`, `receive(connection, text)`, `disconnect(connection)` | for a transport: `LocalSocket`, a Worker's port, a WebSocket server |
+| `attach(port)` | serves a client on a message port (a Worker's `self`): see WorkerSocket |
 
 ## LocalSocket
 
@@ -79,6 +80,13 @@ A connection to a server in the same page with the `WebSocket` surface: `send`, 
 (`CONNECTING`, `OPEN`, `CLOSING`, `CLOSED`), `onopen`, `onmessage`, `onclose`, `onerror` and `addEventListener`.
 Messages are strings both ways and arrive later, never inside `send`. `new LocalSocket(server, { schedule })`:
 `schedule(fn)` decides when a message arrives (default a new task; `(fn) => fn()` for at once).
+
+## WorkerSocket
+
+A connection to a server in a Worker (or at the other end of any message port) with the same `WebSocket`
+surface. The page: `new WorkerSocket(new Worker('server.js', { type: 'module' }))`. The worker:
+`server.attach(self)` and `server.start()` (the server's own clock). `GameServer.attach(port)` serves one client on
+a port: the socket's open and close requests, and the game's strings.
 
 ## GameClient
 
