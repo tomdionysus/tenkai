@@ -246,7 +246,12 @@ step by step, without a clock.
 ### `draw(context)`
 
 Draws a frame: clears to black, then draws the scenes, the engine's own entities and the mode through the
-viewport, then the HUD.
+viewport, then `drawOver`, then the screens, then the HUD.
+
+### `drawOver(context)`
+
+The game's own drawing over its scenes and under its screens, in the viewport's coordinates: a status panel that
+a menu screen covers. Does nothing; override it.
 
 ### `addAsset(name, src)` / `getAsset(name)`
 
