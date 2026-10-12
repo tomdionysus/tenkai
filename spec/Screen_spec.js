@@ -73,8 +73,9 @@ describe('Screen', () => {
     game.element.height = 10
     const context = jasmine.createSpyObj('context', ['save', 'restore', 'scale', 'translate', 'fillRect'])
     game.drawOver = () => order.push('over')
+    game.showScreen(new Screen({ under: true, background: () => order.push('under') }))
     game.draw(context)
-    expect(order).toEqual(['game', 'shown', 'over', 'drawn'])
+    expect(order).toEqual(['game', 'shown', 'under', 'over', 'drawn'])
   })
 
   it('should give its clicks to its hotspots by default, in their groups', () => {

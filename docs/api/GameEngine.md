@@ -246,7 +246,7 @@ step by step, without a clock.
 ### `draw(context)`
 
 Draws a frame: clears to black, then draws the scenes, the engine's own entities and the mode through the
-viewport, then `drawOver`, then the screens, then the HUD.
+viewport, then the screens marked `under`, then `drawOver`, then the other screens, then the HUD.
 
 ### `drawOver(context)`
 
