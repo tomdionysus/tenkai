@@ -83,9 +83,10 @@ transparent. `x`, `y`, `width`, `height` take part of it.
 A view of whole rows sharing the surface's memory, for drawing code that works on a plain array, such as a
 sprite renderer drawing into the play area of a larger frame.
 
-### blit(src, { sx, sy, w, h, dx, dy, key, mask, map, flip })
+### blit(src, { sx, sy, w, h, dx, dy, key, mask, map, flip, clip })
 
-`flip` mirrors the rectangle left to right: a sprite facing the other way.
+`flip` mirrors the rectangle left to right: a sprite facing the other way. `clip` (`{ x, y, width, height }`)
+draws only inside that rectangle of the destination: a sprite in a map's window.
 
 
 `map`, a colour table, draws each pixel as `map[colour]`: a glyph in a text's colours, a sprite in a shadow's.

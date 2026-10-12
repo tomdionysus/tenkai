@@ -81,4 +81,14 @@ describe('IndexedSurface', () => {
     var s = IndexedSurface.fromNumbers({ width: 3, height: 1 }, { createCanvas: () => canvas })
     expect(Array.from(s.pixels)).toEqual([2, 31, -1])
   })
+
+  it('should blit only inside a clip rectangle, mirrored or not', () => {
+    var src = numbered(3, 2)
+    var dst = new IndexedSurface({ width: 4, height: 2 })
+    dst.blit(src, { dx: 0, clip: { x: 1, y: 1, width: 2, height: 5 } })
+    expect(Array.from(dst.pixels)).toEqual([0, 0, 0, 0, 0, 5, 6, 0])
+    dst.clear()
+    dst.blit(src, { dx: 0, flip: true, clip: { x: 1, y: 0, width: 1, height: 1 } })
+    expect(Array.from(dst.pixels)).toEqual([0, 2, 0, 0, 0, 0, 0, 0])
+  })
 })
