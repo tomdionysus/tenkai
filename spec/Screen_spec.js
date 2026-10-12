@@ -29,14 +29,14 @@ describe('Screen', () => {
     expect(game.topScreen).toBeNull()
     game.showScreen(a)
     game.showScreen(b)
-    expect(game.screens).toEqual([a, b])
+    expect(game.screenStack).toEqual([a, b])
     expect(game.topScreen).toBe(b)
     expect(a.parent).toBe(game)
     game.showScreen(a)
-    expect(game.screens).toEqual([b, a])
+    expect(game.screenStack).toEqual([b, a])
     game.hideScreen(a)
     game.hideScreen(a)
-    expect(game.screens).toEqual([b])
+    expect(game.screenStack).toEqual([b])
   })
 
   it('should give a click to the top visible screen first, and to the game only if the screen does not take it', () => {

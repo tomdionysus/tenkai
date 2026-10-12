@@ -189,7 +189,7 @@ Takes a screen off the stack.
 
 ### `topScreen`
 
-The top visible screen, or null. `screens` lists them all, bottom first.
+The top visible screen, or null. `screenStack` lists them all, bottom first.
 
 ## Timers
 
