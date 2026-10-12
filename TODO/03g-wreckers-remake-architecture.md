@@ -120,7 +120,7 @@ The original's design is a main loop over tables for one station. The remake's d
 stations, held by a game.
 
 ```
-Sector (Wreckers' game; a Tenkai GameState)
+Sector (Wreckers' game, in its Node server)
   clock, tick count, seed
   players: up to 3, each { number, name, officer, station }
   score (shared), the rules for winning and losing
@@ -135,7 +135,8 @@ Sector (Wreckers' game; a Tenkai GameState)
 
 - **Agents** each have `tick()`, `snapshot()` and `restore(snapshot)`. Actors (the officers, droids, aliens,
   plasmozombs, shots) hold position, facing, animation and step, stats, their current script and state machine,
-  and nothing about drawing; Tenkai's `Actor` (03f) gives them the body, the `Motion` and the `StateMachine`.
+  and nothing about drawing; they are Wreckers' own classes in its server code, on Tenkai's `Motion` and
+  `IsometricWorld` used as a library (Tenkai is a client-side framework: 03f).
   Agents that are not characters (the five cars, the twelve doors, the four bulbs, the factory's builds, the
   systems, the wave clock, the message queue, the sleepers) hold the rest.
 - **A station** is one place: its own data, its own world, its own agents and its own random generator. It ticks
@@ -205,9 +206,8 @@ client does not touch the sector; it opens a connection.
   keeps the last two states, draws its own officer's station through `ActorView`s interpolated between them, plays
   sounds and the ticker from its events, and opens screens (map, info, archive, scanner, factory desk, terminals,
   the letter) as client UI over the running game.
-- **Tenkai** gains the general parts (03f): `GameServer` (holds a `GameState`, a clock, and connections, each a
-  numbered player; works in the page, in a Worker or under Node), `GameClient` (written against the WebSocket
-  surface), and `LocalSocket` (the in-page, WebSocket-shaped connection to a `GameServer`).
+- **Tenkai** keeps the client's part (03f): `GameClient`, written against the WebSocket surface. The server
+  (`GameServer`, the game state, the socket server) is Wreckers' own code, run only in Node.
 - **Gate (the milestone):** the game is playable in the browser with the client connected through `LocalSocket`;
   every frame baseline identical (one player, one station; re-saved once in step 2 for the features removed); the
   snapshot check passes.
@@ -263,12 +263,11 @@ reading of the original that works for three, proposed for the user to confirm o
 
 ## The Tenkai side
 
-What `lib/` gains at each step, as which classes, and which other games are then reviewed for it, is in
-[03f](03f-wreckers-on-tenkai.md) ("What Tenkai gains at each step of 03g's order", with the class tree). Two points
-are structural: Tenkai's `Actor` is the logic side only (a body in a `World`, a `Motion`, a `StateMachine`, no
-`Entity`), and an `ActorView` is the drawing side; and every game behind a `GameServer` is reached through the
-WebSocket surface, in the page or not. A single-page game uses them together through `LocalSocket`, which costs it
-nothing.
+Tenkai is a client-side framework (the user, 2026-10-12). Wreckers' game, every agent and all the AI, runs in its
+own Node server code; Tenkai's part is the client: what it gains from the Wreckers client (screens, a view that
+fills the window, drawing between ticks, finding a server, indexed drawing, fonts, hotspots, sound voices), and
+the server-side classes that leave `lib/` (`GameServer`, `GameState`, `Place`, the Node socket server, the in-page
+and Worker sockets). All of it is in [03f](03f-wreckers-on-tenkai.md).
 
 ## Order
 
@@ -291,7 +290,8 @@ only one.
 4. **Worker, then Node and a real WebSocket** (section 5).
 5. **Three players** (section 6): the lobby, the other two officers joined, the rules over the officers on a
    station, the per-client view and HUD; the two- and three-player frame scripts.
-6. **Client work:** 03f's client-side steps (screens, indexed drawing, fonts) and 03e's improvements.
+6. **Client work:** 03f's list (the server-side classes out of Tenkai first, then the client's mechanisms into it)
+   and 03e's improvements.
 
 A second station with content of its own, and how officers travel to it, is not in this order: the structure
 allows it from step 2, and what it is (another beacon, a different map, a reason to go there) is a design for the

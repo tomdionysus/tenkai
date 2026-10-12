@@ -19,7 +19,7 @@ state. Do them in order; within a phase, items are roughly in priority order.
 | 3c | [03c-monkey-island-2-port.md](03c-monkey-island-2-port.md) | In progress: Monkey Island 2 on Tenkai, no SCUMM left |
 | 3d | [03d-wreckers.md](03d-wreckers.md) | 1.0.0 (2026-10-11): Wreckers (Amiga, 1991) remade; fidelity work closed (user, 2026-10-11) |
 | 3g | [03g-wreckers-remake-architecture.md](03g-wreckers-remake-architecture.md) | The Wreckers plan from here (2026-10-12): no 68k constants in the code, no god classes, agents in stations in a sector (several stations allowed), the game engine behind a WebSocket-shaped interface in the browser (the main milestone), then a real WebSocket and three players (pause and saves go); holds the order of the work |
-| 3f | [03f-wreckers-on-tenkai.md](03f-wreckers-on-tenkai.md) | The Tenkai side of 3g: which mechanisms move into `lib/` as which classes, at which step; `Motion`, the frame baselines and the remake's file structure done |
+| 3f | [03f-wreckers-on-tenkai.md](03f-wreckers-on-tenkai.md) | The Tenkai side of 3g, the client only (Tenkai is a client-side framework): the server classes leave `lib/`; screens, window layout, drawing between ticks, finding a server, indexed drawing, fonts, hotspots and sound voices come in |
 | 3e | [03e-wreckers-improvements.md](03e-wreckers-improvements.md) | Open (fidelity is over): improvements beyond the original; three already made, the larger ones after 3g's step 3 |
 
 Phases 3d to 3g are one piece of work; 3g is its plan and order, 3f the Tenkai side, 3e the improvements, 3d the record.
@@ -27,6 +27,8 @@ Phases 3d to 3g are one piece of work; 3g is its plan and order, 3f the Tenkai s
 
 ## Guiding decisions
 
+- **Client side only (2026-10-12).** Tenkai is a client-side framework. A game's server (Wreckers' is in
+  Node) is the game's own code; Tenkai may be imported there as a library, but owns no server machinery.
 - **Target platform:** evergreen browsers only. No IE-era fallbacks
   (`attachEvent`, `DOMMouseScroll`, `mousewheel`). Node 24 LTS for tooling.
 - **Module format:** ESM only. Browserify is gone from the story; consumers use
