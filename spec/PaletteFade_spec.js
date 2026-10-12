@@ -166,3 +166,16 @@ describe('Palette.setLevels and PaletteFade.fadeRGBA', () => {
     expect(Array.from(up)).toEqual([17, 17, 17, 255])
   })
 })
+
+describe('IndexedSurface blit with a colour table', () => {
+  it('should draw each pixel through the table, skipping the key colour', () => {
+    const glyph = new IndexedSurface({ width: 3, height: 1, pixels: new Uint8Array([0, 1, 2]) })
+    const target = new IndexedSurface({ width: 4, height: 1 })
+    target.fill(0, 0, 4, 1, 9)
+    target.blit(glyph, { dx: 1, key: 0, map: [0, 15, 7] })
+    expect(Array.from(target.pixels)).toEqual([9, 9, 15, 7])
+    // Without a key, every pixel through the table
+    target.blit(glyph, { map: [4, 5, 6] })
+    expect(Array.from(target.pixels)).toEqual([4, 5, 6, 7])
+  })
+})

@@ -77,7 +77,10 @@ transparent. `x`, `y`, `width`, `height` take part of it.
 A view of whole rows sharing the surface's memory, for drawing code that works on a plain array, such as a
 sprite renderer drawing into the play area of a larger frame.
 
-### blit(src, { sx, sy, w, h, dx, dy, key, mask })
+### blit(src, { sx, sy, w, h, dx, dy, key, mask, map })
+
+`map`, a colour table, draws each pixel as `map[colour]`: a glyph in a text's colours, a sprite in a shadow's.
+
 
 Copy a rectangle of `src` onto this surface, clipped to both. By default the whole source goes to the top
 left. Pixels of a transparent source that are -1 are skipped, and so are pixels equal to `key` if one is
