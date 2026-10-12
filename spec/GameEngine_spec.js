@@ -1086,4 +1086,27 @@ describe('GameEngine', () => {
       })
     })
   })
+
+  it('should go on after an error in a frame, reporting each different one once', () => {
+    const frames = []
+    const saved = global.window
+    global.window = { requestAnimationFrame: (fn) => frames.push(fn), addEventListener () {}, removeEventListener () {} }
+    try {
+      const errors = []
+      const game = new GameEngine({ enableScroll: false, enableZoom: false, onError: (e) => errors.push(e.message) })
+      const context = jasmine.createSpyObj('context', ['save', 'restore', 'scale', 'translate', 'fillRect', 'setTransform'])
+      game.element = { width: 10, height: 10, getContext: () => context }
+      game.running = true
+      game.update = () => { throw new Error('broken part') }
+      game._accumulator = 1
+      game._tick()
+      game._accumulator = 1
+      game._tick()
+      expect(frames.length).toBe(2)
+      expect(errors).toEqual(['broken part'])
+      expect(context.setTransform).toHaveBeenCalled()
+    } finally {
+      global.window = saved
+    }
+  })
 })

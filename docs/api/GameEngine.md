@@ -248,6 +248,12 @@ step by step, without a clock.
 Draws a frame: clears to black, then draws the scenes, the engine's own entities and the mode through the
 viewport, then the screens marked `under`, then `drawOver`, then the other screens, then the HUD.
 
+### `reportError(error)`
+
+An error thrown in a frame (a step or the drawing) does not stop the game: the frame loop catches it, resets the
+canvas's transform, and reports it here, once for each different message, to the `onError` option
+(`onError(error)`) or the console. The next frame runs as usual.
+
 ### `drawOver(context)`
 
 The game's own drawing over its scenes and under its screens, in the viewport's coordinates: a status panel that
