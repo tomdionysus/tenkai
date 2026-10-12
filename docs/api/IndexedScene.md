@@ -31,6 +31,7 @@ pointer.x = game.mouseX - hotspotX
 |---|---|---|
 | `surface` | | The picture. |
 | `palette` | | Its colours. |
+| `regions` | none | Other palettes from a line down, each `{ from, palette }` in order of `from`: as a copper list switching palettes part way down an Amiga screen. The scene's `palette` is used above the first. |
 | `layers` | none | Surfaces over it, each `{ surface, x, y, visible, palette }`, first lowest. A layer's own `palette` is optional. |
 | `createCanvas` | a DOM canvas | Makes the offscreen canvas, as `createCanvas(width, height)`; for tests or workers. |
 

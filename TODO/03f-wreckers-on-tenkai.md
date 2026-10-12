@@ -116,4 +116,13 @@ client's. The view's own scroll and the droid camera still keep their single `fr
 last chosen; `find` asks until one answers, `lost` asks again) and `ServerConfig` (the HTML form), with the game's
 storage key, path and suggestion as options; Wreckers' own two files are gone.
 
-**Next:** 5, indexed drawing and fades; the rest of 1 alongside.
+**Done (2026-10-12): 5, indexed drawing and fades, first form.** Tenkai's `PaletteFade` (component steps, wait,
+every, speed, `level`, `apply`), `IndexedSurface.line` and `bits` (ink-only bit rows), `toRGBA` over a band of
+rows, `IndexedScene` `regions` (palettes from a line down), `Palette.fromCSS`. Wreckers' `Fade`, `SnapshotFade`
+and `IndexedGlyphs` are gone (Title and Ending fade with `PaletteFade`); the dossier is an `IndexedSurface` shown
+by an `IndexedScene` with palette B from line 135 (its check against the emulator unchanged). Still Wreckers' own:
+`ViewPicture` and `Screens` (pictures of the view with their own pixel arrays and the back buffer's text
+routines), the HUD's split, `BackBuffer`'s picture and font loading, the front end's `Screen` with its held
+snapshot.
+
+**Next:** 6, fonts; the rest of 1 and 5 alongside.

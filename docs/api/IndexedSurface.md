@@ -46,6 +46,15 @@ and blacks out (index 0) an opaque one.
 One pixel. Off the surface, `get` returns -1 for transparent surfaces and 0 otherwise, and `set` does
 nothing.
 
+### line(x, y, length, color, vertical)
+
+A line one pixel wide, `length` pixels from (x, y) to the right, or down when `vertical`, clipped to the surface.
+
+### bits(rows, x, y, color, width)
+
+A one-bit picture, such as a font's glyph, drawn ink only: each of `rows` is a number whose set bits, highest
+first, are drawn in `color`; the other pixels are left alone. `width` is the bits a row (default 8).
+
 ### rows(y, height)
 
 A view of whole rows sharing the surface's memory, for drawing code that works on a plain array, such as a
@@ -57,7 +66,11 @@ Copy a rectangle of `src` onto this surface, clipped to both. By default the who
 left. Pixels of a transparent source that are -1 are skipped, and so are pixels equal to `key` if one is
 given. `mask` is one-bit alpha: an array laid out like the source, where 0 means do not draw that pixel.
 
-### toRGBA(palette, rgba)
+### toRGBA(palette, rgba, from, to)
+
+`from` and `to` (default all rows) limit it to a band of rows, leaving the others as they were, so bands can be
+shown through different palettes (see `regions` on [IndexedScene](IndexedScene.md)).
+
 
 Write the surface's colours into RGBA pixels the same size, such as an ImageData's `data`, skipping
 transparent pixels so several surfaces can be written in turn.

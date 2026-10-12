@@ -73,6 +73,10 @@ that must follow the palette, such as a remapping table with `Palette.rotateRema
 
 ## Static methods
 
+### Palette.fromCSS(list)
+
+A palette of CSS colours (`#rrggbb` or `#rgb`), one entry each.
+
 ### Palette.rotateRange(table, start, end, forward, size)
 
 Rotate entries of any table one place, each entry `size` values long (default 1). The palette uses it with

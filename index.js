@@ -11,6 +11,7 @@ export { default as SoundManager } from './lib/SoundManager.js'
 
 // Indexed colour
 export { default as Palette } from './lib/Palette.js'
+export { default as PaletteFade } from './lib/PaletteFade.js'
 export { default as IndexedSurface } from './lib/IndexedSurface.js'
 
 // Isometric
