@@ -31,6 +31,7 @@ hotspots.bind(game)
 | `contains` | `(x, y) => boolean`, instead of `rect` or `circle`, for any other shape. |
 | `cursor` | A cursor id, or a function returning one. Optional. |
 | `enabled` | `true`/`false`, or a function returning one. Defaults to enabled. |
+| `group` | A group name: the hotspot is enabled only while its group is on (`setGroup`). Optional. |
 | `onClick(spot, x, y)` | Called on release over the same hotspot that was pressed, if it is still enabled. |
 | `onDown(spot, x, y)` | Called on press. |
 | `onDrag(spot, x, y)` | Called on every mouse move while this hotspot is pressed, wherever the mouse is. |
@@ -64,6 +65,16 @@ consistent during a drag. Otherwise it is the cursor of the hotspot under the po
 Feed mouse input to the hotspots. A press records the hotspot under the mouse. Moves go to the pressed
 hotspot, and the release goes to it as well. Each method returns whatever the handler returns, so an async
 handler's promise can be awaited.
+
+### `setGroup(group, on)` / `groupOn(group)`
+
+Switch a group of hotspots on or off together, as a screen's buttons while it shows; every group is on until
+switched off.
+
+### `click(x, y)`
+
+A single click answered at once: the first enabled hotspot at the point has its `onClick` called. Returns whether
+a hotspot was there, so the click was taken. A [Screen](Screen.md) given `hotspots` uses this for its clicks.
 
 ### `bind(engine)`
 

@@ -132,4 +132,11 @@ and `FontCleaner` are gone (the commander screen's labels are a `BitmapFont`). S
 original's back buffer routines (offsets, a counter over a list of entries) rather than a string a font could type;
 a typed-text mechanism waits for a user that draws through a `BitmapFont`.
 
-**Next:** 7, hotspot groups; the rest of 1, 5 and 6 alongside.
+**Done (2026-10-12): 7, hotspot groups, first form.** Tenkai's `Hotspots` groups (`group`, `setGroup`, `groupOn`)
+and `click` (a single click answered at once), and a `Screen`'s `hotspots` option (its clicks go to them by
+default); Wreckers' commander menu is its first user (the commander screen's and the dossier's buttons, a group
+each; the screens give their rectangles, `buttons()`). Still hand-written rectangles: the map and information
+screens, the menu, the consoles, the factory desk and the terminals, which move with them as they become Screens
+(the rest of 1).
+
+**Next:** 8, sound voices; then the rest of 1 (the other screens as Screens with hotspots), 5 and 6.

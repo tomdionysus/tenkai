@@ -33,6 +33,7 @@ As a [Scene](Scene.md)'s, and:
 |---|---|
 | `click(x, y)` | a click in the game's coordinates (the engine's `mouseX`, `mouseY`); return true when the screen took it |
 | `update(dt, input)` | one step while the screen shows, after the game's update |
+| `hotspots` | a [Hotspots](Hotspots.md): the default `click` gives each click to them (`Hotspots.click`), so a screen of buttons needs no `click` of its own; put each screen's buttons in a group to switch them together |
 
 ## Methods to override
 

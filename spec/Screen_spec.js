@@ -1,5 +1,6 @@
 import GameEngine from '../lib/GameEngine.js'
 import Screen from '../lib/Screen.js'
+import Hotspots from '../lib/Hotspots.js'
 
 describe('Screen', () => {
   // An engine whose canvas element records its listeners, so a click can be sent to it
@@ -73,5 +74,25 @@ describe('Screen', () => {
     const context = jasmine.createSpyObj('context', ['save', 'restore', 'scale', 'translate', 'fillRect'])
     game.draw(context)
     expect(order).toEqual(['game', 'shown', 'drawn'])
+  })
+
+  it('should give its clicks to its hotspots by default, in their groups', () => {
+    const seen = []
+    const hotspots = new Hotspots()
+    hotspots.add({ rect: [0, 0, 10, 10], group: 'menu', onClick: (spot, x, y) => seen.push('menu ' + x + ',' + y) })
+    hotspots.add({ rect: [0, 0, 10, 10], group: 'dialogue', onClick: () => seen.push('dialogue') })
+    hotspots.add({ rect: [20, 0, 30, 10] })
+    const screen = new Screen({ hotspots })
+    expect(screen.click(5, 5)).toBe(true)
+    hotspots.setGroup('menu', false)
+    expect(hotspots.groupOn('menu')).toBe(false)
+    expect(screen.click(5, 6)).toBe(true)
+    hotspots.setGroup('dialogue', false)
+    expect(screen.click(5, 7)).toBe(false)
+    // A hotspot without a handler still takes the click
+    expect(screen.click(25, 5)).toBe(true)
+    hotspots.setGroup('menu', true)
+    expect(screen.click(1, 1)).toBe(true)
+    expect(seen).toEqual(['menu 5,5', 'dialogue', 'menu 1,1'])
   })
 })
