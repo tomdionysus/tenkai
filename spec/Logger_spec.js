@@ -135,3 +135,17 @@ describe('Logger', () => {
     })
   })
 })
+
+describe('Logger.format', () => {
+  it('should format the printf codes', () => {
+    expect(Logger.format('ONE %s %s', ['TWO', 'THREE'])).toBe('ONE TWO THREE')
+    expect(Logger.format('%d %i %.2f %x %%', [3.9, -2.2, 1.5, 255])).toBe('3 -2 1.50 ff %')
+    expect(Logger.format('[%5d] [%-4s] [%03d]', [42, 'ab', 7])).toBe('[   42] [ab  ] [007]')
+    expect(Logger.format('%j', [{ a: 1 }])).toBe('{"a":1}')
+  })
+
+  it('should leave a code with no argument, and add arguments left over', () => {
+    expect(Logger.format('%s and %s', ['one'])).toBe('one and %s')
+    expect(Logger.format('plain', ['extra', 2])).toBe('plain extra 2')
+  })
+})

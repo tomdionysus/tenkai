@@ -1,36 +1,30 @@
 {
-	"name": "tenkai",
-	"version": "0.3.0",
-	"main": "index.js",
-	"type": "module",
-	"exports": {
-		".": "./index.js",
-		"./lib/*": "./lib/*"
-	},
-	"scripts": {
-		"start": "node index.js",
-		"test": "c8 --reporter=lcov --exclude=spec jasmine && c8 report --reporter=text-lcov | coveralls",
-		"gendocs": "node node_modules/jsdoc/jsdoc.js lib lib/jsdoc README.md -c .jsdoc.json -d build/jsdoc",
-		"example:1945": "esbuild examples/1945/main.js --bundle --outfile=examples/1945/bundle.js --servedir=examples/1945 --serve=8045",
-		"example:arkanoid": "esbuild examples/arkanoid/main.js --bundle --outfile=examples/arkanoid/bundle.js --servedir=examples/arkanoid --serve=8046",
-		"example:tim": "esbuild examples/tim-the-enchanter/main.js --bundle --outfile=examples/tim-the-enchanter/bundle.js --servedir=examples/tim-the-enchanter --serve=8048",
-		"build:examples": "esbuild examples/1945/main.js examples/arkanoid/main.js examples/tim-the-enchanter/main.js --bundle --minify --outdir=examples --entry-names=[dir]/bundle"
-	},
-	"author": "Tom Cully <tomhughcully@gmail.com>",
-	"license": "GPL-3.0-or-later",
-	"repository": "git@github.com:tomdionysus/tenkai.git",
-	"dependencies": {
-		"async": "^2.6.3",
-		"moment": "^2.27.0",
-		"sprintf-js": "^1.1.2",
-		"uuid": "^3.4.0"
-	},
-	"devDependencies": {
-		"c8": "^12.0.0",
-		"coveralls": "^3.1.0",
-		"esbuild": "^0.25.12",
-		"eslint": "^5.16.0",
-		"jasmine": "^7.0.0",
-		"jsdoc": "^3.6.4"
-	}
+  "name": "tenkai",
+  "version": "0.3.0",
+  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./lib/*": "./lib/*"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "c8 --reporter=lcov --exclude=spec jasmine && c8 report --reporter=text-lcov | coveralls",
+    "gendocs": "node node_modules/jsdoc/jsdoc.js lib lib/jsdoc README.md -c .jsdoc.json -d build/jsdoc",
+    "example:1945": "esbuild examples/1945/main.js --bundle --outfile=examples/1945/bundle.js --servedir=examples/1945 --serve=8045",
+    "example:arkanoid": "esbuild examples/arkanoid/main.js --bundle --outfile=examples/arkanoid/bundle.js --servedir=examples/arkanoid --serve=8046",
+    "example:tim": "esbuild examples/tim-the-enchanter/main.js --bundle --outfile=examples/tim-the-enchanter/bundle.js --servedir=examples/tim-the-enchanter --serve=8048",
+    "build:examples": "esbuild examples/1945/main.js examples/arkanoid/main.js examples/tim-the-enchanter/main.js --bundle --minify --outdir=examples --entry-names=[dir]/bundle"
+  },
+  "author": "Tom Cully <tomhughcully@gmail.com>",
+  "license": "GPL-3.0-or-later",
+  "repository": "git@github.com:tomdionysus/tenkai.git",
+  "devDependencies": {
+    "c8": "^12.0.0",
+    "coveralls": "^3.1.0",
+    "esbuild": "^0.25.12",
+    "eslint": "^5.16.0",
+    "jasmine": "^7.0.0",
+    "jsdoc": "^3.6.4"
+  }
 }

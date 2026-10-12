@@ -2,7 +2,7 @@
 
 `lib/Logger.js`
 
-Console logging with levels and printf-style formatting (through `sprintf-js`). Each line is prefixed
+Console logging with levels and printf-style formatting (its own `Logger.format`, no dependencies). Each line is prefixed
 with an ISO timestamp and the level.
 
 ```js
@@ -36,7 +36,9 @@ else goes through `console.log`.
 
 ### `debug(format, ...args)` / `info(...)` / `warn(...)` / `error(...)`
 
-Logs at that level. `format` uses `sprintf` placeholders such as `%s`, `%d` and `%j`.
+Logs at that level. `format` takes printf placeholders: `%s`, `%d` and `%i`, `%f` (`%.2f`), `%x`, `%j`, `%o` and `%O`, `%%`, with an
+optional width (`%5d`, `%-8s`, `%05d`); arguments left over are added after a space each. `Logger.format(fmt, args)`
+formats without logging.
 
 ### `log(type, args)`
 

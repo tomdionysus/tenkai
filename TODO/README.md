@@ -61,4 +61,4 @@ reverse-engineering tools and guides are in local/amiga-tools.
   each game's `frames/` folder (see 3f). They need the game's dev server running (ports in each README or
   LOCAL-ONLY.md) and are tied to this machine's Chrome and fonts.
 - Still true from 2026-10-09: npm has 0.1.2, the repository says 0.2.0; the Travis and Coveralls files are
-  dead (no CI); the runtime dependencies `async`, `moment`, `sprintf-js` and `uuid` are still listed.
+  dead (no CI); the runtime dependencies `async`, `moment`, `sprintf-js` and `uuid` were removed on 2026-10-12: Tenkai has none.

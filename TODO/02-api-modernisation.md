@@ -8,16 +8,16 @@ phase; everything here lands together as 1.0.
 - [ ] Replace callback APIs with Promises: `start()`, `init()`, `Asset.load()`,
       `Audio.load()` all return Promises. `init` becomes `async init()` that
       users override.
-- [ ] Remove the `async` library; `Promise.all` covers the parallel asset and
+- [x] Remove the `async` library (2026-10-12: `GameEngine.each` and `GameEngine.series`, callbacks kept); `Promise.all` covers the parallel asset and
       audio loading.
 - [ ] Support cancellation with `AbortSignal` on loaders (useful for scene
       changes mid-load).
 
 ## Dependencies
 
-- [ ] Remove `moment` and `uuid` (unused). If an id is ever needed,
+- [x] Remove `moment` and `uuid` (unused; removed 2026-10-12). If an id is ever needed,
       `crypto.randomUUID()` is available everywhere.
-- [ ] Remove `sprintf-js` from `Logger`. Either use template literals or pass
+- [x] Remove `sprintf-js` from `Logger` (2026-10-12: `Logger.format`, its own printf). Either use template literals or pass
       format args straight through to `console.*`, which already supports
       `%s`, `%d`, `%o`.
 - [ ] Consider dropping `Logger` entirely in favour of a `debug` flag and

@@ -1110,3 +1110,27 @@ describe('GameEngine', () => {
     }
   })
 })
+
+describe('GameEngine each and series', () => {
+  it('should run every item and call back once when all are done, at once for none', () => {
+    const done = []
+    let pending = []
+    GameEngine.each({ a: 1, b: 2 }, (item, cb) => pending.push(cb), (err) => done.push(err === null ? 'done' : err))
+    expect(done).toEqual([])
+    pending.forEach((cb) => cb())
+    expect(done).toEqual(['done'])
+    GameEngine.each([], () => {}, (err) => done.push(err === null ? 'none' : err))
+    expect(done).toEqual(['done', 'none'])
+    pending = []
+    GameEngine.each([1, 2], (item, cb) => pending.push(cb), (err) => done.push(err))
+    pending[0]('broken')
+    pending[1]()
+    expect(done).toEqual(['done', 'none', 'broken'])
+  })
+
+  it('should run steps in order and stop at the first error', () => {
+    const order = []
+    GameEngine.series([(cb) => { order.push(1); cb() }, (cb) => { order.push(2); cb('stop') }, (cb) => { order.push(3); cb() }], (err) => order.push(err))
+    expect(order).toEqual([1, 2, 'stop'])
+  })
+})
