@@ -4,7 +4,7 @@ Tenkai is a small 2D game engine for the browser. It draws to an HTML5 canvas, o
 scenes and entities, and loads images and sound for you. It also has the pieces for slideshow-style
 point-and-click adventures: buffered views with transitions, movies, hotspots and image cursors.
 
-The whole engine is around 2,400 lines of plain JavaScript, small enough to read in an afternoon. When these
+The whole engine is around 6,000 lines of plain JavaScript, small enough to read in a day. When these
 docs and the code disagree, the code in `lib/` wins.
 
 ## Start here
@@ -26,6 +26,10 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [GameEngine](api/GameEngine.md): the top-level container. It owns the canvas, fixed-step time, modes,
   timers, mouse events, and loading of assets and audio.
 - [Input](api/Input.md): the keyboard, with keys bound to actions, sampled once per step.
+- [StartScreen](api/StartScreen.md): the click-to-start screen browsers need before sound, with the Tenkai
+  logo.
+- [Screen](api/Screen.md): a scene shown over the game (a menu, a map, a dialogue) that takes the clicks
+  first, steps on its own and can be drawn under the game's own HUD; the engine keeps a stack of them.
 
 ### Scenes
 
@@ -35,7 +39,7 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   the scenery.
 - [BufferedScene](api/BufferedScene.md): a back buffer and screen with dissolve and wipe transitions.
 - [IndexedScene](api/IndexedScene.md): shows an indexed surface through a palette, with layers such as a
-  cursor over it.
+  cursor over it, and other palettes for ranges of lines.
 
 ### Sprites and tiles
 
@@ -55,13 +59,16 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   handlers, and bodies that move and block each other.
 - [IsometricScene](api/IsometricScene.md): shows the world: entities placed by world position, drawn in
   depth order over a ground, with a camera.
+- [Motion](api/Motion.md): a character's movement through scripted steps and animation frames.
 
 ### Indexed colour
 
 - [Palette](api/Palette.md): colours for indexed images, with colour cycling, scaling for fades, and
   nearest-colour search.
 - [IndexedSurface](api/IndexedSurface.md): a picture of palette indices, opaque or with transparency, with
-  fills and blits.
+  fills, lines, glyph bits, blits through colour tables, remapping, and reading from and drawing to images.
+- [PaletteFade](api/PaletteFade.md): the old machines' palette fade, a level a step, and the same fade for a
+  held picture.
 
 ### Images and sound
 
@@ -69,11 +76,23 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [AssetCache](api/AssetCache.md): images loaded by path when first needed.
 - [Audio](api/Audio.md): a sound or music track in an HTML audio element, loaded at start-up.
 - [SoundManager](api/SoundManager.md): Web Audio background loops and sound effects.
+- [SoundVoices](api/SoundVoices.md): a fixed number of voices, a new sound replacing the old unless held or
+  of a higher priority, as old sound chips worked.
 
 ### Point-and-click
 
 - [Hotspots](api/Hotspots.md): clickable and draggable regions with cursors.
 - [Cursor](api/Cursor.md): image cursors drawn on the canvas.
+
+### Games behind a server
+
+Tenkai is client side: a game whose logic runs on a server (its own code) is a client of it.
+
+- [GameClient](api/GameClient.md): the client of a game server: joining, input, commands and actions, each
+  tick's state (as `StateDiff` patches) and events, and how far into the next tick it is.
+- [Trails](api/Trails.md): where things were at the last two ticks, to draw them between ticks.
+- [ServerFinder](api/ServerFinder.md): finding the server for the page, and `ServerConfig`, the screen that asks
+  the player for its address.
 
 ### Building blocks
 

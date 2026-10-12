@@ -79,9 +79,14 @@ Each step:
 1. **Input.** `game.input` takes the key changes since the last step, so `pressed` and `released` mean
    "in this step".
 2. **Update.** `game.time` advances, and `update(dt)` runs game logic, including the current mode's.
+   Then every visible [Screen](api/Screen.md) on the engine's stack takes its own step, bottom first.
 3. **Timers.** Timers set with `after(seconds, fn)` and `every(seconds, fn)` that have come due run.
 4. **Animation.** Every entity in every scene advances its clip by one step, scaled by its scene's
    `timeScale`.
+
+An error thrown in a step or the drawing does not stop the game: the frame loop catches it, resets the canvas,
+reports it once for each different message (`reportError`, the `onError` option, or the console), and the next
+frame runs as usual.
 
 Logic, timers and animation therefore advance together. They stay in step at any frame rate, pause
 together when the game is not running, and can be driven step by step in tests with `game.step()`.
@@ -151,7 +156,7 @@ What a container draws, in order:
 
 | Container | Order |
 |-----------|-------|
-| `GameEngine` | scenes, its own entities, the mode, the HUD |
+| `GameEngine` | scenes, its own entities, the mode, the screens marked `under`, `drawOver` (the game's own: a HUD), the other screens, the HUD |
 | `Scene` | background, child scenes, entities, foreground |
 | `BackgroundScene` | background, its image, child scenes, entities, foreground |
 | `TiledScene`, overhead | background, layers and child scenes in one z order, entities, foreground |
@@ -201,10 +206,12 @@ Six classes support games built from pre-rendered views, such as Myst. Each can 
 
 ```
 index.js            exports every public class
-lib/                the engine, one class per file
+lib/                the engine, one class per file (a game engine only: tooling that serves only remakes
+                    of old games lives outside the repository's lib/)
 lib/jsdoc/          JSDoc type definitions (Rectangle, Tile, Frame) for the API comments
 spec/               Jasmine specs, one per class, with a fake DOM in spec/helpers and mocks in spec/mocks
 examples/           runnable example games, bundled with esbuild
+tools/              frames (frame baselines) and smoke.mjs (every game loaded headless and checked)
 docs/               these pages
 TODO/               the modernisation plan
 ```

@@ -69,11 +69,12 @@ for (const [name, dir, entry] of games) {
     for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: 640, y: 400, button: 'left', clickCount: 1 })
     await sleep(800)
     for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, key: ' ', code: 'Space', windowsVirtualKeyCode: 32 })
-    // A canvas drawing something: its largest canvas, sampled for colours three times over a few seconds (a game
-    // may be between scenes, black, at any one moment); the best look counts
+    // A canvas drawing something: its largest canvas, sampled for colours every 1.5 seconds for up to 15 (a game
+    // may load for a while, or be between scenes, black, at any one moment); the best look counts, and looking stops
+    // once it draws
     let drawn = 'unknown'
     let best = -1
-    for (let k = 0; k < 3; k++) {
+    for (let k = 0; k < 10 && best < 8; k++) {
       await sleep(1500)
       const look = await send('Runtime.evaluate', { returnByValue: true, expression: SAMPLE })
       const value = (look.result && look.result.value) || 'unknown'
