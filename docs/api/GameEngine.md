@@ -174,6 +174,23 @@ class Title {
 }
 ```
 
+## Screens
+
+Screens ([Screen](Screen.md)) shown over the game, in a stack: the top visible one takes each click first, the
+visible ones are stepped after `update` and drawn over everything else.
+
+### `showScreen(screen)`
+
+Shows a screen on top (moving it to the top if it was shown already); returns it.
+
+### `hideScreen(screen)`
+
+Takes a screen off the stack.
+
+### `topScreen`
+
+The top visible screen, or null. `screens` lists them all, bottom first.
+
 ## Timers
 
 Timers run on game time, so they pause with the game and stay in step with movement.
