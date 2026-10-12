@@ -152,5 +152,22 @@ Then the console and the factory desk too, as screens drawn under the HUD (Tenka
 Wreckers' own: the screens' keys (still read in `gameKeys`, with the original's rules), and
 their click rectangles (inside each screen class, not yet `Hotspots`).
 
-**Next:** the screens' keys into their screens (with the original's guard), 5 (`ViewPicture` and `Screens` onto `IndexedSurface`, the
+**Done (2026-10-12, an hour's extraction):** Tenkai gained, each with specs and docs, and Wreckers was rewritten
+onto them with every picture compared pixel for pixel against the old code (and the emulator checks unchanged: the
+menu and scanner 159 pictures, the map and information screens 124):
+- `IndexedSurface.fromImage` (a picture as palette numbers), `bits` with a paper colour (solid glyph cells),
+  `remap` (numbers through a table), `toCanvas` (a surface through its palettes, regions too), `blit` with `map`
+  (a colour table); `BitmapFont.readBits` (a font sheet as rows of bits); a transparent `IndexedScene` shows through;
+  `Palette.clone` and `setLevels`; `PaletteFade.fadeRGBA`; `PixelRegions` (flood fill, islands, hollows).
+- Wreckers: `ViewPicture` (the menu's and scanner's picture) on an IndexedSurface and IndexedScene, and `Screens`
+  draws through it instead of its own copy; the officers' sprites are one indexed picture and a palette each
+  (`OfficerSheets`; `Recolour` gone), the thaw's grey a tinted palette; the HUD's countdown remapped through palettes
+  A and B; the HUD panel's cutting and the screens' outside clearing on `PixelRegions`; the front end's `Screen` on
+  IndexedScene, `setLevels` and `fadeRGBA`; the console's, terminal's and factory desk's buttons as `Hotspots`.
+- Monkey2's glyphs drawn with the colour-table blit. `tools/smoke.mjs` loads every game headless after each change.
+- Rules: the page holds none (keys and buttons go to the server, `SeatKeys`; the terminal's STATUS is the server's).
+
+**Next:** the map and information screens' hotspots (the original's group masks: Tenkai's groups are named, so a
+mask form first), typed text once a screen types through a `BitmapFont`, and the rest of `Wreckers.js` down to
+wiring. Also left: the screens' keys into their screens (with the original's guard), 5 (`ViewPicture` and `Screens` onto `IndexedSurface`, the
 HUD's split) and 6 (typed text, once a user draws through a `BitmapFont`).
