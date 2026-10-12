@@ -11,6 +11,8 @@ player for its address when it cannot be found or the connection is lost.
 2. the page's own host's path (`ws://host:port/game`, or `wss://` on an https page): a server that serves the page
    too is found there;
 3. the address the player last chose, kept in the browser's storage.
+4. the suggestion: by default the page's host on port 8053, so a page from a development server on another port
+   finds the game beside it.
 
 With none answering, its `ServerConfig` asks the player for an address, again until one answers, and keeps it for
 next time.
@@ -36,7 +38,7 @@ client.onClose = async () => {
 | `location`, `storage` | default `window.location`, `window.localStorage` |
 | `path` | the server's path on the page's own host (default `/game`) |
 | `param` | the URL parameter that gives an address (default `server`) |
-| `suggestion` | the address offered when none was chosen yet (default the page's host, port 8053, the path) |
+| `suggestion` | the address tried last and offered when none was chosen yet (default the page's host, port 8053, the path) |
 | `socket(address)` | makes a socket (default `new WebSocket(address)`) |
 | `wait` | milliseconds a socket has to open (default 3000) |
 
@@ -47,7 +49,7 @@ client.onClose = async () => {
 | `candidates()` | the addresses tried, in order |
 | `open(address)` | an open socket, or null when it cannot open in time |
 | `first(addresses)` | `{ socket, address }` for the first that opens, or null |
-| `own()`, `saved()`, `save(address)` | the page's own address; the kept one; keep one |
+| `own()`, `saved()`, `save(address)`, `suggested()` | the page's own address; the kept one; keep one; the suggestion |
 
 A storage that throws (a private window, blocked site data) is treated as empty.
 

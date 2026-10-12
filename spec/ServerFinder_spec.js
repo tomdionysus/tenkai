@@ -42,8 +42,11 @@ describe('ServerFinder', () => {
     expect(finder.saved()).toBe('ws://saved:2/game')
     expect(finder.candidates()).toEqual(['ws://other:1/game', 'ws://example.org:8053/game', 'ws://saved:2/game'])
     finder.save('ws://example.org:8053/game')
-    const plain = new ServerFinder({ key: 'k', location: { protocol: 'https:', host: 'a.b', search: '?server=nonsense' }, storage: s, path: '/play' })
-    expect(plain.candidates()).toEqual(['wss://a.b/play', 'ws://example.org:8053/game'])
+    const plain = new ServerFinder({ key: 'k', location: { protocol: 'https:', host: 'a.b', hostname: 'a.b', search: '?server=nonsense' }, storage: s, path: '/play' })
+    expect(plain.candidates()).toEqual(['wss://a.b/play', 'ws://example.org:8053/game', 'wss://a.b:8053/play'])
+    // A page from a development server on another port also tries the game's port beside it
+    const dev = new ServerFinder({ key: 'd', location: { protocol: 'http:', host: 'h:8052', hostname: 'h', search: '' }, storage: storage() })
+    expect(dev.candidates()).toEqual(['ws://h:8052/game', 'ws://h:8053/game'])
   })
 
   it('should keep going without a storage that works', () => {
@@ -65,6 +68,7 @@ describe('ServerFinder', () => {
   it('should ask the player until an address answers, and keep it', async () => {
     const net = sockets(['ws://good:3/game'])
     const screen = config(['ws://bad:3/game', 'ws://good:3/game'])
+    // (the suggestion, tried first, does not answer)
     const s = storage()
     const finder = new ServerFinder({ key: 'k', location, storage: s, socket: net.socket, config: screen, suggestion: 'ws://try:1/game' })
     const found = await finder.find()
