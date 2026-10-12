@@ -44,3 +44,12 @@ describe('BitmapFont.fromBits', () => {
     expect(font.lineWidth('AB.')).toBe(24)
   })
 })
+
+describe('BitmapFont.readBits', () => {
+  it('should read each cell of a sheet as rows of bits', () => {
+    // Two 2 x 1 cells side by side: ink, clear | clear, ink
+    const rgba = new Uint8ClampedArray([0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 200])
+    const canvas = { width: 4, height: 1, getContext: () => ({ drawImage () {}, getImageData: () => ({ data: rgba }) }) }
+    expect(BitmapFont.readBits({ width: 4, height: 1 }, 2, 1, 2, { createCanvas: () => canvas })).toEqual([[2], [1]])
+  })
+})

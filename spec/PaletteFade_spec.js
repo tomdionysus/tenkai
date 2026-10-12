@@ -89,3 +89,27 @@ describe('IndexedScene regions', () => {
     expect([d[0], d[4], d[8]]).toEqual([0x10, 0x20, 0x30])
   })
 })
+
+describe('IndexedSurface.fromImage and solid bits', () => {
+  // A canvas stand-in holding RGBA pixels
+  const canvasOf = (width, height, rgba) => ({
+    width,
+    height,
+    getContext: () => ({ drawImage () {}, getImageData: () => ({ data: rgba }) })
+  })
+
+  it('should read a picture as palette numbers, the first entry of a colour, transparent where it is', () => {
+    const palette = Palette.fromCSS(['#000', '#f00', '#f00', '#0f0'])
+    const rgba = new Uint8ClampedArray([255, 0, 0, 255, 0, 255, 0, 255, 9, 9, 9, 255, 255, 0, 0, 0])
+    const s = IndexedSurface.fromImage({ width: 4, height: 1 }, palette, { createCanvas: () => canvasOf(4, 1, rgba), missing: 7 })
+    expect(s.transparent).toBe(true)
+    expect(Array.from(s.pixels)).toEqual([1, 3, 7, -1])
+  })
+
+  it('should draw the clear bits in a paper colour when given one', () => {
+    const s = new IndexedSurface({ width: 4, height: 1 })
+    s.fill(0, 0, 4, 1, 9)
+    s.bits([0b1010], 0, 0, 3, 4, 0)
+    expect(Array.from(s.pixels)).toEqual([3, 0, 3, 0])
+  })
+})
