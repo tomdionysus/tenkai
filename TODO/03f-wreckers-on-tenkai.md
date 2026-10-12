@@ -92,4 +92,9 @@ in several actions, `IsometricWorld` overlap, `IsometricScene`'s `seeThrough` (u
 see-through characters down), `GameClient`, `StateDiff`, and `tools/frames/` (frame baselines for every game, live
 runs in a tab).
 
-**Next:** move the server-side classes out (above), then the client list from 1.
+**Done (2026-10-12): the server side out of Tenkai.** `GameServer`, `GameState`, `Place`, the Node socket server and
+`LocalSocket` are Wreckers' own (`remake/src/Place.js`, `remake/src/GameState.js`, `remake/server/`, with their specs
+in `local/wreckers/spec/` and a README there); `WorkerSocket` and the server's Worker hook are gone; Tenkai's index
+exports `GameClient` and `StateDiff` only, documented in `docs/api/GameClient.md`.
+
+**Next:** the client list, from 1.
