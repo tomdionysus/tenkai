@@ -125,4 +125,11 @@ by an `IndexedScene` with palette B from line 135 (its check against the emulato
 routines), the HUD's split, `BackBuffer`'s picture and font loading, the front end's `Screen` with its held
 snapshot.
 
-**Next:** 6, fonts; the rest of 1 and 5 alongside.
+**Done (2026-10-12): 6, fonts, first form.** Tenkai's `BitmapFont.fromBits` (a font from rows of bits, drawn white
+so it recolours) and `FontCleaner` (gaps in vertical strokes filled, for bits or a picture); Wreckers' `GlyphLabel`
+and `FontCleaner` are gone (the commander screen's labels are a `BitmapFont`). Still Wreckers' own: `OriginalFont`
+(its glyph order and line heights: data), and the typing of the dossier and the terminals, which follow the
+original's back buffer routines (offsets, a counter over a list of entries) rather than a string a font could type;
+a typed-text mechanism waits for a user that draws through a `BitmapFont`.
+
+**Next:** 7, hotspot groups; the rest of 1, 5 and 6 alongside.

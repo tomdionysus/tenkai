@@ -49,3 +49,19 @@ A character with no glyph, such as a space, takes a cell's width and draws nothi
 - `glyph(character)`, `advance(character)`, `lineWidth(line)`: the pieces the above use.
 - `tinted(colour)`: the sheet with its ink recoloured (a canvas, made once per colour). Without a canvas (in
   tests, say) it returns the sheet as it is.
+
+## Fonts stored as bits
+
+`BitmapFont.fromBits(options)` makes a font from glyphs given as rows of bits rather than a picture, as many old
+games keep their fonts in code: each glyph a list of numbers, one a row, whose set bits (highest first) are its
+ink. The glyphs are drawn white on a sheet, so `colour` recolours them. Options are the constructor's without
+`image`, plus `bits` (each cell's rows; a missing glyph is an empty cell) and `createCanvas(width, height)`
+(default a DOM canvas). `columns` defaults to 16.
+
+```js
+const font = BitmapFont.fromBits({ bits: data.glyphs, cellWidth: 8, cellHeight: 8, characters: GLYPHS, upperCase: true })
+font.draw(context, 'AWAKE', 40, 100, { colour: '#44dd44' })
+```
+
+[FontCleaner](FontCleaner.md) fills the gaps of a font drawn in broken strokes.
+
