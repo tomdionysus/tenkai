@@ -56,6 +56,16 @@ A one-bit picture, such as a font's glyph, drawn ink only: each of `rows` is a n
 first, are drawn in `color`; the other pixels are left alone, or drawn in `paper` when one is given (a solid
 cell, as some fonts are drawn). `width` is the bits a row (default 8): `bits(rows, x, y, color, width, paper)`.
 
+### remap(table)
+
+Every pixel's number mapped through a table (an array, or a function of the number), transparent pixels left:
+palette tricks such as darkening a picture by clearing a bit, or swapping two colours. Returns the surface.
+
+### toCanvas(palette, { regions })
+
+The surface as a canvas through a palette, to draw again and again (a sprite sheet in one character's
+colours, a gauge's graphic); `regions` give ranges of rows their own palettes, as IndexedScene's do.
+
 ### IndexedSurface.fromImage(image, palette, options)
 
 A picture (an image or canvas in a palette's colours) as palette numbers: a transparent surface, each pixel the

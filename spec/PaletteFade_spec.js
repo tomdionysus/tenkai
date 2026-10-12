@@ -113,3 +113,38 @@ describe('IndexedSurface.fromImage and solid bits', () => {
     expect(Array.from(s.pixels)).toEqual([3, 0, 3, 0])
   })
 })
+
+describe('IndexedSurface remap and toCanvas, Palette clone', () => {
+  it('should map every pixel through a table, leaving the transparent ones', () => {
+    const s = new IndexedSurface({ width: 4, height: 1, transparent: true })
+    s.pixels.set([8, 9, -1, 3])
+    s.remap((c) => (c >= 8 ? c & ~1 : c))
+    expect(Array.from(s.pixels)).toEqual([8, 8, -1, 3])
+    s.remap([0, 0, 0, 5])
+    expect(Array.from(s.pixels)).toEqual([8, 8, -1, 5])
+  })
+
+  it('should make a canvas through a palette, rows below a region through its own, transparent stays clear', () => {
+    let image = null
+    const canvas = {
+      getContext: () => ({
+        createImageData: (w, h) => { image = { data: new Uint8ClampedArray(w * h * 4) }; return image },
+        putImageData () {}
+      })
+    }
+    const s = new IndexedSurface({ width: 1, height: 3, transparent: true })
+    s.pixels.set([1, 1, -1])
+    const a = Palette.fromCSS(['#000', '#100000'])
+    const b = Palette.fromCSS(['#000', '#200000'])
+    expect(s.toCanvas(a, { regions: [{ from: 1, palette: b }], createCanvas: () => canvas })).toBe(canvas)
+    expect([image.data[0], image.data[4], image.data[8], image.data[11]]).toEqual([0x10, 0x20, 0, 0])
+  })
+
+  it('should clone a palette, its colours its own', () => {
+    const p = Palette.fromCSS(['#000', '#fff'])
+    const q = p.clone()
+    q.set(1, 1, 2, 3)
+    expect(p.get(1)).toEqual([255, 255, 255])
+    expect(q.get(1)).toEqual([1, 2, 3])
+  })
+})

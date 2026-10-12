@@ -73,6 +73,10 @@ that must follow the palette, such as a remapping table with `Palette.rotateRema
 
 ## Static methods
 
+### clone()
+
+A copy of the colours (not the cycles), to change for a variant: a character's colours, a frozen grey.
+
 ### Palette.fromCSS(list)
 
 A palette of CSS colours (`#rrggbb` or `#rgb`), one entry each.
