@@ -348,13 +348,39 @@ user when the rest is done.
   - Checked by `tools/checks/players.mjs` (four clients on one sector: joining, refusal, the lobby, walking apart,
     holding, leaving and taking over), and live against the Node server with `frames/two.json` and
     `tools/checks/second-player.mjs` as the other player.
-  - Not done from section 6: the alien and droid record pools are still the original's sizes (8 and 10); a sector
-    with no clients is not discarded; no frame script yet with three browser clients; death still goes to the
-    commander screen rather than watching.
-  - Open question: an officer standing at 992,348 (just out of the cryo pods, towards the arch) draws almost wholly
-    under the deck-edge occluders, in one-player too and before this step. Possibly the occluders' thresholds near
-    the pods; to look at against the original.
-- **Next:** the rest of step 5 above, then section 2's leftovers (`Droids` and `Aliens` split, `Wreckers` shrunk).
+- **Step 5 continued (2026-10-12): done, with the user's play-testing.**
+  - Multiplayer rules settled in play: friendly fire stays; a dead officer stops being solid, dies properly under
+    fire (no restarted collapse) and rises as his plasmozomb only when a plasmodian reaches his body (it becomes
+    the plasmozomb); a player who leaves a dead officer leaves the body lying; plasmozombs go for the living, are
+    hurt by every shot (24 to kill) and say nothing of being vulnerable; a dead player's view stays on the body
+    and follows the plasmozomb until a click takes him to the commander screen; the last officer alive is warned.
+  - The game's ends: all three dead or the game lost goes to the commander screen, where a choice starts a new
+    game; a player joining an ended game, or the last player leaving, gives a new station (numbered, so a page
+    sees it and joins at the commander screen); an empty game does not run; stopping the server (Ctrl-C) ends the
+    game in every page.
+  - Outside: back in through any airlock (an arrow over each while anyone is outside); every officer's spray and
+    jet drawn for every player, inside or out.
+  - Streaming: each page tells the server its window, and every alien and droid in it (and 64 round it) is on
+    screen, the aliens' records no longer limited to eight (`StreamArea`). The off-screen simulation stays for
+    the rest of the station: it is what moves aliens between rooms.
+  - The officer lost behind the cryo room's front wall: officers are now drawn as faint silhouettes through the
+    walls that hide them (Tenkai's `seeThrough`).
+  - Gone: the high score table, the score, the menu's dead buttons (only NEW and quit are left).
+  - Checked by `tools/checks/players.mjs` (now also deaths, rising, the warning, the game's ends, resets and
+    streaming), the station and move checks (identical but for the intended change in station-s32, a fallen
+    officer no longer restarting his collapse when hit), the roundtrip, and the frame scripts headless.
+- **Client (2026-10-12):** the page fills the window (`Layout`): the station view as large as it is, the static
+  screens centred at their own size, the HUD's panel split into two halves at the window's bottom corners, cleaned
+  of the frame, the pipes and the black backing; the beacon screens without their copy of the HUD; the fades of
+  the static screens twice as fast; the title takes a click from 300 ms; the large font's gaps filled
+  (`FontCleaner`).
+- **Section 2 (2026-10-12): continued.** `Droids` lost its elevator queue (`DroidLift`, with `DroidStates`);
+  `Aliens` its waves (`AlienWaves`) and the station's systems (`StationSystems`); `Wreckers` its characters
+  (`CharacterView`), the spray (`SprayView`) and the recolouring (`Recolour`): 1,374 lines to 1,182.
+- **Next:** more of section 2 (`Wreckers`' init and update, the droids' and aliens' on-screen and off-screen AI as
+  classes of their own); the title's scrolling credits spaced so no lines touch (the strip is a picture: it needs
+  rebuilding from the fonts); a test that drives two or three browser windows at once; a second station (a design
+  for the user).
 
 ## Gates
 

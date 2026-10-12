@@ -16,7 +16,24 @@ officers, three players) and further stations are not improvements here but 03g'
 - The droid faces in the HUD slots sit one pixel right of the original's place (`Slots.js`, `NUDGE`).
 - The officer dossier (mode 9) exists (it was missing from 1.0.0); see 03d.
 
-## A resizable HUD
+## Done (2026-10-12)
+
+- **The HUD resizes, though not as planned below.** The page fills the window (03g's Status, "Client"): the view is
+  as large as the window, and the frame round it is gone instead of being rebuilt from tiled runs. The bottom
+  panel is cut from the captured HUD at load (`remake/src/Layout.js`), split into two halves at the window's bottom
+  corners, cleaned of the pipes, the green lines and the black backing. The static screens are drawn centred at the
+  original's size. No atlas, no tool and no Tenkai frame builder were needed for this.
+- **The fonts, in part.** The large font's one-pixel gaps through its strokes are filled at load
+  (`remake/src/FontCleaner.js`), in the picture and in the rows of bits, and the cleaned font is the only one (the
+  user: "clean up the fonts"; no setting). Not done: the title's scrolling credits spaced so no lines touch (the
+  strip is a picture, to be rebuilt from the fonts). The high score table, whose line colours blanked the last row,
+  is gone.
+- The fades of the static screens run at twice the original's speed; the title takes a click from 300 ms after it
+  shows.
+
+## Earlier plans, kept for reference
+
+### A resizable HUD (superseded)
 
 The HUD is one 320 by 200 picture (`remake/data/hud.png`, captured from the original) framing a fixed 256 by
 128 view at (32, 7). To let the view grow (wider screens, a larger scale, more of the station on show), break
@@ -52,7 +69,7 @@ Work:
    ornaments of any number), so other games with pre-drawn frames can do the same. Log it in
    `local/monkey2/TENKAI-GAPS.md`.
 
-## Fix the fonts
+### Fix the fonts (mostly done, above)
 
 The original's text looks clipped in places, and the remake reproduces it exactly (checked pixel for pixel
 against the original's frames): many glyphs of the large 8 by 8 font have a blank row through the middle, the
