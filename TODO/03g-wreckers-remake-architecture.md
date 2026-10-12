@@ -377,6 +377,11 @@ user when the rest is done.
 - **Section 2 (2026-10-12): continued.** `Droids` lost its elevator queue (`DroidLift`, with `DroidStates`);
   `Aliens` its waves (`AlienWaves`) and the station's systems (`StationSystems`); `Wreckers` its characters
   (`CharacterView`), the spray (`SprayView`) and the recolouring (`Recolour`): 1,374 lines to 1,182.
+- **The game in Node only (2026-10-12, the user: "the game logic lives in node ... the frontend is just a
+  client now").** The in-page server and the Worker server are gone: every page is a client of
+  `remake/server.mjs` over a WebSocket. Browser checks need the server running and play in real time
+  (`tools/frames/live.mjs`); the virtual-clock frames runner no longer drives the game. Node-side checks build the
+  sector or station themselves.
 - **Next:** more of section 2 (`Wreckers`' init and update, the droids' and aliens' on-screen and off-screen AI as
   classes of their own); the title's scrolling credits spaced so no lines touch (the strip is a picture: it needs
   rebuilding from the fonts); a test that drives two or three browser windows at once; a second station (a design
