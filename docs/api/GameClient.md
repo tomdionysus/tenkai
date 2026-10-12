@@ -32,15 +32,29 @@ serves any `GameClient`.
 
 | Member | |
 |---|---|
-| `new GameClient({ socket, name, wish })` | joins when the socket opens (at once if it is open already) |
+| `new GameClient({ socket, name, wish, tickTime, now })` | joins when the socket opens (at once if it is open already); `tickTime` (seconds a server tick) and `now` (milliseconds, default `performance.now`) are for `fraction` |
 | `player` | `{ number, name, place }` once welcomed |
 | `state`, `previous`, `tick` | the last two states sent, to draw between |
+| `fraction()` | how far the game is into the next tick, 0 to 1, by the time since a new tick arrived (a message after an action, at the same tick, starts none); 1 without a `tickTime` |
 | `refused` | the reason, if refused |
 | `input(fields)` | what the player holds now: sent when it changes |
 | `command(fields)` | once, for the next tick |
 | `act(action)` | done by the server at once; the new state follows |
 | `leave()` | |
 | `onWelcome`, `onTick(client, events)`, `onEvent(event)`, `onClose(event)` | |
+
+## Drawing between ticks
+
+A server's ticks come a few times a second; the page draws far more often. To move things smoothly, draw each
+`fraction()` of the way from where it was at the tick before to where it is now, keeping where things were with a
+[Trails](Trails.md):
+
+```js
+client.onTick = (client) => trails.tick(client.state.droids.map((d) => [d.id, d]))
+// each frame:
+const a = client.fraction()
+for (const d of client.state.droids) entities[d.id].world = trails.between(d.id, d, a)
+```
 
 ## StateDiff
 

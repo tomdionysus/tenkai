@@ -42,6 +42,7 @@ export { default as Video } from './lib/Video.js'
 // Scenes
 export { default as Scene } from './lib/Scene.js'
 export { default as Screen } from './lib/Screen.js'
+export { default as Trails } from './lib/Trails.js'
 export { default as BackgroundScene } from './lib/BackgroundScene.js'
 export { default as BufferedScene } from './lib/BufferedScene.js'
 export { default as TiledScene } from './lib/TiledScene.js'

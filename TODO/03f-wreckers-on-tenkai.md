@@ -103,4 +103,13 @@ exports `GameClient` and `StateDiff` only, documented in `docs/api/GameClient.md
 consoles, the factory desk, the terminals and the letter (their open state is the seat's, on the server; each can
 become a `Screen` the same way).
 
-**Next:** the rest of 1, then 2.
+**Done (2026-10-12): 2, the block layout.** `GameEngine` options `block` and `maxScale` (fullscreen with a fixed-size
+block centred whole in the window at the largest whole scale up to `maxScale`), `fitBlock()`, `windowRect`; Wreckers'
+`Layout` keeps only its panel, view and the officer's focus (`fit`).
+
+**Done (2026-10-12): 3, drawing between ticks.** Tenkai's `Trails` (where things were at the last two ticks, by key;
+`between` for a frame) and `GameClient`'s `fraction()` (from a `tickTime`, counting only new ticks); Wreckers'
+`CharacterView` draws its officers, cars, droids and aliens through a `Trails`, and `ServerLink`'s fraction is the
+client's. The view's own scroll and the droid camera still keep their single `from` by hand in `Wreckers.js`.
+
+**Next:** 4, finding a server; the rest of 1 alongside.
