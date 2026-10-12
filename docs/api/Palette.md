@@ -73,6 +73,11 @@ that must follow the palette, such as a remapping table with `Palette.rotateRema
 
 ## Static methods
 
+### setLevels(levels, max, start)
+
+Set entries from levels, red, green and blue for each in turn, from 0 to `max` (default 15, the Amiga's 4
+bits a component: a level is 17 of 0-255), from entry `start` (default 0). Returns the palette.
+
 ### clone()
 
 A copy of the colours (not the cycles), to change for a variant: a character's colours, a frozen grey.

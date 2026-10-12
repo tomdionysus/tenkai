@@ -43,4 +43,5 @@ for a fade that darkens something that is not a palette, such as a held picture 
 | `done` | whether it has run its length |
 | `tick()` | `speed` frames; true when a step was taken |
 | `step()` | one frame; true when a step was taken |
+| `PaletteFade.fadeRGBA(rgba, steps, { max, up })` | a true-colour picture faded in place by palette steps, as if each pixel were an entry: each component's level moved `steps` down to black, or with `up` from black up to it (a held picture of a screen faded as its palette would be) |
 | `apply(palette, start)` | writes the colours into a [Palette](Palette.md) from entry `start`, each level x 255 / `max` |

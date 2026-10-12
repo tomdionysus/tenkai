@@ -148,3 +148,21 @@ describe('IndexedSurface remap and toCanvas, Palette clone', () => {
     expect(q.get(1)).toEqual([1, 2, 3])
   })
 })
+
+describe('Palette.setLevels and PaletteFade.fadeRGBA', () => {
+  it('should set entries from 4-bit levels', () => {
+    const p = new Palette({ size: 3 })
+    p.setLevels([15, 1, 0, 2, 3, 4], 15, 1)
+    expect(p.get(1)).toEqual([255, 17, 0])
+    expect(p.get(2)).toEqual([34, 51, 68])
+  })
+
+  it('should fade a picture down by levels, or up to it', () => {
+    const rgba = new Uint8ClampedArray([255, 34, 17, 255])
+    PaletteFade.fadeRGBA(rgba, 2)
+    expect(Array.from(rgba)).toEqual([221, 0, 0, 255])
+    const up = new Uint8ClampedArray([255, 34, 17, 255])
+    PaletteFade.fadeRGBA(up, 1, { up: true })
+    expect(Array.from(up)).toEqual([17, 17, 17, 255])
+  })
+})
