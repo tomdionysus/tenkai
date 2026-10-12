@@ -35,6 +35,9 @@ pointer.x = game.mouseX - hotspotX
 | `layers` | none | Surfaces over it, each `{ surface, x, y, visible, palette }`, first lowest. A layer's own `palette` is optional. |
 | `createCanvas` | a DOM canvas | Makes the offscreen canvas, as `createCanvas(width, height)`; for tests or workers. |
 
+A transparent surface (`transparent: true`) shows through where it is transparent: what is under the scene
+shows there.
+
 `surface`, `palette` and `layers` are properties and can be swapped at any time.
 
 ## Methods

@@ -63,5 +63,9 @@ const font = BitmapFont.fromBits({ bits: data.glyphs, cellWidth: 8, cellHeight: 
 font.draw(context, 'AWAKE', 40, 100, { colour: '#44dd44' })
 ```
 
+`BitmapFont.readBits(image, cellWidth, cellHeight, count, { columns })` is the other way round: a font sheet's
+glyphs as rows of bits (ink where alpha is 128 or more), for drawing text into an
+[IndexedSurface](IndexedSurface.md) with `bits`.
+
 [FontCleaner](FontCleaner.md) fills the gaps of a font drawn in broken strokes.
 

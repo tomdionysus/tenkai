@@ -53,7 +53,14 @@ A line one pixel wide, `length` pixels from (x, y) to the right, or down when `v
 ### bits(rows, x, y, color, width)
 
 A one-bit picture, such as a font's glyph, drawn ink only: each of `rows` is a number whose set bits, highest
-first, are drawn in `color`; the other pixels are left alone. `width` is the bits a row (default 8).
+first, are drawn in `color`; the other pixels are left alone, or drawn in `paper` when one is given (a solid
+cell, as some fonts are drawn). `width` is the bits a row (default 8): `bits(rows, x, y, color, width, paper)`.
+
+### IndexedSurface.fromImage(image, palette, options)
+
+A picture (an image or canvas in a palette's colours) as palette numbers: a transparent surface, each pixel the
+first entry of exactly its colour, `missing` (default 0) for a colour not in the palette, -1 where the picture is
+transparent. `x`, `y`, `width`, `height` take part of it.
 
 ### rows(y, height)
 
