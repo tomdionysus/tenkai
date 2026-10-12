@@ -46,7 +46,8 @@ new MyGame({ targetId: 'game' }).start()
 | `showHUD` | `false` | Draw a debug line with the viewport, zoom, mouse position and limits. |
 | `scale` | `1` | Zoom; 2 draws everything twice the size. |
 | `x`, `y` | `0` | Viewport offset in game pixels, added to everything drawn. |
-| `minScale`, `maxScale` | none | Limits for zooming with the wheel. |
+| `minScale`, `maxScale` | none | Limits for zooming with the wheel; `maxScale` also caps the `block` layout's scale. |
+| `block` | none | With `fullscreen`: `{ width, height }`, a block of game pixels kept whole and centred in the window at the largest whole scale that fits (see [The window and the block](#the-window-and-the-block)). |
 | `minX`, `minY`, `maxX`, `maxY` | none | Limits for the viewport offset. |
 | `globalAlpha` | `1` | Opacity for everything drawn. |
 | `enableScroll` | `true` | The mouse wheel pans the viewport. |
@@ -172,6 +173,24 @@ class Title {
   update () { if (this.game.input.pressed('start')) this.game.setMode(new Play(this.game)) }
   draw (context) { context.fillText('PRESS START', 120, 100) }
 }
+```
+
+## The window and the block
+
+A game that draws fixed screens at a fixed size (a 320 by 200 original, say) but wants the rest of a large window
+too gives `fullscreen` and `block: { width, height }`. On every resize the engine picks the largest whole scale at
+which the block fits (at least 1, at most `maxScale`), sizes `width` and `height` to the window in game pixels, and
+sets `x` and `y` so the block is centred: the game's coordinates are the block's, and its fixed screens drawn there
+stay centred and the same size. `windowRect` is the whole window in those coordinates (`{ x, y, width, height }`,
+x and y 0 or less), for a scene that should fill it; `fitBlock()` redoes the fit, and `resize` is triggered after.
+
+```js
+const game = new GameEngine({ targetId: 'game', fullscreen: true, block: { width: 320, height: 200 }, maxScale: 3 })
+game.on('resize', () => {
+  const w = game.windowRect
+  view.x = w.x
+  view.y = w.y
+})
 ```
 
 ## Screens

@@ -231,6 +231,24 @@ describe('GameEngine', () => {
 
       expect(x1.trigger).toHaveBeenCalledWith('resize', x1)
     })
+
+    it('should fit a block whole and centred at the largest whole scale, at most maxScale', () => {
+      var x1 = new GameEngine({ block: { width: 320, height: 200 }, maxScale: 3 })
+      spyOn(x1, 'trigger')
+      x1.element = {}
+      x1.window = { innerWidth: 1600, innerHeight: 1000 }
+      x1.recomputeFullScreen()
+      expect([x1.scale, x1.width, x1.height, x1.x, x1.y]).toEqual([3, 1600 / 3, 1000 / 3, 106, 66])
+      expect(x1.windowRect).toEqual({ x: -106, y: -66, width: 1600 / 3, height: 1000 / 3 })
+      expect(x1.trigger).toHaveBeenCalledWith('resize', x1)
+      // A small window: scale 2, and at least 1 however small
+      x1.window = { innerWidth: 700, innerHeight: 450 }
+      x1.recomputeFullScreen()
+      expect([x1.scale, x1.x, x1.y]).toEqual([2, 15, 12])
+      x1.window = { innerWidth: 200, innerHeight: 100 }
+      x1.recomputeFullScreen()
+      expect(x1.scale).toEqual(1)
+    })
   })
 
   describe('loadAssets', () => {
