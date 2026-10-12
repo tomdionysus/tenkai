@@ -387,6 +387,22 @@ user when the rest is done.
   rebuilding from the fonts); a test that drives two or three browser windows at once; a second station (a design
   for the user).
 
+- **Paused (2026-10-12; the user: "Draw a line under wreckers for now").** Where it stands:
+  - Three players over a Node server (`remake/server.mjs`), hardened for long play: a drift-free clock, one
+    snapshot shared by every player's view, backpressure and compression, limits, a heartbeat, `/status`, a soak
+    check (`tools/checks/soak.mjs`). The elevator jam (records 8-10) and the promotion letter crash are fixed.
+  - The page is a pure client: keys and HUD buttons go to the server (`SeatKeys`), which applies the original's
+    guard and opens each player's screens; the terminal's STATUS is the server's; the factory's advanced droids need
+    the rank of the officer at the desk, decided there.
+  - Every screen that filled the original's frame is an overlay over the live game in a frame (`ScreenFrame`); the
+    game is held only by the front end, the commander screen and the end; a death closes the overlays.
+  - Most of the drawing is on Tenkai (indexed surfaces and scenes, palettes, fades, fonts, hotspots, screens); the
+    emulator checks stay as they were (menu and scanner 159 pictures, 39 differing as before; map and information
+    screens 124, none differing).
+  - Left, when it resumes: 3f's "Next" (the map screens' hotspots, typed text, `Wreckers.js` down to wiring), the
+    data files' keys (step 1), 3e's larger improvements. The user's 8053 server needs a restart to run the latest
+    server code.
+
 ## Gates
 
 **Not the frame baselines (the user, 2026-10-12: "we're beyond that").** No comparing against saved frames and no

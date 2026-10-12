@@ -23,6 +23,12 @@ state. Do them in order; within a phase, items are roughly in priority order.
 | 3e | [03e-wreckers-improvements.md](03e-wreckers-improvements.md) | Open (fidelity is over): improvements beyond the original; three already made, the larger ones after 3g's step 3 |
 
 Phases 3d to 3g are one piece of work; 3g is its plan and order, 3f the Tenkai side, 3e the improvements, 3d the record.
+
+**Wreckers is paused (2026-10-12; the user: "Draw a line under wreckers for now").** It stands as a three-player
+game played over a Node server, the page a pure client with no game rules, its screens Tenkai overlays framed over
+the live game, most of its drawing on Tenkai's indexed and palette classes, the server hardened for long play (Tenkai
+0.3.0 carries the engine side). To pick it up again: 3f's "Next" and 3g's status say what is left; the
+reverse-engineering tools and guides are in local/amiga-tools.
 | 4 | [04-docs-and-release.md](04-docs-and-release.md) | Example games, real docs, 1.0 on npm with provenance |
 
 ## Guiding decisions
