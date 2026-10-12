@@ -14,6 +14,16 @@ const args = process.argv.slice(2)
 const OUT = args[0] && !args[0].match(/^[a-z0-9-]+$/) ? args.shift() : fs.mkdtempSync(path.join(os.tmpdir(), 'tenkai-smoke-'))
 const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+// Samples the page's largest canvas: its size and how many colours a sparse grid of its pixels has
+const SAMPLE = `(() => {
+  const cs = [...document.querySelectorAll('canvas')].sort((a, b) => b.width * b.height - a.width * a.height)
+  if (!cs.length) return 'no canvas'
+  const c = cs[0]
+  const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data
+  const seen = new Set()
+  for (let i = 0; i < d.length; i += 4 * 97) seen.add(d[i] << 16 | d[i + 1] << 8 | d[i + 2])
+  return c.width + 'x' + c.height + ', ' + seen.size + ' colours sampled'
+})()`
 const games = [
   ['1945', 'examples/1945', 'examples/1945/main.js'],
   ['arkanoid', 'examples/arkanoid', 'examples/arkanoid/main.js'],
@@ -59,11 +69,21 @@ for (const [name, dir, entry] of games) {
     for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: 640, y: 400, button: 'left', clickCount: 1 })
     await sleep(800)
     for (const type of ['keyDown', 'keyUp']) await send('Input.dispatchKeyEvent', { type, key: ' ', code: 'Space', windowsVirtualKeyCode: 32 })
-    await sleep(4000)
-    // A canvas drawing something: its largest canvas, sampled for colours
-    const look = await send('Runtime.evaluate', { returnByValue: true, expression: '(() => { const cs = [...document.querySelectorAll(\'canvas\')].sort((a, b) => b.width * b.height - a.width * a.height); if (!cs.length) return \'no canvas\'; const c = cs[0]; const d = c.getContext(\'2d\').getImageData(0, 0, c.width, c.height).data; const seen = new Set(); for (let i = 0; i < d.length; i += 4 * 97) seen.add(d[i] << 16 | d[i + 1] << 8 | d[i + 2]); return c.width + \'x\' + c.height + \', \' + seen.size + \' colours sampled\' })()' })
-    const drawn = look.result?.value || 'unknown'
-    if (!/colours/.test(drawn) || /^\d+x\d+, [01] colours/.test(drawn)) errors.push('not drawing: ' + drawn)
+    // A canvas drawing something: its largest canvas, sampled for colours three times over a few seconds (a game
+    // may be between scenes, black, at any one moment); the best look counts
+    let drawn = 'unknown'
+    let best = -1
+    for (let k = 0; k < 3; k++) {
+      await sleep(1500)
+      const look = await send('Runtime.evaluate', { returnByValue: true, expression: SAMPLE })
+      const value = (look.result && look.result.value) || 'unknown'
+      const colours = Number((value.match(/, (\d+) colours/) || [0, -1])[1])
+      if (colours > best) {
+        best = colours
+        drawn = value
+      }
+    }
+    if (best < 2) errors.push('not drawing: ' + drawn)
     else errors.drawn = drawn
     const png = await send('Page.captureScreenshot', { format: 'png' })
     fs.writeFileSync(path.join(OUT, name + '.png'), Buffer.from(png.data, 'base64'))
