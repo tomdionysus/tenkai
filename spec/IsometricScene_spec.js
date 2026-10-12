@@ -144,4 +144,10 @@ describe('IsometricScene occluders', () => {
     var plain = view.addOccluder({ image: mask, x: 0, y: 0, sx: 4 })
     expect(view.occluderArt(plain)).toEqual({ image: mask, sx: 4, sy: 0 })
   })
+
+  it('should snap a position a hair under a step to that step, not the one below', () => {
+    expect(IsometricScene.snapDown(359.99999999999994, 1 / 3)).toBeCloseTo(360, 9)
+    expect(IsometricScene.snapDown(359.9, 1 / 3)).toBeCloseTo(359 + 2 / 3, 9)
+    expect(IsometricScene.snapDown(-0.5, 1)).toBe(-1)
+  })
 })
