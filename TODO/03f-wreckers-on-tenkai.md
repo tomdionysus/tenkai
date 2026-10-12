@@ -97,4 +97,10 @@ runs in a tab).
 in `local/wreckers/spec/` and a README there); `WorkerSocket` and the server's Worker hook are gone; Tenkai's index
 exports `GameClient` and `StateDiff` only, documented in `docs/api/GameClient.md`.
 
-**Next:** the client list, from 1.
+**Done (2026-10-12): 1, screens, first form.** Tenkai's `Screen` and the engine's stack (`showScreen`, `hideScreen`,
+`topScreen`, `screenStack`), with specs and docs; Wreckers' commander screen and dossier are its first user
+(`CommanderMenu`). Still flags in `Wreckers.js`: the map and information screens, the menu, the scanner, the
+consoles, the factory desk, the terminals and the letter (their open state is the seat's, on the server; each can
+become a `Screen` the same way).
+
+**Next:** the rest of 1, then 2.
