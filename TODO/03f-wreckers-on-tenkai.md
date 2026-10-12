@@ -139,4 +139,10 @@ each; the screens give their rectangles, `buttons()`). Still hand-written rectan
 screens, the menu, the consoles, the factory desk and the terminals, which move with them as they become Screens
 (the rest of 1).
 
-**Next:** 8, sound voices; then the rest of 1 (the other screens as Screens with hotspots), 5 and 6.
+**Done (2026-10-12): 8, sound voices.** Tenkai's `SoundVoices` (a voice per sound, replaced unless held or of a
+higher priority; a claim takes every voice and refuses the rest); Wreckers' `GameSound` keeps only the driver's
+rules on top (its tables, samples held on channel 3, the hum on channel 2, retuned effects).
+
+**Next:** the rest of 1 (the map and information screens, the menu, the scanner, the consoles, the factory desk,
+the terminals and the letter as Screens with hotspots), 5 (`ViewPicture` and `Screens` onto `IndexedSurface`, the
+HUD's split) and 6 (typed text, once a user draws through a `BitmapFont`).

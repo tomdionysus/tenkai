@@ -9,6 +9,7 @@ export { default as FontCleaner } from './lib/FontCleaner.js'
 export { default as Input } from './lib/Input.js'
 export { default as Audio } from './lib/Audio.js'
 export { default as SoundManager } from './lib/SoundManager.js'
+export { default as SoundVoices } from './lib/SoundVoices.js'
 
 // Indexed colour
 export { default as Palette } from './lib/Palette.js'
