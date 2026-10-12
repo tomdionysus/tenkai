@@ -5,7 +5,7 @@
 Tenkai is a client-side framework. A game whose logic runs on a server (its own code, in Node or elsewhere) is,
 in the browser, a client: it sends its player's commands and draws the state it is sent. `GameClient` is that
 client, written against the browser `WebSocket`'s surface only. Several clients on one server make a multiplayer
-game.
+game. [ServerFinder](ServerFinder.md) finds the server for the page.
 
 ```js
 import { GameClient } from 'tenkai'

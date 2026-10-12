@@ -21,6 +21,8 @@ export { default as Motion } from './lib/Motion.js'
 // A client of a game behind a server (the server is the game's own: Tenkai is a client-side framework)
 export { default as StateDiff } from './lib/StateDiff.js'
 export { default as GameClient } from './lib/GameClient.js'
+export { default as ServerFinder } from './lib/ServerFinder.js'
+export { default as ServerConfig } from './lib/ServerConfig.js'
 
 // Point-and-click
 export { default as Hotspots } from './lib/Hotspots.js'

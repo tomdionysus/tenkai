@@ -112,4 +112,8 @@ block centred whole in the window at the largest whole scale up to `maxScale`), 
 `CharacterView` draws its officers, cars, droids and aliens through a `Trails`, and `ServerLink`'s fraction is the
 client's. The view's own scroll and the droid camera still keep their single `from` by hand in `Wreckers.js`.
 
-**Next:** 4, finding a server; the rest of 1 alongside.
+**Done (2026-10-12): 4, finding a server.** Tenkai's `ServerFinder` (the URL's address, the page's own path, the
+last chosen; `find` asks until one answers, `lost` asks again) and `ServerConfig` (the HTML form), with the game's
+storage key, path and suggestion as options; Wreckers' own two files are gone.
+
+**Next:** 5, indexed drawing and fades; the rest of 1 alongside.
