@@ -88,6 +88,21 @@ describe('IsometricScene occluders', () => {
     expect(view.occludersOf(a).length).toEqual(1)
   })
 
+  it('should draw a see-through entity again over its occluders, at its alpha', () => {
+    var view = new IsometricScene({ projection })
+    var ctx = context()
+    ctx.globalAlpha = 1
+    var a = sprite('a', ctx)
+    a.seeThrough = 0.4
+    var alphas = []
+    a.draw = () => { ctx.log.push('a'); alphas.push(ctx.globalAlpha) }
+    view.place('a', a, 1200, 371, 896)
+    view.addOccluder({ image: { name: 'arch', width: 64, height: 64 }, x: 380, y: 560, hides: () => true })
+    view.draw(ctx)
+    expect(ctx.log).toEqual(['a', 'arch', 'a'])
+    expect(alphas).toEqual([1, 0.4])
+  })
+
   it('should leave entities in front alone, and clear occluders', () => {
     var view = new IsometricScene({ projection })
     var ctx = context()

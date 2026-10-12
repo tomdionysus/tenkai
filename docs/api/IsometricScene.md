@@ -76,6 +76,13 @@ The art is taken when first needed and again after `invalidateOccluders(x, y, wi
 scene changed over that rectangle (a tile replaced, a door opened); `occluderArt(occluder)` gives the image and
 source position used to draw it.
 
+An entity with `seeThrough` set (an alpha from 0 to 1) is drawn a second time over the occluders that hide it, at
+that alpha: a faint silhouette shows through any wall, so a player's own character is never lost behind the art.
+
+```js
+officer.seeThrough = 0.4
+```
+
 ### occludersOf(entity)
 
 The occluders that hide an entity: those overlapping its box whose `hides` says it is behind.
