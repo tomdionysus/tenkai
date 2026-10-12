@@ -66,6 +66,12 @@ palette tricks such as darkening a picture by clearing a bit, or swapping two co
 The surface as a canvas through a palette, to draw again and again (a sprite sheet in one character's
 colours, a gauge's graphic); `regions` give ranges of rows their own palettes, as IndexedScene's do.
 
+### IndexedSurface.fromNumbers(image, options)
+
+A picture whose pixels are palette numbers written as grey (`scale`, default 8, levels a number), transparent where
+its alpha is under 128: how a game's tools can export pictures for an indexed renderer without a palette, keeping
+two entries of the same colour apart.
+
 ### IndexedSurface.fromImage(image, palette, options)
 
 A picture (an image or canvas in a palette's colours) as palette numbers: a transparent surface, each pixel the
@@ -77,7 +83,10 @@ transparent. `x`, `y`, `width`, `height` take part of it.
 A view of whole rows sharing the surface's memory, for drawing code that works on a plain array, such as a
 sprite renderer drawing into the play area of a larger frame.
 
-### blit(src, { sx, sy, w, h, dx, dy, key, mask, map })
+### blit(src, { sx, sy, w, h, dx, dy, key, mask, map, flip })
+
+`flip` mirrors the rectangle left to right: a sprite facing the other way.
+
 
 `map`, a colour table, draws each pixel as `map[colour]`: a glyph in a text's colours, a sprite in a shadow's.
 

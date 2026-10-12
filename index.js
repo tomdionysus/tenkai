@@ -14,6 +14,9 @@ export { default as SoundVoices } from './lib/SoundVoices.js'
 export { default as Palette } from './lib/Palette.js'
 export { default as PaletteFade } from './lib/PaletteFade.js'
 export { default as IndexedSurface } from './lib/IndexedSurface.js'
+export { default as IndexedSheet } from './lib/IndexedSheet.js'
+export { default as IndexedFont } from './lib/IndexedFont.js'
+export { default as IndexedTileMap } from './lib/IndexedTileMap.js'
 
 // Isometric
 export { default as IsometricProjection } from './lib/IsometricProjection.js'

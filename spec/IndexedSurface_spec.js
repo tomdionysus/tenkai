@@ -64,4 +64,21 @@ describe('IndexedSurface', () => {
     small.toRGBAAt(palette, rgba, 2, 1, 5, 0)
     expect(Array.from(rgba)).toEqual([40, 50, 60, 255, 10, 20, 30, 255])
   })
+
+  it('should blit mirrored, clipped to the destination', () => {
+    var src = numbered(3, 1)
+    var dst = new IndexedSurface({ width: 3, height: 1 })
+    dst.blit(src, { flip: true })
+    expect(Array.from(dst.pixels)).toEqual([3, 2, 1])
+    dst.clear()
+    dst.blit(src, { flip: true, dx: -1, map: [0, 5, 6, 7] })
+    expect(Array.from(dst.pixels)).toEqual([6, 5, 0])
+  })
+
+  it('should read palette numbers written as grey, clear where alpha is low', () => {
+    var data = Uint8ClampedArray.of(16, 16, 16, 255, 248, 248, 248, 255, 0, 0, 0, 0)
+    var canvas = { width: 0, height: 0, getContext: () => ({ drawImage: () => {}, getImageData: () => ({ data }) }) }
+    var s = IndexedSurface.fromNumbers({ width: 3, height: 1 }, { createCanvas: () => canvas })
+    expect(Array.from(s.pixels)).toEqual([2, 31, -1])
+  })
 })
