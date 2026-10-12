@@ -37,6 +37,7 @@ gallagher.flipX = true   // face the other way
 | `scale` | `1` | Scale about the anchor, for the entity and its children. |
 | `rotate` | `0` | Rotation in radians about the anchor, for the entity and its children. |
 | `flipX` | `false` | Mirror horizontally about the anchor, children included. |
+| `alpha` | `1` | How opaque it is drawn, 0 to 1, children included; at 0 it is not drawn. |
 | `visible` | `true` | Invisible entities and their children are not drawn. |
 
 All of these are plain properties; change them at any time. Swapping `sheet` swaps the picture, as

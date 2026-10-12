@@ -233,4 +233,16 @@ describe('Entity', () => {
       expect(() => e.play('fly')).toThrowError(/No such clip/)
     })
   })
+
+  it('should draw at its alpha, and not at all at 0', () => {
+    const drawn = []
+    const sheet = { tileWidth: 8, tileHeight: 8, anchor: [0, 0], draw: (context) => drawn.push(context.globalAlpha) }
+    const context = { globalAlpha: 1, save () { this.saved = this.globalAlpha }, restore () { this.globalAlpha = this.saved }, translate () {}, scale () {}, rotate () {} }
+    const e = new Entity({ sheet, tile: [0, 0], alpha: 0.25 })
+    e.draw(context)
+    e.alpha = 0
+    e.draw(context)
+    expect(drawn).toEqual([0.25])
+    expect(context.globalAlpha).toBe(1)
+  })
 })
