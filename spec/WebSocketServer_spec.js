@@ -53,4 +53,18 @@ describe('WebSocketServer (Node)', () => {
     sockets.close()
     await new Promise((resolve) => server.close(resolve))
   })
+
+  it('should close every client when it closes, before its promise settles', async () => {
+    const game = new GameServer({ state: new GameState({ places: [new Place({ agents: [] })] }), tickTime: 0.1 })
+    const server = http.createServer()
+    const sockets = new WebSocketServer({ http: server, server: game, path: '/game' })
+    await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
+    const closed = []
+    const client = new GameClient({ socket: new WebSocket('ws://127.0.0.1:' + server.address().port + '/game'), name: 'Ann', onClose: (e) => closed.push(e.code) })
+    await until(() => client.player)
+    await sockets.close()
+    await until(() => closed.length === 1)
+    expect(closed[0]).toEqual(1001)
+    await new Promise((resolve) => server.close(resolve))
+  })
 })
