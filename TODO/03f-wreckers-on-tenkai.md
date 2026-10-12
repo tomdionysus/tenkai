@@ -147,9 +147,10 @@ rules on top (its tables, samples held on channel 3, the hum on channel 2, retun
 and its screens); Wreckers draws its HUD there, and the data terminal, the scanner, the menu, the map and
 information screens and the promotion letter are engine screens (`SeatScreen`: shown while the seat's state says
 so, clicks off the HUD's panel theirs, the letter taking every click and running its own keys and frames).
-`Wreckers.click` is down to the panel and the console. Still Wreckers' own: the console and the factory desk (drawn
-under the panel, so not yet screens), the screens' keys (still read in `gameKeys`, with the original's rules), and
+Then the console and the factory desk too, as screens drawn under the HUD (Tenkai's `Screen` option `under`);
+`Wreckers.click` is down to the panel's slots and buttons, and every screen hides with the commander screen. Still
+Wreckers' own: the screens' keys (still read in `gameKeys`, with the original's rules), and
 their click rectangles (inside each screen class, not yet `Hotspots`).
 
-**Next:** the console and the factory desk as screens (a screen under the HUD, or the HUD drawn by a screen), 5 (`ViewPicture` and `Screens` onto `IndexedSurface`, the
+**Next:** the screens' keys into their screens (with the original's guard), 5 (`ViewPicture` and `Screens` onto `IndexedSurface`, the
 HUD's split) and 6 (typed text, once a user draws through a `BitmapFont`).
