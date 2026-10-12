@@ -143,6 +143,13 @@ screens, the menu, the consoles, the factory desk and the terminals, which move 
 higher priority; a claim takes every voice and refuses the rest); Wreckers' `GameSound` keeps only the driver's
 rules on top (its tables, samples held on channel 3, the hum on channel 2, retuned effects).
 
-**Next:** the rest of 1 (the map and information screens, the menu, the scanner, the consoles, the factory desk,
-the terminals and the letter as Screens with hotspots), 5 (`ViewPicture` and `Screens` onto `IndexedSurface`, the
+**Done (2026-10-12): 1, the screens over the HUD.** `GameEngine.drawOver` (the game's drawing between its scenes
+and its screens); Wreckers draws its HUD there, and the data terminal, the scanner, the menu, the map and
+information screens and the promotion letter are engine screens (`SeatScreen`: shown while the seat's state says
+so, clicks off the HUD's panel theirs, the letter taking every click and running its own keys and frames).
+`Wreckers.click` is down to the panel and the console. Still Wreckers' own: the console and the factory desk (drawn
+under the panel, so not yet screens), the screens' keys (still read in `gameKeys`, with the original's rules), and
+their click rectangles (inside each screen class, not yet `Hotspots`).
+
+**Next:** the console and the factory desk as screens (a screen under the HUD, or the HUD drawn by a screen), 5 (`ViewPicture` and `Screens` onto `IndexedSurface`, the
 HUD's split) and 6 (typed text, once a user draws through a `BitmapFont`).
