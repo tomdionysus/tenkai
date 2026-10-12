@@ -67,5 +67,4 @@ font.draw(context, 'AWAKE', 40, 100, { colour: '#44dd44' })
 glyphs as rows of bits (ink where alpha is 128 or more), for drawing text into an
 [IndexedSurface](IndexedSurface.md) with `bits`.
 
-[FontCleaner](FontCleaner.md) fills the gaps of a font drawn in broken strokes.
 

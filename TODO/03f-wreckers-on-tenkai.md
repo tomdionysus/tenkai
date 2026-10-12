@@ -13,6 +13,10 @@ classes that leave `lib/`. The order of the Wreckers work, and Wreckers' own cla
 
 ## Rules
 
+- **Tenkai is a game engine, not a remake kit (the user, 2026-10-12).** Tooling whose only purpose is remaking a
+  game (cutting art out of captures, mending an old font, emulator checks) lives in local/amiga-tools (its `js/` for
+  classes a remake uses at run time), never in `lib/`.
+
 - **Mechanisms move, decisions stay.** A client mechanism another game would need with different data (screens,
   indexed drawing, fades, fonts, hotspots, sound voices, a view that fills the window, drawing between ticks,
   finding a server) goes into `lib/`. What makes it Wreckers stays in the remake: its layouts, texts, tables,
@@ -68,7 +72,7 @@ From the Wreckers client as it stands (`remake/src`), in this order:
    `IndexedScene` palette regions (different palettes for ranges of lines). From: `ViewPicture`, `BackBuffer`,
    `Fade`, `SnapshotFade`, `Screen`, `IndexedGlyphs`, the HUD's split at line 135. Also: Monkey2, any palette game.
 6. **Fonts.** `BitmapFont` glyph indexes, opaque or ink-only cells, fixed advances, a cursor and typed-out text;
-   glyph clean-up. From: `OriginalFont`, `GlyphLabel`, `FontCleaner`, the typing in `Dossier` and the terminals.
+   glyph clean-up (remake tooling, so not Tenkai's: in local/amiga-tools/js). From: `OriginalFont`, `GlyphLabel`, `FontCleaner`, the typing in `Dossier` and the terminals.
    Also: Monkey2, Golden Axe.
 7. **Hotspots with groups**, switched together and routed through the screen stack. From: the hand-written click
    rectangles in the screens. Also: Myst, Monkey2.
@@ -126,8 +130,8 @@ routines), the HUD's split, `BackBuffer`'s picture and font loading, the front e
 snapshot.
 
 **Done (2026-10-12): 6, fonts, first form.** Tenkai's `BitmapFont.fromBits` (a font from rows of bits, drawn white
-so it recolours) and `FontCleaner` (gaps in vertical strokes filled, for bits or a picture); Wreckers' `GlyphLabel`
-and `FontCleaner` are gone (the commander screen's labels are a `BitmapFont`). Still Wreckers' own: `OriginalFont`
+so it recolours); `FontCleaner` (gaps in vertical strokes filled) went to Tenkai, then out again to the remake kit
+(local/amiga-tools/js), as remake tooling; Wreckers' `GlyphLabel` is gone (the commander screen's labels are a `BitmapFont`). Still Wreckers' own: `OriginalFont`
 (its glyph order and line heights: data), and the typing of the dossier and the terminals, which follow the
 original's back buffer routines (offsets, a counter over a list of entries) rather than a string a font could type;
 a typed-text mechanism waits for a user that draws through a `BitmapFont`.
@@ -158,11 +162,13 @@ menu and scanner 159 pictures, the map and information screens 124):
 - `IndexedSurface.fromImage` (a picture as palette numbers), `bits` with a paper colour (solid glyph cells),
   `remap` (numbers through a table), `toCanvas` (a surface through its palettes, regions too), `blit` with `map`
   (a colour table); `BitmapFont.readBits` (a font sheet as rows of bits); a transparent `IndexedScene` shows through;
-  `Palette.clone` and `setLevels`; `PaletteFade.fadeRGBA`; `PixelRegions` (flood fill, islands, hollows).
+  `Palette.clone` and `setLevels`; `PaletteFade.fadeRGBA`. (`PixelRegions`, flood fill, islands and hollows for
+  cutting art out of captures, was made here and then moved to the remake kit, local/amiga-tools/js: Tenkai is a game
+  engine, and tooling whose only purpose is remaking lives outside it.)
 - Wreckers: `ViewPicture` (the menu's and scanner's picture) on an IndexedSurface and IndexedScene, and `Screens`
   draws through it instead of its own copy; the officers' sprites are one indexed picture and a palette each
   (`OfficerSheets`; `Recolour` gone), the thaw's grey a tinted palette; the HUD's countdown remapped through palettes
-  A and B; the HUD panel's cutting and the screens' outside clearing on `PixelRegions`; the front end's `Screen` on
+  A and B; the HUD panel's cutting and the screens' outside clearing on the kit's `PixelRegions`; the front end's `Screen` on
   IndexedScene, `setLevels` and `fadeRGBA`; the console's, terminal's and factory desk's buttons as `Hotspots`.
 - Monkey2's glyphs drawn with the colour-table blit. `tools/smoke.mjs` loads every game headless after each change.
 - Rules: the page holds none (keys and buttons go to the server, `SeatKeys`; the terminal's STATUS is the server's).

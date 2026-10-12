@@ -1,25 +1,4 @@
-import FontCleaner from '../lib/FontCleaner.js'
 import BitmapFont from '../lib/BitmapFont.js'
-
-describe('FontCleaner', () => {
-  it('should fill a one-pixel gap through a vertical stroke', () => {
-    // A stroke down column 0 with a gap at row 2
-    const rows = [0x80, 0x80, 0x00, 0x80, 0x80, 0, 0, 0]
-    expect(FontCleaner.rows(rows)).toEqual([0x80, 0x80, 0x80, 0x80, 0x80, 0, 0, 0])
-    expect(rows[2]).toBe(0)
-  })
-
-  it('should leave a diagonal and a stroke only one deep on both sides alone', () => {
-    const diagonal = [0x80, 0x40, 0x00, 0x10, 0x08, 0, 0, 0]
-    expect(FontCleaner.rows(diagonal)).toEqual(diagonal)
-    const dots = [0x00, 0x80, 0x00, 0x80, 0x00, 0, 0, 0]
-    expect(FontCleaner.rows(dots)).toEqual(dots)
-  })
-
-  it('should clean a list, keeping missing glyphs missing, and take other widths', () => {
-    expect(FontCleaner.glyphs([null, [8, 8, 0, 8]], 4)).toEqual([null, [8, 8, 8, 8]])
-  })
-})
 
 describe('BitmapFont.fromBits', () => {
   it('should draw the glyphs white on a sheet of cells, and make a font of it', () => {
