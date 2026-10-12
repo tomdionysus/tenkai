@@ -331,8 +331,30 @@ user when the rest is done.
   which, and the page draws between ticks by the time since the last one arrived. Played live in headless Chrome
   (`tools/frames/live.mjs`): with the Worker every script ends where it does in the page; under Node the goal-based
   scripts do, and frame-counted key holds end a few ticks on, as a server on its own clock does. The game is held
-  under the menu, the commander screen and the letter by a `freeze` action (until step 5).
-- **Next:** step 5 (three players).
+  under the menu, the commander screen and the letter by a `freeze` action.
+- **Step 5 (2026-10-12): playable by two and three, first form.**
+  - The station has a crew of three `Officer`s, each with his own mover, outside and lift rider state. There is a
+    `PlayerSeat` per player, with its own screens, map and speech. Aliens and droids go for the nearest officer and
+    stream near every player's view. Events carry the officer who raised them and go to his player. One player
+    alone still plays the original's game tick for tick (the station and move checks, the roundtrip, every frame
+    script).
+  - `Sector` takes three players and refuses a fourth. The game holds only while every player's screen holds it
+    (the menu, the commander screen, the letter): one player alone plays as before, and the others play on around
+    a player's menu.
+  - The commander screen is the lobby. An officer another player plays shows PLAYER and their number (the large
+    font, `GlyphLabel`) and cannot be woken. A player who leaves frees his officer where he stands, and another
+    player takes him over there.
+  - The client draws every crew member, each with his own entity and colours, between ticks.
+  - Checked by `tools/checks/players.mjs` (four clients on one sector: joining, refusal, the lobby, walking apart,
+    holding, leaving and taking over), and live against the Node server with `frames/two.json` and
+    `tools/checks/second-player.mjs` as the other player.
+  - Not done from section 6: the alien and droid record pools are still the original's sizes (8 and 10); a sector
+    with no clients is not discarded; no frame script yet with three browser clients; death still goes to the
+    commander screen rather than watching.
+  - Open question: an officer standing at 992,348 (just out of the cryo pods, towards the arch) draws almost wholly
+    under the deck-edge occluders, in one-player too and before this step. Possibly the occluders' thresholds near
+    the pods; to look at against the original.
+- **Next:** the rest of step 5 above, then section 2's leftovers (`Droids` and `Aliens` split, `Wreckers` shrunk).
 
 ## Gates
 
