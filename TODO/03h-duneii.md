@@ -135,9 +135,9 @@ Where it stands (all in `local/duneii`, a nested git repo):
    structures); houses on teams (the campaign's: the player's, the computer's, the Fremen with the Atreides); the
    original's computer handicaps a house setting (computerRules). Still to do: colours by player, not house; the
    team AI (TEAM.EMC) in ComputerPlayer; a computer player taking over a person's seat when they leave.
-   Open question (2026-10-13): reference/refinery's logs show the original's game timer at about 55.6 ticks per 50
-   emulator frames, where notes/logic.md says one a frame; if the emulator's frames are true PAL frames the whole
-   game runs about 11% faster than the remake's 50 a second. To settle before tuning any pace.
+   The game timer (settled 2026-10-13): stepping the emulator a frame at a time in a battle, the original's timer
+   ($45784) goes up exactly 1 a frame, 50 a second, as the remake's; reference/refinery's logs counted frames
+   wrongly (the frames spent moving the pointer and clicking were not counted).
    A server started on `MAPA2W` (house letter, mission, W/L) opens on the map. Still to do: Options (on the modal
    screen), the intro and finale, the score and the Hall of Fame, music.
 6. Archive; then 1080p and multiplayer.
