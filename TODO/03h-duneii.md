@@ -127,6 +127,14 @@ Where it stands (all in `local/duneii`, a nested git repo):
    blinking the region and choosing the next scenario. Not checked against the original: the emulator hangs in an
    input wait after the Hall of Fame (`$1aee6` to `$351b8`), so there is no capture of the map yet; the strip's
    text colour (black), the arrows' flash colours and the planet's colours (beside the map's, 32-63) are guesses.
+   Players (the user, 2026-10-13): the game does not care who drives a house; the computer is an automated
+   player. Single player is a multiplayer battle under the hood (one person, the computer's players, the campaign's
+   screens around it); multiplayer has none of the campaign, a chosen map, and may mix people and computer players.
+   A house is capabilities, a player picks their colour. Done: ComputerPlayer (seated at every house no person plays,
+   its house's view in, the page's orders out: repair below half, keep factories busy, rebuild and re-place lost
+   structures); houses on teams (the campaign's: the player's, the computer's, the Fremen with the Atreides); the
+   original's computer handicaps a house setting (computerRules). Still to do: colours by player, not house; the
+   team AI (TEAM.EMC) in ComputerPlayer; a computer player taking over a person's seat when they leave.
    Open question (2026-10-13): reference/refinery's logs show the original's game timer at about 55.6 ticks per 50
    emulator frames, where notes/logic.md says one a frame; if the emulator's frames are true PAL frames the whole
    game runs about 11% faster than the remake's 50 a second. To settle before tuning any pace.
