@@ -99,7 +99,11 @@ Where it stands (all in `local/duneii`, a nested git repo):
    death cry is UNIT.EMC's sound 6, while the PC's crush animation also plays a squish, voice 35, whose Amiga
    counterpart is not known yet). Heavy vehicles leave tracks (done: on bare sand and dunes, fading). The Harvest
    order on a harvester did nothing (fixed: the order book dropped it). The harvester's spray and "harvesting"
-   status stayed on off spice (fixed: decided each tick as the original's). The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
+   status stayed on off spice (fixed: decided each tick as the original's). Soldiers too strong against harvesters (fixed: every
+   gun reloaded about five times too fast; now the original's fireDelay x 2 movement ticks, with the second shot of
+   units that fire twice, Troopers' missiles at three quarters, and the computer's harvesters driving at soldiers
+   who shoot them). Still the remake's: shots land at once (the original flies a bullet that bursts where the
+   target was, hurting what is within a tile by distance); turrets' guns are provisional. The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
    red lamp (4 pixels); the yard hint's last full stop, which the original drops; two stray blitter pixels by
    pictures; the just-built structure animation (unchecked); 7 of 150 tiles revealed differently at the start;
    the harvester's exit tile (the original's is east of the pad) and the deployed text over the map; the carryall
