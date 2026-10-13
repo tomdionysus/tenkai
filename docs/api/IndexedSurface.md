@@ -107,6 +107,12 @@ Fill a rectangle with a source rectangle repeated across and down: a frame's mid
 repeating a plain stretch or a pattern. `phaseX` and `phaseY` say which column and row of the source the first
 column and row show, so the repeats run on into the picture's own pattern.
 
+### clearEdges(rect, colour)
+
+Within `rect` (`{ x, y, width, height }`), make transparent the pixels of `colour` that reach the rectangle's edge
+through that colour (four ways), leaving those it encloses: a round shape drawn on a square of black has its
+corners cut away and its inside kept. Only on a transparent surface; returns the surface.
+
 ### toRGBA(palette, rgba, from, to)
 
 `from` and `to` (default all rows) limit it to a band of rows, leaving the others as they were, so bands can be

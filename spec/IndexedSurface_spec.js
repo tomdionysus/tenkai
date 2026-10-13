@@ -102,4 +102,30 @@ describe('IndexedSurface', () => {
     dst.blit(src, { dx: 0, flip: true, clip: { x: 1, y: 0, width: 1, height: 1 } })
     expect(Array.from(dst.pixels)).toEqual([0, 2, 0, 0, 0, 0, 0, 0])
   })
+
+  it('should clear the colour reaching a rectangle\'s edge, keeping what it encloses', () => {
+    // A ring of 1s on 0s, with a 0 inside it; the 0 outside the rectangle stays
+    var s = new IndexedSurface({ width: 6, height: 5, transparent: true })
+    s.pixels.set([
+      0, 0, 0, 0, 0, 0,
+      0, 0, 1, 1, 0, 0,
+      0, 1, 0, 0, 1, 0,
+      0, 0, 1, 1, 0, 0,
+      0, 0, 0, 0, 0, 0
+    ])
+    s.clearEdges({ x: 0, y: 0, width: 5, height: 5 }, 0)
+    expect(Array.from(s.pixels)).toEqual([
+      -1, -1, -1, -1, -1, 0,
+      -1, -1, 1, 1, -1, 0,
+      -1, 1, 0, 0, 1, 0,
+      -1, -1, 1, 1, -1, 0,
+      -1, -1, -1, -1, -1, 0
+    ])
+  })
+
+  it('should leave an opaque surface as it is when clearing edges', () => {
+    var s = new IndexedSurface({ width: 2, height: 1 })
+    s.clearEdges({ x: 0, y: 0, width: 2, height: 1 }, 0)
+    expect(Array.from(s.pixels)).toEqual([0, 0])
+  })
 })
