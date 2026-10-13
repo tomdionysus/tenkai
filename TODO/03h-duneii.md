@@ -45,52 +45,61 @@ no visible network seams. Resizable screens are the one difference allowed from 
 5. The client: every screen of the original, then the intro, mentat, map choice, endings, music and sound.
 6. Archive. 7. 1080p and multiplayer.
 
-## Status (2026-10-13)
+## Status (end of 2026-10-13)
 
-- The emulator is the kit's C `native/a500` (real Kickstart 1.3, A500 with the trapdoor, DF0/DF1 only, a disk
-  changer answering the game's disk requests; guide `amiga-tools/docs/09-a500-kickstart.md`). The original runs
-  from boot to the play screen unattended: `local/duneii/tools/checks/original-play.sh <dir>` (about two minutes;
-  `MORE=<commands>` adds clicks and shots). The reference screen is `local/duneii/reference/atreides1/`.
-- The remake runs in a browser (Node server, Tenkai client). Its play screen at `?original` (320 x 200) matches
-  the original's for Atreides mission 1, checked pixel by pixel: the top bar's own copper palette, the credits
-  boxes, house colours, the shroud's edges, the construction yard selected with the original's panel, the unit
-  panel and its order buttons, the message line, the pointer, the radar without an outpost. Clicks behave as the
-  original's (select only; orders through the buttons).
-- Left on the play screen: 7 of 150 tiles revealed differently at the start; unit facings and the structures'
-  animation phases; what the panel shows while building, for other structures and for enemy things.
-- Next: traces from the emulator (`peek`/`dump` of the records in `local/duneii/notes/records.md`) for the
-  Monte Carlo comparison of the logic, then the other screens (mentat, map choice, intro, endings), sound.
+Where it stands (all in `local/duneii`, a nested git repo; last commit c83e6f8):
 
-## Playtest requests (user, 2026-10-13)
+- **Tools.** The original runs in the kit's C emulator (`amiga-tools/native/a500`, real Kickstart 1.3, DF0/DF1, a
+  disk changer; `poke` for cheats): `tools/checks/original-play.sh` boots to Atreides mission 1;
+  `original-trace.mjs` logs the battle's records; `original-refinery.mjs` scripts a game to a docked harvester.
+  The remake's screen at `?original` is shot headless with `tools/checks/screenshot.mjs` (it always kills its
+  Chrome, and has a time limit) and compared with the captures in `reference/`. `build-check.mjs` compares building
+  with the original's log; `battle.mjs` runs a battle headless. Test servers on 8061; the user's game is on 8060
+  (restart it after server changes: `node local/duneii/remake/server.mjs 8060 127.0.0.1`).
+- **Server (`remake/src`, the game's own code).** Ported from the Amiga program and OpenDUNE: the game timer
+  (50 ticks a second) and game speed; the structure, house and production loops (building checked against the
+  original: 0 differing); BUILD.EMC on the script machine (states, delivery, refining); structure animations;
+  power and storage; unit speed and movement ticks; the harvesting rate and spice; the refinery calling, docking
+  and unloading a harvester; friendly fire; win and lose (WinFlags, LoseFlags, the 7200-tick minimum). Still the
+  remake's own: the route finder (A*), unit behaviour (UnitBrain instead of UNIT.EMC), turrets, combat damage.
+- **Client (`remake/client`, on Tenkai).** The battlefield a TiledScene (ground and shroud) with structures, units,
+  shots and explosions as Entities; the panels an IndexedScene; the factory window and hints Screens; a Cursor;
+  50 steps a second; SoundVoices. Pixel for pixel with the original: the play screen, the factory window, the
+  placing panel and cursor, the hints. Sound: effects and speech from DUNEGAME.ENG (`notes/sound.md`).
+- **Screen** fixed at 320 x 200, centred, 3x, for now. No edge scrolling with the pointer (by request).
 
-Done (commits in `local/duneii`):
+## Open, in order
 
-- [x] Building logic as the original's: choose, build, hold, place, costs and timing (checked against the
-  original's log: 0 differing); the factory window, hints and placing flow pixel for pixel.
-- [x] The building picker opens (the 8060 server predated it; restart the server after server changes).
-- [x] A common sized modal screen (`ModalScreen`), centred over the play screen, pausing the game; the factory
-  window on it. The Mentat's and the options' screens are to use it too (not built yet).
-- [x] Units' speed as the original's ($2ef54, $2f000): infantry were about 4x too slow. Trikes came out faster
-  than before (about 0.2 s a tile on rock); to confirm by eye.
-- [x] Units go round what stands in their way instead of stopping (A* until the original's route finder is
-  translated); they stop beside a goal something stands on.
-- [x] The sidebar's lower pole repeats by its spiral's 13 rows in a taller window.
-- [x] The screen limited to the original's 320 x 200, centred, at 3x for now.
-- [x] Single concrete slabs drew wrong: both slabs now show the built slab (the single slab's icon group + 2).
-- [x] No scrolling with the pointer at the map's edges (arrow keys and the radar only).
-- [x] Order shortcuts with a unit selected: the first letter of each order button (A, M, R, G; H for Harvest).
-- [x] Sound: effects and speech from DUNEGAME.ENG by the Amiga's ids (`notes/sound.md`,
-  `tools/export-sound.mjs`, `amiga-tools/tools/westwood/MxtxFile.mjs`).
-- [x] Harvesting: a full harvester no longer stops dead; it docks in the refinery, which refines the load
-  (RefineSpice) and puts it out again; the harvesting spray; its load on the message line when selected.
-
-Open:
-
-- [ ] Sound: weapons and explosions (map the bullet and explosion sound fields to ids), the in-game ambient track
-  (DUNEGAME track 19: an MX sequencer with the driver's tick rate), and a Paula capture from the emulator (add
-  AUDx register logging to `native/a500`) to check periods and volumes.
-- [ ] The Mentat and Options screens on `ModalScreen`.
-- [ ] The original's route finder in place of A*.
-- [ ] The harvesting rate (UNIT.EMC's Harvest) and the harvester's way into the refinery (it docks from beside it;
-  the original drives onto it); the carryall that takes it home and back.
-- [ ] The yard hint's last full stop the original drops; the just-built animation, unchecked.
+1. **Tenkai mechanisms (the user's priority, 2026-10-13).** The client wraps Tenkai in Dune-only classes that hold
+   generic mechanisms. Move each into `lib/` (a spec, run with `npx jasmine`; a page in `docs/api`), Dune keeping
+   only its data and decisions, and check the screen against `reference/` after each:
+   - a shroud / fog of war layer for TiledScene (unseen black, edge tiles by seen neighbours), from `MapView`;
+   - sprites by facing (pictures per facing, mirrored halves, turrets as children) and Entities that are the
+     game's things (units as Entity subclasses, not sprite slots set each frame), from `UnitSprites` and
+     `StructureSprites`;
+   - palette variants of a sheet (house colour tables, a blink's white) cached as canvases, from `MapCanvases`
+     and `HouseColours`;
+   - command-list animations (show, wait, wait at random, loop, stop) for explosions and structure animations,
+     from `Explosions` and `StructureAnimator`;
+   - Screens used as Tenkai means them (the mouse routing, centring and pause now in `ModalScreen`), and a modal
+     message box, from `HintBox`;
+   - status widgets: a message line with importance and hold, and a rolling counter, from `MessageLine` and
+     `CreditsCounter`;
+   - selection marks and a footprint cursor (`MapMarks`); a radar / minimap of a tile map (`Radar`); a sound
+     table with phrases and voices taking turns (`GameSounds`); a frame whose middles repeat (`ScreenFrame`).
+   - Ask the user before moving server machinery: `GameState` and `Place` are copied from Wreckers (Tenkai is
+     client-only by the user's rule). Merge `Placement` into `BuildLocation`.
+2. **Fidelity left on what exists.** The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
+   red lamp (4 pixels); the yard hint's last full stop, which the original drops; two stray blitter pixels by
+   pictures; the just-built structure animation (unchecked); 7 of 150 tiles revealed differently at the start;
+   the harvester's exit tile (the original's is east of the pad) and the deployed text over the map; the carryall
+   fetching harvesters; foot soldiers' deaths; the explosion table and unit deaths from the Amiga's own code (now
+   OpenDUNE's table, and deaths by movement type).
+3. **Sound.** A Paula capture in the emulator (log AUDx in `native/a500`) to check every effect's pitch and
+   volume (the user hears the Attack acknowledgement as wrong; by the Amiga's action table it is effect 1, three
+   times); explosion sounds; the in-game ambient track (DUNEGAME track 19, an MX sequencer); the intro and finale.
+4. **Logic from the original.** UNIT.EMC on the script machine in place of UnitBrain; the original's route finder;
+   turrets (BUILD.EMC's turret functions); the AI teams (TEAM.EMC); carryalls, the starport, repair, upgrades;
+   reinforcements and the sandworm; checked against emulator traces (the plan in `notes/logic.md`).
+5. **Screens.** Mentat, Options (on the modal screen), map choice, intro, briefing, end of mission and score.
+6. Archive; then 1080p and multiplayer.
