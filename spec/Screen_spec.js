@@ -10,6 +10,8 @@ describe('Screen', () => {
     game.element = { addEventListener: (name, fn) => { listeners[name] = fn } }
     game._bindMouseWheel()
     game.click = (x, y) => listeners.mousedown({ x, y })
+    game.move = (x, y) => listeners.mousemove({ x, y, preventDefault () {}, stopPropagation () {} })
+    game.release = (x, y) => listeners.mouseup({ x, y })
     return game
   }
 
@@ -96,5 +98,40 @@ describe('Screen', () => {
     hotspots.setGroup('menu', true)
     expect(screen.click(1, 1)).toBe(true)
     expect(seen).toEqual(['menu 5,5', 'dialogue', 'menu 1,1'])
+  })
+
+  it('should take clicks in its own coordinates, centred, and take every click when modal', () => {
+    const seen = []
+    const hotspots = new Hotspots()
+    hotspots.add({ rect: [0, 0, 10, 10], onClick: (spot, x, y) => seen.push(x + ',' + y) })
+    const screen = new Screen({ hotspots, width: 100, height: 50 })
+    screen.centre(320, 200)
+    expect([screen.x, screen.y]).toEqual([110, 75])
+    expect(screen.click(115.5, 77)).toBe(true)
+    expect(screen.click(5, 5)).toBe(false)
+    screen.modal = true
+    expect(screen.click(5, 5)).toBe(true)
+    expect(seen).toEqual(['5,2'])
+  })
+
+  it('should press, drag and release its buttons, the engine passing it the moves and releases', () => {
+    const game = engine()
+    const seen = []
+    const hotspots = new Hotspots()
+    hotspots.add({ rect: [0, 0, 10, 10], onDrag: (s, x, y) => seen.push('drag ' + x), onClick: () => seen.push('click') })
+    const screen = new Screen({ hotspots, release: true, x: 10 })
+    game.showScreen(screen)
+    game.click(12, 5)
+    expect(seen).toEqual([])
+    game.move(14, 5)
+    game.release(15, 5)
+    expect(seen).toEqual(['drag 4', 'click'])
+    // Released off the button: no click; let go: nothing pressed
+    game.click(12, 5)
+    game.release(40, 5)
+    game.click(12, 5)
+    screen.letGo()
+    game.release(12, 5)
+    expect(seen).toEqual(['drag 4', 'click'])
   })
 })

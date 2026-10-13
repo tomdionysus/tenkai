@@ -29,7 +29,10 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [StartScreen](api/StartScreen.md): the click-to-start screen browsers need before sound, with the Tenkai
   logo.
 - [Screen](api/Screen.md): a scene shown over the game (a menu, a map, a dialogue) that takes the clicks
-  first, steps on its own and can be drawn under the game's own HUD; the engine keeps a stack of them.
+  first, steps on its own and can be drawn under the game's own HUD; the engine keeps a stack of them. Its
+  buttons can act on release, in its own coordinates, and a modal screen takes every click.
+- [MessageQueue](api/MessageQueue.md): a modal message box's messages, shown in turn, each held before a click can
+  dismiss it.
 
 ### Scenes
 
