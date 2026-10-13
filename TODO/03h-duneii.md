@@ -89,7 +89,8 @@ Where it stands (all in `local/duneii`, a nested git repo; last commit c83e6f8):
      table with phrases and voices taking turns (`GameSounds`); a frame whose middles repeat (`ScreenFrame`).
    - Ask the user before moving server machinery: `GameState` and `Place` are copied from Wreckers (Tenkai is
      client-only by the user's rule). Merge `Placement` into `BuildLocation`.
-2. **Fidelity left on what exists.** The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
+2. **Fidelity left on what exists.** Playtest (user, 2026-10-13, later): the harvester moves off the refinery too
+   quickly, and can skip over units when it does. The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
    red lamp (4 pixels); the yard hint's last full stop, which the original drops; two stray blitter pixels by
    pictures; the just-built structure animation (unchecked); 7 of 150 tiles revealed differently at the start;
    the harvester's exit tile (the original's is east of the pad) and the deployed text over the map; the carryall

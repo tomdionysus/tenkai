@@ -37,6 +37,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [BackgroundScene](api/BackgroundScene.md): a scene with a single background image.
 - [TiledScene](api/TiledScene.md): a scene drawn from a tile map, flat or in depth with characters among
   the scenery.
+- [Shroud](api/Shroud.md): the fog of war over a TiledScene: unseen cells covered, seen ground edged by its seen
+  neighbours.
 - [BufferedScene](api/BufferedScene.md): a back buffer and screen with dissolve and wipe transitions.
 - [IndexedScene](api/IndexedScene.md): shows an indexed surface through a palette, with layers such as a
   cursor over it, and other palettes for ranges of lines.
