@@ -114,9 +114,10 @@ Where it stands (all in `local/duneii`, a nested git repo):
    Playtest (user, 2026-10-13, latest): windtraps need the original's power display in the panel (the house's
    power needed and output, as the original's windtrap panel shows it). Enemy structures should be selectable to view
    them and their health (the original's panel for a structure not one's own: name, picture and health, no buttons).
-   Units don't always end up drawn exactly on one tile: the drawing (on the server every stopped unit is at its
-   tile's middle, checked over two minutes of orders on both master and unit-script); suspects the page's placing
-   between ticks (Trails), a sprite's centring, or the original's wobble not being drawn.
+   Units didn't always end up on one tile (fixed: an attacker coming into range, or a unit whose target went, or
+   ordered to Guard or Stop, dropped its route mid-step and stood between tiles; now it finishes the step, as the
+   original's; unit-script does it the original's way). The drawing checked against the emulator's frame at 40 s:
+   every unit at the same pixel. The original had uncovered more of the map than the remake by then (fog: to look at).
 3. **Sound.** A Paula capture in the emulator (log AUDx in `native/a500`) to check every effect's pitch and
    volume (the user hears the Attack acknowledgement as wrong; by the Amiga's action table it is effect 1, three
    times); explosion sounds; the in-game ambient track (DUNEGAME track 19, an MX sequencer); the intro and finale.
