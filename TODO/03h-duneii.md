@@ -163,5 +163,8 @@ Where it stands (all in `local/duneii`, a nested git repo):
    A server started on `MAPA2W` (house letter, mission, W/L) opens on the map. Options: done (2026-10-13, pixel for pixel
    against the emulator): Continue game, Restart scenario, Pick another house and Load a game (one person's game only), Save this game
    (five named slots on the server); still to do there: Game controls (the game speed and the rest), Quit
-   playing. Still to do: the intro and finale, the score and the Hall of Fame, music.
+   playing. The Mentat's help (the top bar's MENTAT): done (2026-10-13; the list pixel for pixel against the
+   emulator, the subjects from each one's mission in MENTAT?.ENG's last byte). The original took no clicks or keys
+   on its list in the emulator, so a subject's page follows OpenDUNE, and the selected subject's colour (OpenDUNE's
+   darker ink, 19 here) is not checked. Still to do: the intro and finale, the score and the Hall of Fame, music.
 6. Archive; then 1080p and multiplayer.
