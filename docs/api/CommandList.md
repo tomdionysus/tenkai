@@ -25,7 +25,7 @@ if (!list.tick(time)) remove(smoke)
 
 | Member | |
 |---|---|
-| `new CommandList({ commands, handlers, now, random })` | `random` a generator from 0 up to 1 (default `Math.random`) |
-| `tick(now)` | runs what is due; returns whether it still runs |
+| `new CommandList({ commands, handlers, now, random, perTick })` | `random` a generator from 0 up to 1 (default `Math.random`); `perTick` the most commands a tick runs (default all that are due: a game that steps its lists one command a pass of its loop gives 1) |
+| `tick(now)` | runs what is due (at most `perTick`); returns whether it still runs |
 | `wait(ticks, now)`, `goto(i)`, `stop()`, `random(n)` | for handlers; `random(n)` a whole number below `n` |
 | `current`, `due`, `done` | the next command, when it runs, and whether the list has stopped |

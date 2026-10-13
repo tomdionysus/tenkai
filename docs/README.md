@@ -35,6 +35,7 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   dismiss it.
 - [MessageLine](api/MessageLine.md): a status line whose messages wait by importance, are held, and scroll in.
 - [RollingCounter](api/RollingCounter.md): money or a score running toward its value, its digits rolling.
+- [Shake](api/Shake.md): a screen shake, a part of the screen jolted by a pattern of offsets a frame.
 
 ### Scenes
 

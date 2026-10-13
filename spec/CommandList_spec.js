@@ -33,4 +33,22 @@ describe('CommandList', () => {
     expect(unknown.tick(0)).toBe(false)
     expect(shown).toEqual([1, 1])
   })
+
+  it('should run at most perTick commands a tick when given', () => {
+    var shown = []
+    var list = new CommandList({
+      commands: [['SHOW', 1], ['SHOW', 2], ['WAIT', 3], ['SHOW', 3]],
+      handlers: { SHOW: (c, n) => shown.push(n), WAIT: (c, n, now) => c.wait(n, now) },
+      perTick: 1
+    })
+    list.tick(0)
+    expect(shown).toEqual([1])
+    list.tick(1)
+    list.tick(2)
+    expect(shown).toEqual([1, 2])
+    list.tick(4)
+    expect(shown).toEqual([1, 2])
+    list.tick(5)
+    expect(shown).toEqual([1, 2, 3])
+  })
 })
