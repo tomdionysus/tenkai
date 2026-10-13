@@ -128,6 +128,11 @@ Where it stands (all in `local/duneii`, a nested git repo):
    the battle starts, as the original; at 1 s and 40 s 50 tiles in both, 5 only the original's: the diagonal
    neighbours of the infantry, whose sight is 1, which neither the Amiga's fog routine ($10b7e, the rounded distance
    $2182a) nor OpenDUNE's would uncover as read; still to explain, by stepping the emulator from the first frame).
+   The ground's kinds (found 2026-10-13 with the radar): the original reads a tile's kind from its picture (the
+   Amiga's table at $3d59a: partial rock, mostly rock, partial dunes and partial mountain at the edges, with their
+   own movement speeds and building rules); the server keeps only the map generator's six plain kinds, so units
+   cross edges at the plain kind's speed and partial rock takes structures. The radar already reads the pictures
+   (client/LandscapeTypes.js); the server's Landscape should too.
 3. **Sound.** A Paula capture in the emulator (log AUDx in `native/a500`) to check every effect's pitch and
    volume (the user hears the Attack acknowledgement as wrong; by the Amiga's action table it is effect 1, three
    times); explosion sounds; the in-game ambient track (DUNEGAME track 19, an MX sequencer); the intro and finale.
