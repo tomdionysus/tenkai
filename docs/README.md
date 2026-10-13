@@ -51,6 +51,11 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   clipped, for the fonts of old games.
 - [Entity](api/Entity.md): a sprite showing a tile of a sheet, positioned by its anchor, playing clips, with
   child entities.
+- [Roster](api/Roster.md): an entity for each thing of a changing collection (a game state's units), made, shown
+  and taken off as things come and go.
+- [Facings](api/Facings.md): the picture for the way a sprite faces: directions, mirrored halves, frames.
+- [CommandList](api/CommandList.md): an animation as a list of commands (show, wait, wait at random, go back,
+  stop), as old games script explosions and buildings.
 - [Video](api/Video.md): an entity that plays a movie.
 
 ### Isometric
@@ -78,6 +83,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   shadow).
 - [IndexedTileMap](api/IndexedTileMap.md): a tile map drawn into a window of a surface, with a scrolling view,
   hidden cells and the cell under a point.
+- [IndexedSprites](api/IndexedSprites.md): an indexed sheet's pictures as Sheets for entities, in colour tables
+  and mirrored, made once and kept.
 
 ### Images and sound
 

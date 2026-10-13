@@ -61,6 +61,11 @@ cell, as some fonts are drawn). `width` is the bits a row (default 8): `bits(row
 Every pixel's number mapped through a table (an array, or a function of the number), transparent pixels left:
 palette tricks such as darkening a picture by clearing a bit, or swapping two colours. Returns the surface.
 
+### IndexedSurface.table(from, to, size)
+
+A colour table for `map` and `remap`: every number to itself (`size` of them, default 256) but `from[k]` to
+`to[k]`, as a picture drawn in one set of colours is shown in another.
+
 ### toCanvas(palette, { regions })
 
 The surface as a canvas through a palette, to draw again and again (a sprite sheet in one character's

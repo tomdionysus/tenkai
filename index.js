@@ -17,6 +17,7 @@ export { default as IndexedSurface } from './lib/IndexedSurface.js'
 export { default as IndexedSheet } from './lib/IndexedSheet.js'
 export { default as IndexedFont } from './lib/IndexedFont.js'
 export { default as IndexedTileMap } from './lib/IndexedTileMap.js'
+export { default as IndexedSprites } from './lib/IndexedSprites.js'
 
 // Isometric
 export { default as IsometricProjection } from './lib/IsometricProjection.js'
@@ -44,6 +45,9 @@ export { default as HasScenesMixin } from './lib/HasScenesMixin.js'
 
 // Entities
 export { default as Entity } from './lib/Entity.js'
+export { default as Roster } from './lib/Roster.js'
+export { default as Facings } from './lib/Facings.js'
+export { default as CommandList } from './lib/CommandList.js'
 export { default as Video } from './lib/Video.js'
 
 // Scenes
