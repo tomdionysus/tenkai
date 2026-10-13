@@ -27,6 +27,10 @@ describe('IndexedSprites', () => {
     expect(sprites.get(0, { map: table })).toBe(a)
     expect(reds(sprites.get(0, { flip: true }))).toEqual([0, 0x20, 0x10])
     expect(sprites.size).toBe(2)
+    // A picture one row high is the same upside down, but kept as a picture of its own
+    expect(reds(sprites.get(0, { upsideDown: true }))).toEqual([0x10, 0x20, 0])
+    expect(sprites.get(0, { upsideDown: true })).not.toBe(sprites.get(0))
+    expect(sprites.size).toBe(4)
     expect(sprites.get(5)).toBe(null)
   })
 

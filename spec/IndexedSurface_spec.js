@@ -128,4 +128,10 @@ describe('IndexedSurface', () => {
     s.clearEdges({ x: 0, y: 0, width: 2, height: 1 }, 0)
     expect(Array.from(s.pixels)).toEqual([0, 0])
   })
+
+  it('should turn upside down in place', () => {
+    var s = numbered(2, 3)
+    expect(s.flipVertical()).toBe(s)
+    expect(Array.from(s.pixels)).toEqual([5, 6, 3, 4, 1, 2])
+  })
 })

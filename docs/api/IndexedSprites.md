@@ -21,6 +21,6 @@ const yard = tiles.make('yard:2:blue', 32, 32, (surface, sheet) => sheet.draw(su
 | Member | |
 |---|---|
 | `new IndexedSprites({ sheet, palette, anchor, createCanvas })` | `anchor` `'topleft'` (default), `'centre'` or `(width, height) => [x, y]` |
-| `get(n, { map, flip })` | picture `n` as a one-picture Sheet, or null if there is none |
+| `get(n, { map, flip, upsideDown })` | picture `n` as a one-picture Sheet (mirrored left to right with `flip`, top to bottom with `upsideDown`), or null if there is none |
 | `make(key, width, height, paint)` | a picture painted once by `paint(surface, sheet)`, kept under `key` |
 | `clear()`, `size` | forget every canvas (after the palette changes); how many are kept |

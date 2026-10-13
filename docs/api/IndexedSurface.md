@@ -107,6 +107,11 @@ Fill a rectangle with a source rectangle repeated across and down: a frame's mid
 repeating a plain stretch or a pattern. `phaseX` and `phaseY` say which column and row of the source the first
 column and row show, so the repeats run on into the picture's own pattern.
 
+### flipVertical()
+
+Turn the surface upside down in place (its rows in reverse order), as the original games mirror a sprite top to
+bottom. Returns the surface.
+
 ### clearEdges(rect, colour)
 
 Within `rect` (`{ x, y, width, height }`), make transparent the pixels of `colour` that reach the rectangle's edge
