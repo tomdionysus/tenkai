@@ -111,6 +111,8 @@ Where it stands (all in `local/duneii`, a nested git repo):
    the harvester's exit tile (the original's is east of the pad) and the deployed text over the map; the carryall
    fetching harvesters; foot soldiers' deaths; the explosion table and unit deaths from the Amiga's own code (now
    OpenDUNE's table, and deaths by movement type).
+   Playtest (user, 2026-10-13, latest): windtraps need the original's power display in the panel (the house's
+   power needed and output, as the original's windtrap panel shows it).
 3. **Sound.** A Paula capture in the emulator (log AUDx in `native/a500`) to check every effect's pitch and
    volume (the user hears the Attack acknowledgement as wrong; by the Amiga's action table it is effect 1, three
    times); explosion sounds; the in-game ambient track (DUNEGAME track 19, an MX sequencer); the intro and finale.
