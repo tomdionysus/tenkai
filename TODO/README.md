@@ -21,7 +21,7 @@ state. Do them in order; within a phase, items are roughly in priority order.
 | 3g | [03g-wreckers-remake-architecture.md](03g-wreckers-remake-architecture.md) | The Wreckers plan from here (2026-10-12): no 68k constants in the code, no god classes, agents in stations in a sector (several stations allowed), the game engine behind a WebSocket-shaped interface in the browser (the main milestone), then a real WebSocket and three players (pause and saves go); holds the order of the work |
 | 3f | [03f-wreckers-on-tenkai.md](03f-wreckers-on-tenkai.md) | The Tenkai side of 3g, the client only (Tenkai is a client-side framework): the server classes leave `lib/`; screens, window layout, drawing between ticks, finding a server, indexed drawing, fonts, hotspots and sound voices come in |
 | 3e | [03e-wreckers-improvements.md](03e-wreckers-improvements.md) | Open (fidelity is over): improvements beyond the original; three already made, the larger ones after 3g's step 3 |
-| 3h | [03h-duneii.md](03h-duneii.md) | Started 2026-10-13: Dune II (Amiga, 1993) remade on Tenkai, client/server from the start; fidelity, then archive, then 1080p and multiplayer |
+| 3h | [03h-duneii.md](03h-duneii.md) | Started 2026-10-13: Dune II (Amiga, 1993) remade on Tenkai, client/server from the start; fidelity, then archive, then 1080p and multiplayer. Next: move the client's generic mechanisms into Tenkai's lib (the user's priority), then fidelity, sound, the original's unit logic |
 
 Phases 3d to 3g are one piece of work; 3g is its plan and order, 3f the Tenkai side, 3e the improvements, 3d the record.
 
