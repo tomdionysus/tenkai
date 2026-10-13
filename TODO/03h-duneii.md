@@ -162,9 +162,11 @@ Where it stands (all in `local/duneii`, a nested git repo):
    wrongly (the frames spent moving the pointer and clicking were not counted).
    A server started on `MAPA2W` (house letter, mission, W/L) opens on the map. Options: done (2026-10-13, pixel for pixel
    against the emulator): Continue game, Restart scenario, Pick another house and Load a game (one person's game only), Save this game
-   (five named slots on the server); still to do there: Game controls (the game speed and the rest), Quit
-   playing. The Mentat's help (the top bar's MENTAT): done (2026-10-13; the list pixel for pixel against the
+   (five named slots on the server); still to do there: Quit playing. The Mentat's help (the top bar's MENTAT): done (2026-10-13; the list pixel for pixel against the
    emulator, the subjects from each one's mission in MENTAT?.ENG's last byte). The original took no clicks or keys
    on its list in the emulator, so a subject's page follows OpenDUNE, and the selected subject's colour (OpenDUNE's
-   darker ink, 19 here) is not checked. Still to do: the intro and finale, the score and the Hall of Fame, music.
+   darker ink, 19 here) is not checked. The screen's size (2026-10-13): in a battle the play screen fills the
+   window at the zoom (Display; the panel at the top of the sidebar, the radar at the bottom, the pole between),
+   between battles the original's 320 x 200 centred; Game controls (the original's window) holds Full screen and
+   Zoom for now, its own rows (music, sounds, game speed, hints, auto scroll) still to do. Still to do: the intro and finale, the score and the Hall of Fame, music.
 6. Archive; then 1080p and multiplayer.
