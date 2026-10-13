@@ -101,6 +101,12 @@ Copy a rectangle of `src` onto this surface, clipped to both. By default the who
 left. Pixels of a transparent source that are -1 are skipped, and so are pixels equal to `key` if one is
 given. `mask` is one-bit alpha: an array laid out like the source, where 0 means do not draw that pixel.
 
+### repeat(src, { sx, sy, w, h, dx, dy, width, height, phaseX, phaseY })
+
+Fill a rectangle with a source rectangle repeated across and down: a frame's middle stretched to a larger window by
+repeating a plain stretch or a pattern. `phaseX` and `phaseY` say which column and row of the source the first
+column and row show, so the repeats run on into the picture's own pattern.
+
 ### toRGBA(palette, rgba, from, to)
 
 `from` and `to` (default all rows) limit it to a band of rows, leaving the others as they were, so bands can be

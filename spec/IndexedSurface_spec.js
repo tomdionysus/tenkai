@@ -12,6 +12,17 @@ describe('IndexedSurface', () => {
     expect(t.get(5, 5)).toEqual(-1)
   })
 
+  it('should fill a rectangle with a source rectangle repeated, from a phase, and make colour tables', () => {
+    var s = new IndexedSurface({ width: 7, height: 3 })
+    // Source columns 2-3 of row 0 (values 2, 3) over x 1-5, starting at its second column; then rows by phase
+    s.repeat(numbered(4, 2), { sx: 1, sy: 0, w: 2, h: 1, dx: 1, dy: 0, width: 5, height: 1, phaseX: 1 })
+    expect(Array.from(s.pixels.slice(0, 7))).toEqual([0, 3, 2, 3, 2, 3, 0])
+    s.repeat(numbered(1, 3), { sx: 0, sy: 0, w: 1, h: 3, dx: 0, dy: 1, width: 1, height: 2, phaseY: 2 })
+    expect([s.get(0, 1), s.get(0, 2)]).toEqual([3, 1])
+    s.repeat(numbered(1, 1), { sx: 0, sy: 0, w: 1, h: 1, dx: 0, dy: 0, width: 0, height: 1 })
+    expect(IndexedSurface.table([1, 2], [5, 6], 4)).toEqual([0, 5, 6, 3])
+  })
+
   it('should fill clipped rectangles and set pixels', () => {
     var s = new IndexedSurface({ width: 3, height: 2 })
     s.fill(-1, 1, 3, 5, 7)

@@ -9,6 +9,7 @@ export { default as Input } from './lib/Input.js'
 export { default as Audio } from './lib/Audio.js'
 export { default as SoundManager } from './lib/SoundManager.js'
 export { default as SoundVoices } from './lib/SoundVoices.js'
+export { default as SoundBoard } from './lib/SoundBoard.js'
 
 // Indexed colour
 export { default as Palette } from './lib/Palette.js'
@@ -18,6 +19,8 @@ export { default as IndexedSheet } from './lib/IndexedSheet.js'
 export { default as IndexedFont } from './lib/IndexedFont.js'
 export { default as IndexedTileMap } from './lib/IndexedTileMap.js'
 export { default as IndexedSprites } from './lib/IndexedSprites.js'
+export { default as Minimap } from './lib/Minimap.js'
+export { default as Marks } from './lib/Marks.js'
 
 // Isometric
 export { default as IsometricProjection } from './lib/IsometricProjection.js'

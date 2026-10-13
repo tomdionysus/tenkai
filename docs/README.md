@@ -90,6 +90,9 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   hidden cells and the cell under a point.
 - [IndexedSprites](api/IndexedSprites.md): an indexed sheet's pictures as Sheets for entities, in colour tables
   and mirrored, made once and kept.
+- [Minimap](api/Minimap.md): a tile map drawn small (a radar): cells in colours, dots, the view's outline, the cell
+  under a point.
+- [Marks](api/Marks.md): outlines, corner marks and crossed boxes over a map, in palette colours.
 
 ### Images and sound
 
@@ -99,6 +102,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [SoundManager](api/SoundManager.md): Web Audio background loops and sound effects.
 - [SoundVoices](api/SoundVoices.md): a fixed number of voices, a new sound replacing the old unless held or
   of a higher priority, as old sound chips worked.
+- [SoundBoard](api/SoundBoard.md): sounds by number, phrases played part after part, effects taking turns on
+  voices, speech on its own channel, silent until the first gesture.
 
 ### Point-and-click
 
