@@ -33,6 +33,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   buttons can act on release, in its own coordinates, and a modal screen takes every click.
 - [MessageQueue](api/MessageQueue.md): a modal message box's messages, shown in turn, each held before a click can
   dismiss it.
+- [MessageLine](api/MessageLine.md): a status line whose messages wait by importance, are held, and scroll in.
+- [RollingCounter](api/RollingCounter.md): money or a score running toward its value, its digits rolling.
 
 ### Scenes
 
