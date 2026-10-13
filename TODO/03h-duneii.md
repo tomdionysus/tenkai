@@ -103,7 +103,9 @@ Where it stands (all in `local/duneii`, a nested git repo):
    gun reloaded about five times too fast; now the original's fireDelay x 2 movement ticks, with the second shot of
    units that fire twice, Troopers' missiles at three quarters, and the computer's harvesters driving at soldiers
    who shoot them). Still the remake's: shots land at once (the original flies a bullet that bursts where the
-   target was, hurting what is within a tile by distance); turrets' guns are provisional. The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
+   target was); turrets' guns are provisional. Attack on bare ground (done: as the original, the tile is the
+   target; bursts big enough to damage tiles, rockets and the heavy guns, take the spice down and leave craters;
+   small arms and tanks' shells do not, as in the original). The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
    red lamp (4 pixels); the yard hint's last full stop, which the original drops; two stray blitter pixels by
    pictures; the just-built structure animation (unchecked); 7 of 150 tiles revealed differently at the start;
    the harvester's exit tile (the original's is east of the pad) and the deployed text over the map; the carryall
