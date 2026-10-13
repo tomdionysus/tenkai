@@ -96,7 +96,7 @@ Where it stands (all in `local/duneii`, a nested git repo):
    tile over one tick; now it shows on the tile at once, as the original's does; whether it also leaves too soon is
    still to check against `original-refinery.mjs`). Harvesters and the other heavy vehicles should kill foot
    soldiers by driving over them, with the original's squish sound (OpenDUNE's Unit_Move crushes infantry under
-   tracked vehicles; the remake does not). The Harvest order on a harvester does nothing. The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
+   tracked vehicles; the remake does not). The Harvest order on a harvester did nothing (fixed: the order book dropped it). The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
    red lamp (4 pixels); the yard hint's last full stop, which the original drops; two stray blitter pixels by
    pictures; the just-built structure animation (unchecked); 7 of 150 tiles revealed differently at the start;
    the harvester's exit tile (the original's is east of the pad) and the deployed text over the map; the carryall
