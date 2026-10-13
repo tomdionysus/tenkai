@@ -15,5 +15,5 @@ font.draw(frame, 'Credits', 260, 4, { colours: { 1: 15, 31: 0 }, align: 'right' 
 | Member | |
 |---|---|
 | `new IndexedFont({ characters, widths, tops, cellWidth, layers, height })` | `characters` maps each character to its glyph number; `layers` by name, each glyph's rows of bits (highest bit leftmost, `cellWidth` bits a row) |
-| `measure(text)` | width in pixels (characters without a glyph count nothing) |
-| `draw(surface, text, x, y, { colours, align })` | `colours` by layer name; a layer without a colour is not drawn; `align` `'left'`, `'center'` or `'right'` of x; returns the width |
+| `measure(text, spacing)` | width in pixels, `spacing` (default 0) added for each letter (characters without a glyph count nothing) |
+| `draw(surface, text, x, y, { colours, align, spacing })` | `colours` by layer name; a layer without a colour is not drawn; `align` `'left'`, `'center'` or `'right'` of x; `spacing` pixels added to each letter's advance (default 0); returns the width |

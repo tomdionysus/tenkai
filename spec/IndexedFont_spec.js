@@ -33,4 +33,11 @@ describe('IndexedFont', () => {
     font.draw(s, 'A', 2, 0, { colours: { ink: 1 }, align: 'center' })
     expect(s.get(1, 0)).toEqual(1)
   })
+
+  it('should space letters wider by a spacing, measuring with it', () => {
+    expect(font.measure('AA', 1)).toEqual(6)
+    var s = new IndexedSurface({ width: 6, height: 1 })
+    expect(font.draw(s, 'AA', 0, 0, { colours: { ink: 1 }, spacing: 1 })).toEqual(6)
+    expect(Array.from(s.pixels)).toEqual([1, 0, 0, 1, 0, 0])
+  })
 })
