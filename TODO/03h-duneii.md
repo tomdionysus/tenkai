@@ -111,13 +111,23 @@ Where it stands (all in `local/duneii`, a nested git repo):
    the harvester's exit tile (the original's is east of the pad) and the deployed text over the map; the carryall
    fetching harvesters; foot soldiers' deaths; the explosion table and unit deaths from the Amiga's own code (now
    OpenDUNE's table, and deaths by movement type).
-   Playtest (user, 2026-10-13, latest): windtraps need the original's power display in the panel (the house's
-   power needed and output, as the original's windtrap panel shows it). Enemy structures should be selectable to view
-   them and their health (the original's panel for a structure not one's own: name, picture and health, no buttons).
+   Playtest (user, 2026-10-13, latest): windtraps need the original's power display in the panel (done: the
+   windtrap's power needed and output, the refinery's and silo's spice held, the outpost's radar count, DUNE.ENG's
+   texts laid out for the Amiga's letters; the Amiga's own positions in the panel still to find, as no capture
+   shows these panels yet). Enemy structures should be selectable to view them and their health (done: any seen
+   structure, name, picture and health, no buttons). Spice did not show on the radar (fixed: the program's start
+   gives spice and thick spice their radar colours, 13 and 18, over the table's sand ones). A harvester stayed inside
+   its refinery for good (fixed: DETECT counts the docked harvester as the linked unit, as the original). The
+   harvester comes out on the free tile nearest spice (done, Structure_FindFreePosition; the "east of the pad" was
+   where the spice lay). Not on concrete is object flag bit 3 (fixed: the slabs and the yard, the Amiga's $1f670).
    Units didn't always end up on one tile (fixed: an attacker coming into range, or a unit whose target went, or
    ordered to Guard or Stop, dropped its route mid-step and stood between tiles; now it finishes the step, as the
    original's; unit-script does it the original's way). The drawing checked against the emulator's frame at 40 s:
-   every unit at the same pixel. The original had uncovered more of the map than the remake by then (fog: to look at).
+   every unit at the same pixel. The original had uncovered more of the map than the remake by then (fog:
+   `tools/checks/fog-compare.mjs` sets the emulator's map beside the remake's; structures now clear their sight when
+   the battle starts, as the original; at 1 s and 40 s 50 tiles in both, 5 only the original's: the diagonal
+   neighbours of the infantry, whose sight is 1, which neither the Amiga's fog routine ($10b7e, the rounded distance
+   $2182a) nor OpenDUNE's would uncover as read; still to explain, by stepping the emulator from the first frame).
 3. **Sound.** A Paula capture in the emulator (log AUDx in `native/a500`) to check every effect's pitch and
    volume (the user hears the Attack acknowledgement as wrong; by the Amiga's action table it is effect 1, three
    times); explosion sounds; the in-game ambient track (DUNEGAME track 19, an MX sequencer); the intro and finale.
