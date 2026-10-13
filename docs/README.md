@@ -82,6 +82,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   palette numbers) and drawing to images.
 - [PaletteFade](api/PaletteFade.md): the old machines' palette fade, a level a step, and the same fade for a
   held picture.
+- [Dissolve](api/Dissolve.md): a picture dissolving in over another, scattered dots filling in, as old games
+  faded a picture in without touching the palette.
 - [IndexedSheet](api/IndexedSheet.md): pictures in palette numbers by number, cut from a grid or an atlas, joined
   into one numbering, drawn through colour tables or mirrored.
 - [IndexedFont](api/IndexedFont.md): text in palette colours from glyphs kept as bits, a colour per layer (letter,

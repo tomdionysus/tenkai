@@ -13,6 +13,7 @@ export { default as SoundBoard } from './lib/SoundBoard.js'
 
 // Indexed colour
 export { default as Palette } from './lib/Palette.js'
+export { default as Dissolve } from './lib/Dissolve.js'
 export { default as PaletteFade } from './lib/PaletteFade.js'
 export { default as IndexedSurface } from './lib/IndexedSurface.js'
 export { default as IndexedSheet } from './lib/IndexedSheet.js'

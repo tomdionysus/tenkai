@@ -117,5 +117,16 @@ Where it stands (all in `local/duneii`, a nested git repo):
 4. **Logic from the original.** UNIT.EMC on the script machine in place of UnitBrain; the original's route finder;
    turrets (BUILD.EMC's turret functions); the AI teams (TEAM.EMC); carryalls, the starport, repair, upgrades;
    reinforcements and the sandworm; checked against emulator traces (the plan in `notes/logic.md`).
-5. **Screens.** Mentat, Options (on the modal screen), map choice, intro, briefing, end of mission and score.
+5. **Screens.** The single-player campaign runs client/server (the user, 2026-10-13: the original's whole game,
+   written so allied, PvP or mixed multiplayer can follow): the server's `Campaign` holds the phase, the house, the
+   mission, the regions done and the map's offer; the page only shows each phase and sends the choice. Done: the
+   herald's house choice, the Bene Gesserit's introduction (Yes/No), each Mentat's briefing and word after the
+   battle (Proceed/Repeat), checked pixel for pixel against the emulator. The map of Dune (`MapScreen`, OpenDUNE's
+   `GUI_StrategicMap_Show`): the frame and emblems, the planet and Dune after the first win, each house's regions
+   with the new ones dissolving in (Tenkai's `Dissolve`) and told in the strip, the flashing arrows, a click
+   blinking the region and choosing the next scenario. Not checked against the original: the emulator hangs in an
+   input wait after the Hall of Fame (`$1aee6` to `$351b8`), so there is no capture of the map yet; the strip's
+   text colour (black), the arrows' flash colours and the planet's colours (beside the map's, 32-63) are guesses.
+   A server started on `MAPA2W` (house letter, mission, W/L) opens on the map. Still to do: Options (on the modal
+   screen), the intro and finale, the score and the Hall of Fame, music.
 6. Archive; then 1080p and multiplayer.
