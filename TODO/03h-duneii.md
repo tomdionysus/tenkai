@@ -60,3 +60,37 @@ no visible network seams. Resizable screens are the one difference allowed from 
   animation phases; what the panel shows while building, for other structures and for enemy things.
 - Next: traces from the emulator (`peek`/`dump` of the records in `local/duneii/notes/records.md`) for the
   Monte Carlo comparison of the logic, then the other screens (mentat, map choice, intro, endings), sound.
+
+## Playtest requests (user, 2026-10-13)
+
+Done (commits in `local/duneii`):
+
+- [x] Building logic as the original's: choose, build, hold, place, costs and timing (checked against the
+  original's log: 0 differing); the factory window, hints and placing flow pixel for pixel.
+- [x] The building picker opens (the 8060 server predated it; restart the server after server changes).
+- [x] A common sized modal screen (`ModalScreen`), centred over the play screen, pausing the game; the factory
+  window on it. The Mentat's and the options' screens are to use it too (not built yet).
+- [x] Units' speed as the original's ($2ef54, $2f000): infantry were about 4x too slow. Trikes came out faster
+  than before (about 0.2 s a tile on rock); to confirm by eye.
+- [x] Units go round what stands in their way instead of stopping (A* until the original's route finder is
+  translated); they stop beside a goal something stands on.
+- [x] The sidebar's lower pole repeats by its spiral's 13 rows in a taller window.
+- [x] The screen limited to the original's 320 x 200, centred, at 3x for now.
+- [x] Single concrete slabs drew wrong: both slabs now show the built slab (the single slab's icon group + 2).
+- [x] No scrolling with the pointer at the map's edges (arrow keys and the radar only).
+- [x] Order shortcuts with a unit selected: the first letter of each order button (A, M, R, G; H for Harvest).
+- [x] Sound: effects and speech from DUNEGAME.ENG by the Amiga's ids (`notes/sound.md`,
+  `tools/export-sound.mjs`, `amiga-tools/tools/westwood/MxtxFile.mjs`).
+- [x] Harvesting: a full harvester no longer stops dead; it docks in the refinery, which refines the load
+  (RefineSpice) and puts it out again; the harvesting spray; its load on the message line when selected.
+
+Open:
+
+- [ ] Sound: weapons and explosions (map the bullet and explosion sound fields to ids), the in-game ambient track
+  (DUNEGAME track 19: an MX sequencer with the driver's tick rate), and a Paula capture from the emulator (add
+  AUDx register logging to `native/a500`) to check periods and volumes.
+- [ ] The Mentat and Options screens on `ModalScreen`.
+- [ ] The original's route finder in place of A*.
+- [ ] The harvesting rate (UNIT.EMC's Harvest) and the harvester's way into the refinery (it docks from beside it;
+  the original drives onto it); the carryall that takes it home and back.
+- [ ] The yard hint's last full stop the original drops; the just-built animation, unchecked.
