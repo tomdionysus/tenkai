@@ -47,7 +47,7 @@ no visible network seams. Resizable screens are the one difference allowed from 
 
 ## Status (end of 2026-10-13)
 
-Where it stands (all in `local/duneii`, a nested git repo; last commit c83e6f8):
+Where it stands (all in `local/duneii`, a nested git repo):
 
 - **Tools.** The original runs in the kit's C emulator (`amiga-tools/native/a500`, real Kickstart 1.3, DF0/DF1, a
   disk changer; `poke` for cheats): `tools/checks/original-play.sh` boots to Atreides mission 1;
@@ -70,29 +70,33 @@ Where it stands (all in `local/duneii`, a nested git repo; last commit c83e6f8):
 
 ## Open, in order
 
-1. **Tenkai mechanisms (the user's priority, 2026-10-13).** The client wraps Tenkai in Dune-only classes that hold
-   generic mechanisms. Move each into `lib/` (a spec, run with `npx jasmine`; a page in `docs/api`), Dune keeping
-   only its data and decisions, and check the screen against `reference/` after each:
-   - a shroud / fog of war layer for TiledScene (unseen black, edge tiles by seen neighbours), from `MapView`;
-   - sprites by facing (pictures per facing, mirrored halves, turrets as children) and Entities that are the
-     game's things (units as Entity subclasses, not sprite slots set each frame), from `UnitSprites` and
-     `StructureSprites`;
-   - palette variants of a sheet (house colour tables, a blink's white) cached as canvases, from `MapCanvases`
-     and `HouseColours`;
-   - command-list animations (show, wait, wait at random, loop, stop) for explosions and structure animations,
-     from `Explosions` and `StructureAnimator`;
-   - Screens used as Tenkai means them (the mouse routing, centring and pause now in `ModalScreen`), and a modal
-     message box, from `HintBox`;
-   - status widgets: a message line with importance and hold, and a rolling counter, from `MessageLine` and
+1. **Tenkai mechanisms: done (2026-10-13).** Each generic mechanism the client held is in `lib/` with a spec and a
+   page in `docs/api`; Dune keeps its data and decisions; every step checked old against new in the page, pixel
+   for pixel (the play screen, a scripted battle frame with explosions and shots, the factory window with a button
+   pressed and released, a hint, the top bar mid-roll, a 520 x 330 frame):
+   - `Shroud` (the fog of war over a TiledScene), used by `MapView`;
+   - `IndexedSprites` (an indexed sheet's pictures as Sheets in colour tables, mirrored, made once and kept) and
+     `IndexedSurface.table`, used by `MapCanvases` and `HouseColours`;
+   - `Facings` (the picture for a facing: mirrored halves, shared pictures, frames) and `Roster` (an entity for each
+     thing of a changing collection): units are `UnitEntity` (an Entity with its turret and spray as children),
+     structures, shots and explosions are kept by Rosters;
+   - `CommandList` (an animation as a list of commands), used by `Explosions`. `StructureAnimator` stays the
+     server's (Tenkai is client-only; its pauses draw on the battle's shared random numbers);
+   - `Screen` grown: buttons in its own coordinates acting on release (the engine passes the top screen its moves
+     and releases), `modal`, `centre`, `letGo`; `MessageQueue` (a modal message box's messages in turn, each held
+     before a click dismisses it), used by `ModalScreen` and `HintBox`;
+   - `MessageLine` (messages by importance, held, scrolled in) and `RollingCounter`, used by `TopBar` and
      `CreditsCounter`;
-   - selection marks and a footprint cursor (`MapMarks`); a radar / minimap of a tile map (`Radar`); a sound
-     table with phrases and voices taking turns (`GameSounds`); a frame whose middles repeat (`ScreenFrame`).
-   - Ask the user before moving server machinery: `GameState` and `Place` are copied from Wreckers (Tenkai is
-     client-only by the user's rule). Merge `Placement` into `BuildLocation`.
+   - `Marks`, `Minimap`, `SoundBoard` and `IndexedSurface.repeat`, used by `MapMarks`, `Radar`, `GameSounds` and
+     `ScreenFrame`;
+   - `Placement` merged into `BuildLocation`. `GameState` and `Place` stay in the game's server code: Tenkai is
+     client-only by the user's rule, so they do not move.
 2. **Fidelity left on what exists.** Playtest (user, 2026-10-13, later): the harvester moves off the refinery too
    quickly, and can skip over units when it does (fixed: the client slid it from inside the refinery to its exit
    tile over one tick; now it shows on the tile at once, as the original's does; whether it also leaves too soon is
-   still to check against `original-refinery.mjs`). The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
+   still to check against `original-refinery.mjs`). Harvesters and the other heavy vehicles should kill foot
+   soldiers by driving over them, with the original's squish sound (OpenDUNE's Unit_Move crushes infantry under
+   tracked vehicles; the remake does not). The Harvest order on a harvester does nothing. The credits boxes' edge columns and red marks (29 pixels); the refinery pad's
    red lamp (4 pixels); the yard hint's last full stop, which the original drops; two stray blitter pixels by
    pictures; the just-built structure animation (unchecked); 7 of 150 tiles revealed differently at the start;
    the harvester's exit tile (the original's is east of the pad) and the deployed text over the map; the carryall
