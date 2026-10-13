@@ -127,6 +127,9 @@ Where it stands (all in `local/duneii`, a nested git repo):
    blinking the region and choosing the next scenario. Not checked against the original: the emulator hangs in an
    input wait after the Hall of Fame (`$1aee6` to `$351b8`), so there is no capture of the map yet; the strip's
    text colour (black), the arrows' flash colours and the planet's colours (beside the map's, 32-63) are guesses.
+   Open question (2026-10-13): reference/refinery's logs show the original's game timer at about 55.6 ticks per 50
+   emulator frames, where notes/logic.md says one a frame; if the emulator's frames are true PAL frames the whole
+   game runs about 11% faster than the remake's 50 a second. To settle before tuning any pace.
    A server started on `MAPA2W` (house letter, mission, W/L) opens on the map. Still to do: Options (on the modal
    screen), the intro and finale, the score and the Hall of Fame, music.
 6. Archive; then 1080p and multiplayer.
