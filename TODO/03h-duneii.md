@@ -161,7 +161,7 @@ Where it stands (all in `local/duneii`, a nested git repo):
    ($45784) goes up exactly 1 a frame, 50 a second, as the remake's; reference/refinery's logs counted frames
    wrongly (the frames spent moving the pointer and clicking were not counted).
    A server started on `MAPA2W` (house letter, mission, W/L) opens on the map. Options: done (2026-10-13, pixel for pixel
-   against the emulator): Continue game, Restart scenario and Pick another house (one person's game only); still to
-   do there: Load a game, Save this game (the server's saves, GameSaves), Game controls (the game speed and the
-   rest), Quit playing. Still to do: the intro and finale, the score and the Hall of Fame, music.
+   against the emulator): Continue game, Restart scenario, Pick another house and Load a game (one person's game only), Save this game
+   (five named slots on the server); still to do there: Game controls (the game speed and the rest), Quit
+   playing. Still to do: the intro and finale, the score and the Hall of Fame, music.
 6. Archive; then 1080p and multiplayer.
