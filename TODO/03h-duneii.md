@@ -166,7 +166,7 @@ Where it stands (all in `local/duneii`, a nested git repo):
    emulator, the subjects from each one's mission in MENTAT?.ENG's last byte). The original took no clicks or keys
    on its list in the emulator, so a subject's page follows OpenDUNE, and the selected subject's colour (OpenDUNE's
    darker ink, 19 here) is not checked. The screen's size (2026-10-13): in a battle the play screen fills the
-   window at the zoom (Display; the panel at the top of the sidebar, the radar at the bottom, the pole between),
+   window at the zoom (Display; the map the whole width below the bar, the sidebar's top and bottom laid over it),
    between battles the original's 320 x 200 centred; Game controls (the original's window) holds Full screen and
    Zoom for now, its own rows (music, sounds, game speed, hints, auto scroll) still to do. Still to do: the intro and finale, the score and the Hall of Fame, music.
 6. Archive; then 1080p and multiplayer.
