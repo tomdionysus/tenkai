@@ -44,3 +44,19 @@ no visible network seams. Resizable screens are the one difference allowed from 
    structures, harvesting and credits, combat, the AI teams, the sandworm, reinforcements and win/lose.
 5. The client: every screen of the original, then the intro, mentat, map choice, endings, music and sound.
 6. Archive. 7. 1080p and multiplayer.
+
+## Status (2026-10-13)
+
+- The emulator is the kit's C `native/a500` (real Kickstart 1.3, A500 with the trapdoor, DF0/DF1 only, a disk
+  changer answering the game's disk requests; guide `amiga-tools/docs/09-a500-kickstart.md`). The original runs
+  from boot to the play screen unattended: `local/duneii/tools/checks/original-play.sh <dir>` (about two minutes;
+  `MORE=<commands>` adds clicks and shots). The reference screen is `local/duneii/reference/atreides1/`.
+- The remake runs in a browser (Node server, Tenkai client). Its play screen at `?original` (320 x 200) matches
+  the original's for Atreides mission 1, checked pixel by pixel: the top bar's own copper palette, the credits
+  boxes, house colours, the shroud's edges, the construction yard selected with the original's panel, the unit
+  panel and its order buttons, the message line, the pointer, the radar without an outpost. Clicks behave as the
+  original's (select only; orders through the buttons).
+- Left on the play screen: 7 of 150 tiles revealed differently at the start; unit facings and the structures'
+  animation phases; what the panel shows while building, for other structures and for enemy things.
+- Next: traces from the emulator (`peek`/`dump` of the records in `local/duneii/notes/records.md`) for the
+  Monte Carlo comparison of the logic, then the other screens (mentat, map choice, intro, endings), sound.
