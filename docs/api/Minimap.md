@@ -21,6 +21,6 @@ const cell = radar.cellAt(mouseX, mouseY, map.limits)
 | Member | |
 |---|---|
 | `new Minimap({ rect, background, outline })` | `background` (default 0, null leaves what is there), `outline` the view's colour |
-| `draw(surface, { area, colour, dots, view })` | `colour(x, y)` returns a colour or null for each cell of `area` |
+| `draw(surface, { area, colour, dots, view })` | `colour(x, y)` returns a colour or null for each cell of `area`, or a function `(surface, px, py, size)` that draws the cell itself (a tiny picture a tile on a scaled-up map); a dot's `colour` may be such a function too |
 | `scale(area)` | pixels a cell |
 | `cellAt(px, py, area)` | the cell `{ x, y }` under a point, or null |

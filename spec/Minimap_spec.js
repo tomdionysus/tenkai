@@ -21,4 +21,16 @@ describe('Minimap', () => {
     expect(m.cellAt(3, 2, area)).toEqual({ x: 11, y: 10 })
     expect(m.cellAt(0, 0, area)).toBe(null)
   })
+
+  it('should let the game draw a cell or a dot itself, given a function for its colour', () => {
+    var m = new Minimap({ rect: { x: 0, y: 0, width: 4, height: 4 }, background: 0 })
+    var drawn = []
+    var surface = { fill: () => {}, set: () => {} }
+    m.draw(surface, {
+      area: { x: 0, y: 0, width: 2, height: 2 },
+      colour: (x, y) => x === 1 && y === 0 ? (s, px, py, size) => drawn.push(['cell', px, py, size]) : 3,
+      dots: [{ x: 0, y: 1, colour: (s, px, py, size) => drawn.push(['dot', px, py, size]) }]
+    })
+    expect(drawn).toEqual([['cell', 2, 0, 2], ['dot', 0, 2, 2]])
+  })
 })
