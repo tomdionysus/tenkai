@@ -37,6 +37,8 @@ As a [Scene](Scene.md)'s, and:
 | `hotspots` | a [Hotspots](Hotspots.md), in the screen's own coordinates (from its `x`, `y`): the default `click` gives each click to them (`Hotspots.click`), so a screen of buttons needs no `click` of its own; put each screen's buttons in a group to switch them together |
 | `release` | its buttons are pressed, dragged and released, as most games' are (`Hotspots.mouseDown`, `mouseMove`, `mouseUp`): the engine passes the top visible screen its moves and releases |
 | `modal` | it takes every click while it shows, so nothing under it sees one |
+| `shown()` | whether the screen shows now, asked each time: a screen that shows while the game's state says so (a server's word on which screen a player has open). `visible` then follows it and cannot be set |
+| `through(x, y)` | whether a click there, in the game's coordinates, is not the screen's: it falls through to the game, for a HUD that stays live over every screen |
 | `width`, `height` | its size, for `centre` |
 
 ## Methods
@@ -44,6 +46,7 @@ As a [Scene](Scene.md)'s, and:
 | Method | |
 |---|---|
 | `local(x, y)` | a point in the game's coordinates in the screen's own |
+| `covers(x, y)` | whether a click there is the screen's to take (not `through`); the engine asks before giving it the click |
 | `centre(width, height)` | puts it in the middle of an area that size (the block, the window) |
 | `pointer` | where the pointer is, `{ x, y }` in the screen's own coordinates: set as the screen is shown, then by each move while it is on top (a face that follows the pointer, a button drawn held while it is under it) |
 | `mouseMove(x, y)`, `mouseUp(x, y)` | the engine's moves and releases while it is on top: `pointer` kept, a pressed button dragged and released |

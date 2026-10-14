@@ -145,6 +145,18 @@ describe('IsometricScene occluders', () => {
     expect(view.occluderArt(plain)).toEqual({ image: mask, sx: 4, sy: 0 })
   })
 
+  it('should glide the camera between two scrolls on a grid', () => {
+    var view = new IsometricScene({ projection })
+    view.glide({ x: 100, y: 50 }, { x: 110, y: 40 }, 0.5)
+    expect([view.camera.x, view.camera.y]).toEqual([105, 45])
+    view.glide({ x: 100, y: 50 }, { x: 110, y: 40 }, 0.26, 1 / 2)
+    expect([view.camera.x, view.camera.y]).toEqual([102.5, 47.5])
+    view.glide({ x: 0, y: 0 }, { x: 10, y: 10 }, 0.33, [4, 1])
+    expect([view.camera.x, view.camera.y]).toEqual([4, 3])
+    view.glide({ x: 7, y: 7 }, { x: 70, y: 70 }, 0)
+    expect([view.camera.x, view.camera.y]).toEqual([7, 7])
+  })
+
   it('should snap a position a hair under a step to that step, not the one below', () => {
     expect(IsometricScene.snapDown(359.99999999999994, 1 / 3)).toBeCloseTo(360, 9)
     expect(IsometricScene.snapDown(359.9, 1 / 3)).toBeCloseTo(359 + 2 / 3, 9)

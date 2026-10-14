@@ -82,6 +82,11 @@ bits a component: a level is 17 of 0-255), from entry `start` (default 0). Retur
 
 A copy of the colours (not the cycles), to change for a variant: a character's colours, a frozen grey.
 
+### map(fn)
+
+A copy with every entry passed through `fn([r, g, b], index)`, which returns the new `[r, g, b]`: a tint
+(frozen grey, a night blue), a lighter or darker version, for a sheet shown through it. This palette is unchanged.
+
 ### Palette.fromCSS(list)
 
 A palette of CSS colours (`#rrggbb` or `#rgb`), one entry each.

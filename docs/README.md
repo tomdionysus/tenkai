@@ -27,15 +27,20 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   timers, mouse events, and loading of assets and audio.
 - [Input](api/Input.md): the keyboard, with keys bound to actions, sampled once per step.
 - [Page](api/Page.md): the page's globals as one object a game is given: window and document, clock, random,
-  reload, address, JSON and images by path.
+  reload, address, JSON and images by path, a file saved or picked by the player.
+- [FrameClock](api/FrameClock.md): elapsed seconds as whole frames of a fixed rate, for what runs at its own
+  rate apart from the engine's steps.
 - [StartScreen](api/StartScreen.md): the click-to-start screen browsers need before sound, with the Tenkai
   logo.
 - [Screen](api/Screen.md): a scene shown over the game (a menu, a map, a dialogue) that takes the clicks
   first, steps on its own and can be drawn under the game's own HUD; the engine keeps a stack of them. Its
-  buttons can act on release, in its own coordinates, and a modal screen takes every click.
+  buttons can act on release, in its own coordinates, a modal screen takes every click, one can show while the
+  game's state says so, and a region's clicks can fall through to the game.
 - [MessageQueue](api/MessageQueue.md): a modal message box's messages, shown in turn, each held before a click can
   dismiss it.
 - [MessageLine](api/MessageLine.md): a status line whose messages wait by importance, are held, and scroll in.
+- [Ticker](api/Ticker.md): a status strip run as a ticker tape, messages crossing it a pixel column a frame,
+  with a text held alone for a pause.
 - [RollingCounter](api/RollingCounter.md): money or a score running toward its value, its digits rolling.
 - [Shake](api/Shake.md): a screen shake, a part of the screen jolted by a pattern of offsets a frame.
 
@@ -73,13 +78,13 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [IsometricWorld](api/IsometricWorld.md): the game's model of the world: regions, typed colliders with
   handlers, and bodies that move and block each other.
 - [IsometricScene](api/IsometricScene.md): shows the world: entities placed by world position, drawn in
-  depth order over a ground, with a camera.
+  depth order over a ground, with a camera that can glide between the game's ticks.
 - [Motion](api/Motion.md): a character's movement through scripted steps and animation frames.
 
 ### Indexed colour
 
-- [Palette](api/Palette.md): colours for indexed images, with colour cycling, scaling for fades, and
-  nearest-colour search.
+- [Palette](api/Palette.md): colours for indexed images, with colour cycling, scaling for fades, variants by
+  a function, and nearest-colour search.
 - [IndexedSurface](api/IndexedSurface.md): a picture of palette indices, opaque or with transparency, with
   fills, lines, glyph bits, blits through colour tables or mirrored, remapping, and reading from (in colours or as
   palette numbers) and drawing to images.

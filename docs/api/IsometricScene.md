@@ -63,6 +63,14 @@ scroll to `snap` pixels (default 1), as games that scrolled in steps did: one nu
 `[x, y]`, such as `[8, 1]` for 8-pixel steps across and smooth scrolling up and down. Rounding the vertical
 scroll makes the view jump when a character walks, since every isometric step moves it up or down a little.
 
+### glide(from, to, a, snap)
+
+The camera between two scrolls: `a` of the way (0 to 1) from `from` to `to` (each `{ x, y }`), rounded to a
+grid of `snap` pixels (default 1, or `[x, y]`). For a camera the game moves in logic ticks (a dead zone, then a
+slide; a camera on a followed unit), shown sliding between its ticks: on the grid of one device pixel
+(`1 / scale`) it moves without a hitch, and on the same grid as the entities (the scene's `snap`) they do not
+shiver against it.
+
 ### addOccluder({ image, x, y, hides, sx, sy, width, height, source })
 
 Add an occluder: `image` is the foreground, transparent elsewhere, drawn with its top left at (`x`, `y`) in

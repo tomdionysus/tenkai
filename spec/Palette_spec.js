@@ -59,6 +59,16 @@ describe('Palette', () => {
     expect(p.cycles).toEqual([])
   })
 
+  it('should map every entry through a function into a new palette', () => {
+    var p = ramp()
+    var seen = []
+    var grey = p.map((c, i) => { seen.push(i); return [c[0] * 2, 0, i] })
+    expect(seen).toEqual([0, 1, 2, 3, 4, 5, 6, 7])
+    expect(grey.size).toEqual(8)
+    expect(grey.get(3)).toEqual([60, 0, 3])
+    expect(p.get(3)).toEqual([30, 30, 30])
+  })
+
   it('should keep a remapping table pointing at the same colours after a rotation', () => {
     var table = [0, 1, 2, 3, 3, 4]
     Palette.rotateRemap(table, 1, 3, true)

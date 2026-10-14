@@ -195,6 +195,20 @@ scratch canvases on the global `document` (`Layout.panel`, `FactoryScreen`, `Slo
 `Screen.pointer` only while it is), `OutsideClear` (an RGBA flood with a dark threshold, not `clearEdges`' one
 colour) and the view's shake (a count from the server, not a pattern).
 
+**Third pass (2026-10-14): what Wreckers gave the engine.** Asked what in Wreckers could improve Tenkai without
+changing other games, six mechanisms came out of the client, each additive (a new class, or a new optional option):
+`FrameClock` (Wreckers' `Clock`, which `Ticker`, `Archive`, `Hud`, `Title`, `Ending` and the menu's passes each
+repeated); `Ticker` (its status line, with the font, window, colour and gap injected; the archive logs each message
+as it starts through `onStart`); `Page.download` and `Page.pickJson` (its unused `JsonFile`, which reached for the
+globals); `Screen`'s `shown()` (visibility read from the seat's state) and `through(x, y)` with `Screen.covers`,
+which the engine asks before giving the top screen a click (the HUD's panel live over every screen: `SeatScreen` is
+now the frame and the draw callback only, and `modal` so a miss of its buttons is not the game's);
+`IsometricScene.glide` (the camera between two scrolls on the device-pixel grid, for the outside and View Droid);
+`Palette.map` (`FrozenTint` is the colour function only). Not taken: `Snapshot.copy` (server side), the start
+screen's leaking click (a fix in `StartScreen` that changes the engine's timing for every game: still 300 ms in
+`showFront`), `Layout`, `OutsideClear`, the sound driver's rules and the original's own looks. Gates as the second
+pass, plus the view on a droid and the panel clicked through the map screen in a tab.
+
 **Next:** typed text once a screen types through a `BitmapFont`, the rest of `Wreckers.js` down to wiring
 (03g's client split), and `Buttons` for the commander lobby once its clicks are its own. Also left: the screens' keys into their screens (with the original's guard), 5 (`ViewPicture` and `Screens` onto `IndexedSurface`, the
 HUD's split) and 6 (typed text, once a user draws through a `BitmapFont`).

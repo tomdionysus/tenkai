@@ -146,4 +146,31 @@ describe('Screen', () => {
     game.release(12, 5)
     expect(seen).toEqual(['drag 4', 'click'])
   })
+
+  it('should show while shown() says so, visible then following it', () => {
+    let open = false
+    const s = new Screen({ shown: () => open })
+    expect(s.visible).toBe(false)
+    open = true
+    expect(s.visible).toBe(true)
+    s.visible = false
+    expect(s.visible).toBe(true)
+    const plain = new Screen({ visible: false })
+    expect(plain.visible).toBe(false)
+    plain.visible = true
+    expect(plain.visible).toBe(true)
+  })
+
+  it('should let a click fall through to the game where through() says', () => {
+    const game = engine()
+    const seen = []
+    spyOn(game, 'trigger').and.callFake((name) => { if (name === 'mousedown') seen.push('game') })
+    const screen = new Screen({ through: (x, y) => y > 100, click: () => { seen.push('screen'); return true } })
+    game.showScreen(screen)
+    expect(screen.covers(10, 50)).toBe(true)
+    expect(screen.covers(10, 150)).toBe(false)
+    game.click(10, 50)
+    game.click(10, 150)
+    expect(seen).toEqual(['screen', 'game'])
+  })
 })
