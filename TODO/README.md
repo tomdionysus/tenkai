@@ -35,8 +35,8 @@ game gives the engine arrives in `lib/` with specs and docs, and is recorded in 
 
 | 1945, Arkanoid, Tim the Enchanter | [examples/1945/TODO/](../examples/1945/TODO/STATE.md), [examples/arkanoid/TODO/](../examples/arkanoid/TODO/STATE.md), [examples/tim-the-enchanter/TODO/](../examples/tim-the-enchanter/TODO/STATE.md) | The three example games; nothing open |
 
-The local games live in `local/` (git-ignored by this repository; Wreckers, Dune II, Monkey Island 2 and the kit
-are nested git repos of their own with no remote), with the reverse-engineering kit in `local/amiga-tools`.
+The local games live in `local/` (git-ignored by this repository; each game and the kit are nested git repos of
+their own with no remote), with the reverse-engineering kit in `local/amiga-tools`.
 
 ## Guiding decisions
 
