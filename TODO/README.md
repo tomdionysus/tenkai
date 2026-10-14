@@ -31,6 +31,7 @@ the live game, most of its drawing on Tenkai's indexed and palette classes, the 
 0.3.0 carries the engine side). To pick it up again: 3f's "Next" and 3g's status say what is left; the
 reverse-engineering tools and guides are in local/amiga-tools.
 | 3i | [03i-duneii-on-tenkai.md](03i-duneii-on-tenkai.md) | The Tenkai side of 3h (2026-10-14): what the Dune II client does by hand that `lib/` does or nearly does (mouse plumbing, point-in-rectangle, rectangle edges, window fitting), and what Tenkai could gain from the client's own mechanisms (a camera, box selection, autotiling, pointer buttons, display settings, an indexed screen, typed text, derived tiles, panel layouts); behaviour and pictures unchanged |
+| 3j | [03j-duneii-client-objects.md](03j-duneii-client-objects.md) | The Dune II client's shape (2026-10-14): one composition root, ports (`Orders`, `Battle`, `Browser`), `PlayScreen` and `Sidebar` in parts, windows on hotspots, assets by role, client specs in Node; behaviour and pictures unchanged |
 | 4 | [04-docs-and-release.md](04-docs-and-release.md) | Example games, real docs, 1.0 on npm with provenance |
 
 ## Guiding decisions
