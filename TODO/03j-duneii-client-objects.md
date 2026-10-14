@@ -212,6 +212,14 @@ nothing sets a scene's `foreground` from outside). Specs for `BattleEvents`, `De
 `PlayInput` (a click in each mode, the box, the radar) and `Keyboard`: 28 in all. Checked in a tab: the yard at the
 start, a unit announced, M and its target, the box (4 UNITS), the yard's hint, the build window, the Mentat's help.
 
+**Done (2026-10-14): step 3.** `Sidebar` is gone: `PanelButtons` (what the panel offers and what a press does,
+specced: the orders a group shares, at once or targeted, the letters and R, the production words and the button's
+orders, the palace's readiness) and `PanelPainter` (the box, name, picture, health, the orders, the button under
+the picture), which switches the structure's kind to `PalacePanel`, `StarportPanel`, `InfoPanel` and
+`ProductionPanel`, with `PlacingPanel` while placing; `PanelArt.button` and `label` for what they shared. 33 specs.
+Checked in a tab on a copy of the user's SCENA013 save: the yard's Repair and Build it, a windtrap's power, a
+refinery's spice, an outpost's radar scan, and on SCENA004 the unit and group panels.
+
 03i's A (camera) and B (box selection) fit after step 2 (`MapInput` is their caller) and need not wait for the rest.
 What this plan does not do: no change to any order sent, any pixel drawn or any sound played; no change to the
 server or to `lib/` beyond the additive `GameClient` option; no new abstractions beyond the classes named.
