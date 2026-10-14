@@ -26,6 +26,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [GameEngine](api/GameEngine.md): the top-level container. It owns the canvas, fixed-step time, modes,
   timers, mouse events, and loading of assets and audio.
 - [Input](api/Input.md): the keyboard, with keys bound to actions, sampled once per step.
+- [Page](api/Page.md): the page's globals as one object a game is given: window and document, clock, random,
+  reload, address, JSON and images by path.
 - [StartScreen](api/StartScreen.md): the click-to-start screen browsers need before sound, with the Tenkai
   logo.
 - [Screen](api/Screen.md): a scene shown over the game (a menu, a map, a dialogue) that takes the clicks
@@ -113,6 +115,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 ### Point-and-click
 
 - [Hotspots](api/Hotspots.md): clickable and draggable regions with cursors.
+- [Buttons](api/Buttons.md): a screen's buttons as a set shown at a time, boxes on its hotspots acting at the
+  press, drawn by the game's painter.
 - [Cursor](api/Cursor.md): image cursors drawn on the canvas.
 
 ### Games behind a server

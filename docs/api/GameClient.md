@@ -32,7 +32,9 @@ serves any `GameClient`.
 
 | Member | |
 |---|---|
-| `new GameClient({ socket, name, wish, tickTime, now })` | joins when the socket opens (at once if it is open already); `tickTime` (seconds a server tick) and `now` (milliseconds, default `performance.now`) are for `fraction` |
+| `new GameClient({ socket, name, wish, tickTime, now, onWelcome, onTick, onEvent, onClose })` | joins when the socket opens (at once if it is open already); `tickTime` (seconds a server tick) and `now` (milliseconds, default `performance.now`) are for `fraction`; the callbacks may be given here or set as fields |
+| `connect(socket)` | the socket, for a client made without one: before the page has found its server, the parts that read the client's state (null until welcomed) and send its commands (nothing until connected) can be built and given it |
+| `connected` | whether it has a socket |
 | `player` | `{ number, name, place }` once welcomed |
 | `state`, `previous`, `tick` | the last two states sent, to draw between |
 | `fraction()` | how far the game is into the next tick, 0 to 1, by the time since a new tick arrived (a message after an action, at the same tick, starts none); 1 without a `tickTime` |

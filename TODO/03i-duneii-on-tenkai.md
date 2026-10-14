@@ -211,6 +211,32 @@ screen border's `ring` on it), 4 (the shots out of `Explosions`), and C (`Autoti
 (479 pass) and docs; build check, both round trips and the tab on 8064 unchanged. **Next:** A (the camera) and B
 (box selection), then 5 if it still pays, and D to K as a second game wants them.
 
+## Second pass (2026-10-14), after 03j
+
+03j made the client objects with injected collaborators; the ports and parts it made were looked at again for what
+is Tenkai's. Folded into `lib/`, each with a spec and docs, Dune II on it, 486 specs passing:
+
+- **`GameClient.connect(socket)`** (from Dune's `Connection`): a client made before the page has found its server,
+  with no state and sending nothing until connected, so the parts that read its state and send its commands are
+  built first and given it; the callbacks in its options. Dune's `Connection` is gone; `Battle` and `Orders` take the
+  `GameClient`.
+- **`Page`** (from Dune's `Browser`): the page's globals as one object (window, document, clock, random, reload,
+  address, JSON and images by path). Dune's `Browser` is gone.
+- **`Buttons`** (from Dune's `WindowButtons`): a screen's buttons as a set shown at a time, boxes on its hotspots
+  acting at the press (or the release), drawn by the game's painter. Dune's `WindowButtons` keeps only its words and
+  `WindowArt` painting, on it.
+- **`Screen.pointer`**: where the pointer is in the screen's own coordinates, seeded by `GameEngine.showScreen` and
+  kept by `mouseMove`; `ModalScreen` and the Mentats' faces read it, nothing reads `engine.mouseX` through a screen.
+- **J resolved without a change:** `Input` already answers for an unbound key by its code, so Dune's `Keyboard`
+  asks `pressed('KeyM')` and `DuneClient` binds no letters.
+
+Looked at and left with Dune II, as its own: `Battle` (the game's view of its state), `Orders` and `OrderFeedback`,
+`Interaction`, `HoldPolicy`, the looks (`UnitLooks` and its table: a general "a look a type" is a pattern, not a
+class), `FactoryOffer`, `HintPolicy`, the asset bundles, `PictureStore` (near `AssetCache`, but Dune's palette
+lookup is the half of it). Still open from the first pass: A (camera), B (box selection: `PlayInput.endBox` and
+`Roster.within`), F (`IndexedScreen` from `ModalScreen`), G (`IndexedFont.wrap`: `HintBox.wrap` is the original's
+split, to be checked against `BitmapFont.wrap`'s before one serves both), H, I, K.
+
 Each step: the `lib/` change with its spec and docs (`npx jasmine`; the
 other games' frame checks where the change could reach them), the client change, `npx esbuild remake/client/main.js
 --bundle --format=esm --outfile=remake/out/main.js`, the build check and the two round trips

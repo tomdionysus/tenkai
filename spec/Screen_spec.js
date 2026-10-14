@@ -114,6 +114,18 @@ describe('Screen', () => {
     expect(seen).toEqual(['5,2'])
   })
 
+  it('should know where the pointer is in its own coordinates, from when it is shown and as it moves', () => {
+    const game = engine()
+    const screen = new Screen({ x: 10, y: 20 })
+    expect(screen.pointer).toEqual({ x: 0, y: 0 })
+    game.mouseX = 15
+    game.mouseY = 25
+    game.showScreen(screen)
+    expect(screen.pointer).toEqual({ x: 5, y: 5 })
+    game.move(30, 40)
+    expect(screen.pointer).toEqual({ x: 20, y: 20 })
+  })
+
   it('should press, drag and release its buttons, the engine passing it the moves and releases', () => {
     const game = engine()
     const seen = []

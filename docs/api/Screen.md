@@ -45,7 +45,8 @@ As a [Scene](Scene.md)'s, and:
 |---|---|
 | `local(x, y)` | a point in the game's coordinates in the screen's own |
 | `centre(width, height)` | puts it in the middle of an area that size (the block, the window) |
-| `mouseMove(x, y)`, `mouseUp(x, y)` | the engine's moves and releases while it is on top, given to a pressed button |
+| `pointer` | where the pointer is, `{ x, y }` in the screen's own coordinates: set as the screen is shown, then by each move while it is on top (a face that follows the pointer, a button drawn held while it is under it) |
+| `mouseMove(x, y)`, `mouseUp(x, y)` | the engine's moves and releases while it is on top: `pointer` kept, a pressed button dragged and released |
 | `letGo()` | forgets a pressed button without acting on it, as the screen goes |
 
 A modal message box (hints, messages clicked away in turn) keeps its messages in a [MessageQueue](MessageQueue.md).

@@ -6,6 +6,7 @@ export { default as AssetCache } from './lib/AssetCache.js'
 export { default as Sheet } from './lib/Sheet.js'
 export { default as BitmapFont } from './lib/BitmapFont.js'
 export { default as Input } from './lib/Input.js'
+export { default as Page } from './lib/Page.js'
 export { default as Audio } from './lib/Audio.js'
 export { default as SoundManager } from './lib/SoundManager.js'
 export { default as SoundVoices } from './lib/SoundVoices.js'
@@ -37,6 +38,7 @@ export { default as ServerConfig } from './lib/ServerConfig.js'
 
 // Point-and-click
 export { default as Hotspots } from './lib/Hotspots.js'
+export { default as Buttons } from './lib/Buttons.js'
 export { default as Cursor } from './lib/Cursor.js'
 
 // Game Engine
