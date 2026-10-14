@@ -31,8 +31,8 @@ game gives the engine arrives in `lib/` with specs and docs, and is recorded in 
 | Wreckers (Amiga, 1991) | `local/wreckers/TODO/` | A three-player remake over a Node server, the page a client on Tenkai 0.4.0, the client as objects; fidelity closed |
 | Dune II (Amiga, 1993) | `local/duneii/TODO/` | A client/server remake from the original's code; the server mostly the original's, the client as objects; fidelity, then archive, then 1080p and multiplayer |
 | Monkey Island 2 (1991) | `local/monkey2/TODO/` | Generated JavaScript on exported data, plays to Woodtick, halfway onto Tenkai; records the engine's gaps |
-| Golden Axe (arcade, 1989) | `local/golden-axe/TODO/` | Rounds 1 and 2; drove the animation redesign and depth-sorted tiles; no open plan |
-| Myst (1993) | `local/myst/TODO/` | Myst Island and D'ni from the user's own copy; drove the point-and-click core; no open plan |
+| Golden Axe (arcade, 1989) | `local/golden-axe/TODO/` | Rounds 1 and 2 as Ax, Gilius or Tyris; on Tenkai and as objects (four passes, 2026-10-14); fidelity by emulator assessed and parked |
+| Myst (1993) | `local/myst/TODO/` | Myst Island and D'ni from the user's own copy; drove the point-and-click core; stock taken, the Tenkai and objects passes still to do |
 
 | 1945, Arkanoid, Tim the Enchanter | [examples/1945/TODO/](../examples/1945/TODO/STATE.md), [examples/arkanoid/TODO/](../examples/arkanoid/TODO/STATE.md), [examples/tim-the-enchanter/TODO/](../examples/tim-the-enchanter/TODO/STATE.md) | The three example games; nothing open |
 
@@ -62,12 +62,26 @@ their own with no remote), with the reverse-engineering kit in `local/amiga-tool
 - **Breaking changes are fine.** Nothing meaningful depends on 0.1.2 on npm.
   Phase 2 is a deliberate clean break; ship it as 1.0.
 
-## State (2026-10-14)
+## State (2026-10-15)
 
-- The engine is 0.4.0 (tags v0.1.0 to v0.4.0 on the remote); 501 specs pass (Jasmine, `npx jasmine`; never
-  `npm test`, which uploads coverage).
+- The engine is 0.4.0 (tags v0.1.0 to v0.4.0 on the remote), with what the Wreckers and Golden Axe passes
+  added since (FrameClock, Ticker, Page files and fraction, Screen `shown` and `through`, the camera glide,
+  `Palette.map`, BitmapFont origin and pitch, the repeating strip, PictureAtlas, Camera, `Util.along`) on `main`
+  ahead of the remote and untagged; 510 specs pass (Jasmine, `npx jasmine`; never `npm test`, which uploads
+  coverage).
 - Three example games in `examples/` (1945, Arkanoid, Tim the Enchanter) and the games above, all with the
   `StartScreen`; `node tools/smoke.mjs <dir>` loads every one headless and reports page errors.
-- `lib/` is 62 classes; `docs/api/` has a page for each and `docs/README.md` the index.
+- `lib/` is 62 classes; `docs/api/` has a page for each exported one and `docs/README.md` the index.
 - Still true from 2026-10-09: npm has 0.1.2; the Travis and Coveralls files are dead (no CI); the runtime
   dependencies `async`, `moment`, `sprintf-js` and `uuid` were removed on 2026-10-12: Tenkai has none.
+
+## Picking up
+
+- The engine: cut a version for what `main` has over 0.4.0 when the next game pass lands; phase 5 (the
+  rationalising pass) when the user calls it, bringing the merged forms back to the games.
+- The games: each `STATE.md` says what is next. Myst has the Tenkai and objects passes to do; Golden Axe's
+  emulator route is parked on a ROM set; Wreckers' next is its server classes as objects; Dune II's is its
+  fidelity list; Monkey Island 2 is as it was on 2026-10-10.
+- The habits that hold: every gate run and its whole output read before saying done; the game tried in the
+  user's visible tab on a private port, never the user's live servers; a commit per step; nothing published or
+  pushed unasked.
