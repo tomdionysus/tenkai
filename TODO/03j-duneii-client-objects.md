@@ -204,6 +204,14 @@ engine reaching in. Still closures, for step 4: the Options window's `saveLoad` 
 announcement, Move and its target, the yard's hint and build window, Build This, Options and Continue, the Mentat's
 help with a subject, and on a second server the house choice and the Bene Gesserit's introduction.
 
+**Done (2026-10-14): step 2.** `PlayScreen` is 154 lines, the order of things only. Out of it: `PlayInput` (the
+mouse: the hotspots, the box, `mapClick` a switch on `Interaction.mode`, `radarClick`, the Mentat opened),
+`BattleEvents` (the server's events to their parts, a structure placed), `Deaths`, `Announcer`, `HintPolicy`,
+`Keyboard`, `MapStage` (the scenes brought up to date, the trails), `PlacingMarks` (given to `MapView.decorate`:
+nothing sets a scene's `foreground` from outside). Specs for `BattleEvents`, `Deaths`, `Announcer`, `HintPolicy`,
+`PlayInput` (a click in each mode, the box, the radar) and `Keyboard`: 28 in all. Checked in a tab: the yard at the
+start, a unit announced, M and its target, the box (4 UNITS), the yard's hint, the build window, the Mentat's help.
+
 03i's A (camera) and B (box selection) fit after step 2 (`MapInput` is their caller) and need not wait for the rest.
 What this plan does not do: no change to any order sent, any pixel drawn or any sound played; no change to the
 server or to `lib/` beyond the additive `GameClient` option; no new abstractions beyond the classes named.
