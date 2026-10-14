@@ -239,6 +239,21 @@ yard was not selected on a fresh server's first load, with the old code too). Ch
 first load, the unit and yard panels, the build window with its pictures, the Mentat's help, the house choice and
 the Bene Gesserit's introduction.
 
+**Done (2026-10-14): step 6.** The module-level `Facings` are one `UnitFacings` given to the looks, `Explosions`
+and `StructureSprites`; `UnitEntity.show`'s chain is `UnitLooks`, a table from a unit type to its look
+(`WormLook`, `AirLook`, `RocketLook`, `InfantryLook`, `VehicleLook`, `SingleLook`, the ground ones on `GroundLook`
+for the turret, smoke and spray), the worm's tint made once by `HouseColours`; `Widgets.rect` is a switch;
+`ModalScreen` keeps its own pointer from the moves the engine passes it (the Mentats' faces and the held buttons
+read it); `Display.current` and `next` answer for the window, so Game controls asks nothing of the engine;
+`MentatScreen` keeps its spots. Specs for `UnitLooks` (the table, a vehicle's turret, mirroring and smoke) and
+`Widgets.rect` at two window sizes: 43 in all. Checked in a tab on the SCENA013 copy and headless
+(`tools/checks/screenshot.mjs`).
+
+**Left (2026-10-14):** the Options window's `saveLoad` and `controls` and Game controls' `back` closures (the two
+windows open each other: a `Windows` navigator, or the assembly giving each the other after construction, would
+end them); `MentatHelpScreen`'s keys and scroll bar as their own classes; `Radar.draw`'s colour lambda. None of
+them blocks 03i's A and B.
+
 03i's A (camera) and B (box selection) fit after step 2 (`MapInput` is their caller) and need not wait for the rest.
 What this plan does not do: no change to any order sent, any pixel drawn or any sound played; no change to the
 server or to `lib/` beyond the additive `GameClient` option; no new abstractions beyond the classes named.
