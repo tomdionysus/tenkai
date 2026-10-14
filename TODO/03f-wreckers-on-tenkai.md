@@ -184,7 +184,9 @@ onto it; the click where it happened (`pointAt`); the screens' and the front end
 hotspots (their group masks as `enabled`, which answers the "mask form" above), the menu's and the scanner's as
 Tenkai `Hotspots` by box, the inclusive `x0..x1` lists as boxes a pixel wider. Found on the way and fixed: the
 menu's and the scanner's quit icons did nothing on a click (`Station.act` takes no `mode` action; the Q key sends
-`{ key: 'quit' }`), so a click on them now sends the same. Gates: 35 specs, the station checks (standing and
+`{ key: 'quit' }`), so a click on them now sends the same; and the HUD's scanner panel with the scanner showing did
+not step to the next battlepod (the page's part ran on the B key only), so the panel's click does what B does (the
+user, 2026-10-14: "Scanner doesn't cycle through the battlepods"). Gates: 35 specs, the station checks (standing and
 walking), the move check (seed 11), the round trip, the players check, `play.json` and `consoles.json` played live
 headless, the smoke of every game, and a tab on a private port (the commander screen, the menu and its NEW
 confirmation, the scanner, the map and information screens, the slots). Left as they are: the drawing classes'
