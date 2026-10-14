@@ -35,6 +35,19 @@ describe('Input', () => {
     expect(input.released('space')).toBe(true)
   })
 
+  it('should say whether any key went down or came up, bound or not', () => {
+    input.beginStep()
+    expect(input.pressedAny()).toBe(false)
+    key('keydown', 'KeyQ')
+    input.beginStep()
+    expect(input.pressedAny()).toBe(true)
+    expect(input.releasedAny()).toBe(false)
+    key('keyup', 'KeyQ')
+    input.beginStep()
+    expect(input.pressedAny()).toBe(false)
+    expect(input.releasedAny()).toBe(true)
+  })
+
   it('should prevent the default action of bound keys only', () => {
     expect(key('keydown', 'Space').preventDefault).toHaveBeenCalled()
     expect(key('keydown', 'KeyQ').preventDefault).not.toHaveBeenCalled()

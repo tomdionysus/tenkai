@@ -33,6 +33,7 @@ which names the physical key: `'KeyZ'`, `'ArrowLeft'`, `'Space'`, `'Enter'`.
 | `pressed(action)` | Whether it went down since the previous step. |
 | `released(action)` | Whether it came up since the previous step. |
 | `doubleTapped(action)` | Whether it was pressed this step, within `doubleTapSteps` steps (default 14) of its previous press. Golden Axe uses this for running. |
+| `pressedAny()`, `releasedAny()` | Whether any key at all went down, or came up, since the previous step: a title sequence that any key ends. |
 | `latest(...actions)` | Of the given actions, the held one pressed most recently, or `null`. With the four directions, a newly pressed direction wins while an earlier one is still held. |
 | `axis(negative, positive)` | -1, 0 or 1, as in `axis('left', 'right')`. |
 

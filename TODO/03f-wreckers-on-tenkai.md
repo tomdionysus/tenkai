@@ -173,7 +173,26 @@ menu and scanner 159 pictures, the map and information screens 124):
 - Monkey2's glyphs drawn with the colour-table blit. `tools/smoke.mjs` loads every game headless after each change.
 - Rules: the page holds none (keys and buttons go to the server, `SeatKeys`; the terminal's STATUS is the server's).
 
-**Next:** the map and information screens' hotspots (the original's group masks: Tenkai's groups are named, so a
-mask form first), typed text once a screen types through a `BitmapFont`, and the rest of `Wreckers.js` down to
-wiring. Also left: the screens' keys into their screens (with the original's guard), 5 (`ViewPicture` and `Screens` onto `IndexedSurface`, the
+**Done (2026-10-14): Wreckers on Tenkai 0.4.0.** What the Dune II work gave `lib/`, used here with the game
+unchanged: a `Page` given to `Wreckers` (`main.js`), which loads the 22 data files and the front end's pictures
+through it (`FrontendAssets.load(page)`), reads its clock, address, session storage and reload from it, and makes
+its scratch canvases on its document (`OutsideClear`, the stars); `ServerLink` made before the server is found,
+its `GameClient` connected later (`connect(socket, address)`, the callbacks in its options), so nothing is patched
+onto it; the click where it happened (`pointAt`); the screens' and the front end's keys from the engine's `Input`
+(the raw `keydown` listeners gone: Y, N and Space asked by code or action, the title's any key by
+`Input.pressedAny`/`releasedAny`, new in Tenkai); the HUD panel's buttons, the map and information screens'
+hotspots (their group masks as `enabled`, which answers the "mask form" above), the menu's and the scanner's as
+Tenkai `Hotspots` by box, the inclusive `x0..x1` lists as boxes a pixel wider. Found on the way and fixed: the
+menu's and the scanner's quit icons did nothing on a click (`Station.act` takes no `mode` action; the Q key sends
+`{ key: 'quit' }`), so a click on them now sends the same. Gates: 35 specs, the station checks (standing and
+walking), the move check (seed 11), the round trip, the players check, `play.json` and `consoles.json` played live
+headless, the smoke of every game, and a tab on a private port (the commander screen, the menu and its NEW
+confirmation, the scanner, the map and information screens, the slots). Left as they are: the drawing classes'
+scratch canvases on the global `document` (`Layout.panel`, `FactoryScreen`, `Slots`, `Screen`, `Dossier`,
+`PromotionLetter`), the screens' pointer (the engine's `mouseX` is current whether or not a screen is on top,
+`Screen.pointer` only while it is), `OutsideClear` (an RGBA flood with a dark threshold, not `clearEdges`' one
+colour) and the view's shake (a count from the server, not a pattern).
+
+**Next:** typed text once a screen types through a `BitmapFont`, the rest of `Wreckers.js` down to wiring
+(03g's client split), and `Buttons` for the commander lobby once its clicks are its own. Also left: the screens' keys into their screens (with the original's guard), 5 (`ViewPicture` and `Screens` onto `IndexedSurface`, the
 HUD's split) and 6 (typed text, once a user draws through a `BitmapFont`).
