@@ -96,6 +96,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [Minimap](api/Minimap.md): a tile map drawn small (a radar): cells in colours, dots, the view's outline, the cell
   under a point.
 - [Marks](api/Marks.md): outlines, corner marks and crossed boxes over a map, in palette colours.
+- [Autotile](api/Autotile.md): which piece of a run a cell shows by which neighbours it joins, so a map laid out in
+  kinds of ground draws its own edges and corners.
 
 ### Images and sound
 

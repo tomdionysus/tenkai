@@ -204,6 +204,13 @@ belongs to 02, not here; 1 is the behaviour-neutral step.
 1, 2, 3 and 4 first, then 5 if it still pays. A to K are proposals for after them, each its own step when a second
 game wants it or when it removes enough from Dune II on its own (A, B and C first).
 
+**Done (2026-10-14):** 1 (`GameEngine.pointAt`, the `wheel` event), 2 (`Hotspots` `box` and `Hotspots.inside`; the
+three `inside` helpers gone), 3 (`IndexedSurface.outline`; `PanelArt.outline`, the factory window's `rect` and the
+screen border's `ring` on it), 4 (the shots out of `Explosions`), and C (`Autotile` in `lib/`, with `GroundTiles` and
+`WallPieces` as its two tables, the wall table checked against every neighbour pattern). Each with specs
+(479 pass) and docs; build check, both round trips and the tab on 8064 unchanged. **Next:** A (the camera) and B
+(box selection), then 5 if it still pays, and D to K as a second game wants them.
+
 Each step: the `lib/` change with its spec and docs (`npx jasmine`; the
 other games' frame checks where the change could reach them), the client change, `npx esbuild remake/client/main.js
 --bundle --format=esm --outfile=remake/out/main.js`, the build check and the two round trips

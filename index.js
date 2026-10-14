@@ -22,6 +22,7 @@ export { default as IndexedTileMap } from './lib/IndexedTileMap.js'
 export { default as IndexedSprites } from './lib/IndexedSprites.js'
 export { default as Minimap } from './lib/Minimap.js'
 export { default as Marks } from './lib/Marks.js'
+export { default as Autotile } from './lib/Autotile.js'
 
 // Isometric
 export { default as IsometricProjection } from './lib/IsometricProjection.js'
