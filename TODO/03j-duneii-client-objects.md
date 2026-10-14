@@ -230,6 +230,15 @@ Options window's `saveLoad` and `controls`, Game controls' `back` (the two open 
 `MentatHelpScreen`'s keys and scroll bar. Checked in a tab: Options, Game controls and Previous, Save this game
 with a name typed, Restart's question and No, Continue, the yard's build window, its arrow and Build This.
 
+**Done (2026-10-14): step 5.** `Assets` is gone: `AssetLoader` returns `Pictures`, `Tables`, `Strings`,
+`CampaignArt`, `FactoryArt` and a `PictureStore` (the WSA pictures loaded when wanted), and every part takes only
+the field it uses (`sprites`, `messageFont`, `strings` for DUNE.ENG, `units`...), the assembly handing them out. One
+latent race found on the way and closed: the welcome's view can be from the tick before the join, so its players
+list lacks the house; `Battle.house` falls back to the welcome's own house until the state lists the player (the
+yard was not selected on a fresh server's first load, with the old code too). Checked in a tab: a fresh server's
+first load, the unit and yard panels, the build window with its pictures, the Mentat's help, the house choice and
+the Bene Gesserit's introduction.
+
 03i's A (camera) and B (box selection) fit after step 2 (`MapInput` is their caller) and need not wait for the rest.
 What this plan does not do: no change to any order sent, any pixel drawn or any sound played; no change to the
 server or to `lib/` beyond the additive `GameClient` option; no new abstractions beyond the classes named.
