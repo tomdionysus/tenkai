@@ -33,6 +33,17 @@ describe('IndexedSurface', () => {
     expect(Array.from(s.pixels)).toEqual([2, 2, 2, 2, 2, 2])
   })
 
+  it('should outline a rectangle, its far edges in a second colour, clipped', () => {
+    var s = new IndexedSurface({ width: 4, height: 3 })
+    s.outline(0, 0, 4, 3, 1, 2)
+    expect(Array.from(s.pixels)).toEqual([1, 1, 1, 2, 1, 0, 0, 2, 2, 2, 2, 2])
+    s.clear()
+    s.outline(2, 1, 5, 5, 3)
+    expect(Array.from(s.pixels)).toEqual([0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 3, 0])
+    s.outline(0, 0, 0, 3, 9)
+    expect(s.get(0, 0)).toEqual(0)
+  })
+
   it('should share rows as a view', () => {
     var s = numbered(2, 3)
     var band = s.rows(1, 2)

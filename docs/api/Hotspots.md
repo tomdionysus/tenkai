@@ -27,8 +27,9 @@ hotspots.bind(game)
 | Field | Meaning |
 |-------|---------|
 | `rect` | `[left, top, right, bottom]`; right and bottom are exclusive. |
+| `box` | `{ x, y, width, height }` instead of `rect`, or a function returning one, looked up at each test: a button whose place follows the window's layout. |
 | `circle` | `[x, y, radius]`, instead of `rect`. |
-| `contains` | `(x, y) => boolean`, instead of `rect` or `circle`, for any other shape. |
+| `contains` | `(x, y) => boolean`, instead of `rect`, `box` or `circle`, for any other shape. |
 | `cursor` | A cursor id, or a function returning one. Optional. |
 | `enabled` | `true`/`false`, or a function returning one. Defaults to enabled. |
 | `group` | A group name: the hotspot is enabled only while its group is on (`setGroup`). Optional. |
@@ -70,6 +71,12 @@ handler's promise can be awaited.
 
 Switch a group of hotspots on or off together, as a screen's buttons while it shows; every group is on until
 switched off.
+
+### `Hotspots.inside(box, x, y)`
+
+Whether a point is in a `{ x, y, width, height }` box, its right and bottom edges exclusive: the test a `box`
+hotspot makes, for code that asks the same of a layout's rectangles (is the pointer over the panel laid over the
+map?).
 
 ### `click(x, y)`
 

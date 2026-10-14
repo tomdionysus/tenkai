@@ -11,6 +11,22 @@ describe('Hotspots', () => {
     expect(spots.at(20, 15)).toBeNull()
   })
 
+  it('should find a hotspot by box, given or looked up each time', () => {
+    var fixed = spots.add({ box: { x: 10, y: 10, width: 10, height: 5 } })
+    var place = { x: 100, y: 0, width: 4, height: 4 }
+    var moving = spots.add({ box: () => place })
+    expect(spots.at(10, 10)).toBe(fixed)
+    expect(spots.at(19, 14)).toBe(fixed)
+    expect(spots.at(20, 14)).toBeNull()
+    expect(spots.at(10, 15)).toBeNull()
+    expect(spots.at(103, 3)).toBe(moving)
+    place.x = 200
+    expect(spots.at(103, 3)).toBeNull()
+    expect(spots.at(203, 3)).toBe(moving)
+    expect(Hotspots.inside({ x: 1, y: 1, width: 2, height: 2 }, 2, 2)).toBe(true)
+    expect(Hotspots.inside({ x: 1, y: 1, width: 2, height: 2 }, 3, 2)).toBe(false)
+  })
+
   it('should find a hotspot by circle or custom test', () => {
     var c = spots.add({ circle: [100, 100, 10] })
     var custom = spots.add({ contains: (x, y) => x > 500 })

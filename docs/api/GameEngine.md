@@ -296,11 +296,14 @@ Sets `globalAlpha`.
 | `mousedown` | `(engine, event)` | A mouse button was pressed on the canvas. |
 | `mouseup` | `(engine, event)` | A mouse button was released on the canvas. |
 | `mousemove` | `(engine, event)` | The mouse moved over the canvas. |
+| `wheel` | `(engine, event)` | The wheel turned over the canvas, when `enableScroll` and `enableZoom` are both off (the engine neither pans nor zooms). While the game listens, the page under the canvas does not scroll. |
 | `resize` | `(engine)` | The canvas was resized to the window, in fullscreen mode. |
 | `audiounlocked` | `(engine)` | The player clicked or pressed a key, so sound may play (see `unlockAudio`). |
 
 `mouseX` and `mouseY` are updated before the event is triggered. Handlers run just after the DOM event, so
-use `engine.mouseX` rather than the event's own coordinates.
+use `engine.mouseX` rather than the event's own coordinates. A handler that needs the place of its own event (a
+press that starts a box round units, when the pointer may have moved on before the handler runs) passes the event
+to `pointAt(event)`, which gives `{ x, y }` in game coordinates without touching `mouseX` and `mouseY`.
 
 ## Mouse details
 
@@ -308,5 +311,5 @@ use `engine.mouseX` rather than the event's own coordinates.
   viewport offset.
 - The wheel pans by the wheel delta when `enableScroll` is on. With shift held, it zooms about the centre
   of the view when `enableZoom` is on. Both keep within the configured limits. While either is on, wheel
-  events over the canvas do not scroll the page.
+  events over the canvas do not scroll the page; with both off, they reach the game as the `wheel` event.
 - `mouseup` is only seen if the mouse is released over the canvas.

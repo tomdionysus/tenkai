@@ -110,6 +110,29 @@ describe('GameEngine', () => {
       expect(ele.addEventListener).toHaveBeenCalledWith('wheel', jasmine.any(Function), { passive: false })
     })
 
+    it('should pass the wheel to the game when it neither pans nor zooms, keeping the page still only while the game listens', () => {
+      var x1 = new GameEngine({ enableScroll: false, enableZoom: false })
+      var fns = {}
+      var ele = generateSpyObject(['addEventListener'])
+      ele.addEventListener.and.callFake((evt, f) => { fns[evt] = f })
+      x1.element = ele
+      spyOn(x1, '_panZoom')
+      spyOn(x1, 'trigger')
+      x1._bindMouseWheel()
+      expect(ele.addEventListener).toHaveBeenCalledWith('wheel', jasmine.any(Function), { passive: false })
+
+      var e = { preventDefault: jasmine.createSpy('preventDefault') }
+      fns.wheel(e)
+      expect(e.preventDefault).not.toHaveBeenCalled()
+      expect(x1.trigger).not.toHaveBeenCalled()
+
+      x1.on('wheel', () => {})
+      fns.wheel(e)
+      expect(e.preventDefault).toHaveBeenCalled()
+      expect(x1.trigger).toHaveBeenCalledWith('wheel', x1, e)
+      expect(x1._panZoom).not.toHaveBeenCalled()
+    })
+
     it('should call correct ongoing functions on events', () => {
       var x1 = new GameEngine({ enableScroll: true, enableZoom: true })
       var fns = {}
@@ -382,6 +405,22 @@ describe('GameEngine', () => {
 
       expect(x1.mouseX).toEqual(320)
       expect(x1.mouseY).toEqual(200)
+    })
+  })
+
+  describe('pointAt', () => {
+    it('should give an event its own place in game coordinates without moving the mouse', () => {
+      var x1 = new GameEngine()
+      x1.element = { width: 640, height: 400, getBoundingClientRect: () => ({ left: 100, top: 50, width: 1280, height: 800 }) }
+      x1.scale = 2
+      x1.x = -10
+      x1.y = 5
+      x1.mouseX = 1
+      x1.mouseY = 2
+
+      expect(x1.pointAt({ clientX: 740, clientY: 450 })).toEqual({ x: 170, y: 95 })
+      expect(x1.pointAt({ x: 40, y: 10 })).toEqual({ x: 30, y: 0 })
+      expect([x1.mouseX, x1.mouseY]).toEqual([1, 2])
     })
   })
 

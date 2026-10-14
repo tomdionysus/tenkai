@@ -50,6 +50,11 @@ nothing.
 
 A line one pixel wide, `length` pixels from (x, y) to the right, or down when `vertical`, clipped to the surface.
 
+### outline(x, y, w, h, color, color2)
+
+A rectangle's edges, one pixel wide, clipped to the surface: the top and left in `color`, the bottom and right in
+`color2`, which is `color` unless given (a bevel's light and dark sides; a panel's box is `fill` then `outline`).
+
 ### bits(rows, x, y, color, width)
 
 A one-bit picture, such as a font's glyph, drawn ink only: each of `rows` is a number whose set bits, highest
