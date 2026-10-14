@@ -220,6 +220,16 @@ the picture), which switches the structure's kind to `PalacePanel`, `StarportPan
 Checked in a tab on a copy of the user's SCENA013 save: the yard's Repair and Build it, a windtrap's power, a
 refinery's spice, an outpost's radar scan, and on SCENA004 the unit and group panels.
 
+**Done (2026-10-14): step 4.** `WindowButtons` (a window's buttons as box hotspots of its own `Hotspots`, acting
+at the press as the original's windows do, drawn by `WindowArt`): the Options window, its saved games and Game
+controls lose their `click`s and `inside` lambdas. `HoldPolicy` given to `ModalScreen` (`policy`), so no window sets
+`holds` in `show`. `FactoryOffer` is the factory window's model (the items and their order, the one chosen and the
+strip's slot, the starport's picks against stock and credits, the orders to send, the upgrade's cost), specced;
+`FactoryWindow` keeps the painting and hotspots. `SaveLoadScreen.key` is a switch. 39 specs. Still closures: the
+Options window's `saveLoad` and `controls`, Game controls' `back` (the two open each other); still to split:
+`MentatHelpScreen`'s keys and scroll bar. Checked in a tab: Options, Game controls and Previous, Save this game
+with a name typed, Restart's question and No, Continue, the yard's build window, its arrow and Build This.
+
 03i's A (camera) and B (box selection) fit after step 2 (`MapInput` is their caller) and need not wait for the rest.
 What this plan does not do: no change to any order sent, any pixel drawn or any sound played; no change to the
 server or to `lib/` beyond the additive `GameClient` option; no new abstractions beyond the classes named.
