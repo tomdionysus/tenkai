@@ -22,6 +22,7 @@ const original = /[?&]original\b/.test(page.search)
 | `now()` | milliseconds, the page's performance clock |
 | `seconds()` | the same in seconds |
 | `random(a, b)` | a whole number from a to b, both in |
+| `fraction()` | a fraction from 0 up to but not including 1, for a game's parts to be given instead of the global |
 | `reload()` | the page reloaded |
 | `hostname`, `search` | the page's host name and query string |
 | `json(path)` | a JSON file by path, parsed; rejects with the path and status when it cannot be read |

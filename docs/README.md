@@ -80,6 +80,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   handlers, and bodies that move and block each other.
 - [IsometricScene](api/IsometricScene.md): shows the world: entities placed by world position, drawn in
   depth order over a ground, with a camera that can glide between the game's ticks.
+- [Camera](api/Camera.md): the scroll of a flat scene after a target: a lead, a speed, forward only or both
+  ways, a limit, an eased other axis, and what is off screen.
 - [Motion](api/Motion.md): a character's movement through scripted steps and animation frames.
 
 ### Indexed colour
@@ -124,6 +126,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [Buttons](api/Buttons.md): a screen's buttons as a set shown at a time, boxes on its hotspots acting at the
   press, drawn by the game's painter.
 - [Cursor](api/Cursor.md): image cursors drawn on the canvas.
+- [PictureAtlas](api/PictureAtlas.md): one picture holding many, each a named rectangle drawn by name, whole or
+  in part.
 
 ### Games behind a server
 
@@ -142,7 +146,7 @@ Tenkai is client side: a game whose logic runs on a server (its own code) is a c
 - [HasScenesMixin](api/HasScenesMixin.md): a named, z-ordered collection of scenes.
 - [HasEntitiesMixin](api/HasEntitiesMixin.md): a named, z-ordered collection of entities.
 - [Logger](api/Logger.md): levelled, printf-style console logging.
-- [Util](api/Util.md): rectangle helpers, sorting, delay and debounce (internal).
+- [Util](api/Util.md): rectangle helpers, a value along points, sorting, delay and debounce (internal).
 
 ## Conventions used in these docs
 

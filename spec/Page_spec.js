@@ -30,6 +30,10 @@ describe('Page', () => {
     }
     page.reload()
     expect(page.window.location.reload).toHaveBeenCalled()
+    for (let i = 0; i < 20; i++) {
+      const f = page.fraction()
+      expect(f >= 0 && f < 1).toBe(true)
+    }
   })
 
   it('should load JSON and images by path, rejecting what cannot be read', async () => {

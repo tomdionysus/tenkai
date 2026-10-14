@@ -34,6 +34,15 @@ describe('bounding', () => {
   })
 })
 
+describe('along', () => {
+  it('should interpolate along the points, holding the ends', () => {
+    expect(Util.along([[0, 10], [100, 20]], 50)).toEqual(15)
+    expect(Util.along([[0, 10], [100, 20]], -5)).toEqual(10)
+    expect(Util.along([[0, 10], [100, 20]], 500)).toEqual(20)
+    expect(Util.along([[0, 96], [440, 96], [560, 250]], 500)).toEqual(96 + 154 * 60 / 120)
+  })
+})
+
 describe('sortBy', () => {
   it('should sort objects by property', () => {
     var r1 = { o: 5 }

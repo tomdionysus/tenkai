@@ -24,6 +24,13 @@ The smallest rectangle containing both.
 Sorts an array of objects by a property, in place, and returns it. Objects with equal values keep their
 order.
 
+## Curves
+
+### `Util.along(points, x)`
+
+A value read along `[x, y]` points by linear interpolation, holding the first and last values outside them: the
+top of a walkable band at x, any curve given as points.
+
 ## Timing
 
 ### `Util.delay(fn, wait, ...args)`

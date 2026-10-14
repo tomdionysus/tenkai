@@ -17,6 +17,7 @@ state. Do them in order; within a phase, items are roughly in priority order.
 | 3a | [03a-animation-redesign.md](03a-animation-redesign.md) | Done: shared clips, game-controlled animation, fixed-step time |
 | 3b | [03b-depth-sorted-tiles.md](03b-depth-sorted-tiles.md) | Done: tilesets with heights and solidity; characters sorted among scenery |
 | 4 | [04-docs-and-release.md](04-docs-and-release.md) | Example games, real docs, 1.0 on npm with provenance |
+| 5 | [05-rationalise-the-library.md](05-rationalise-the-library.md) | Noted 2026-10-14, for a later pass: what the remakes bring in keeps resembling what is there (messages, pictures cut from pictures, cameras and trails, hotspots, stepped things, layers, colour variants, modes and screens); the symmetries under them, and the patterns the games repeat |
 
 ## The games
 

@@ -39,6 +39,8 @@ export { default as ServerConfig } from './lib/ServerConfig.js'
 // Point-and-click
 export { default as Hotspots } from './lib/Hotspots.js'
 export { default as Buttons } from './lib/Buttons.js'
+export { default as PictureAtlas } from './lib/PictureAtlas.js'
+export { default as Camera } from './lib/Camera.js'
 export { default as Cursor } from './lib/Cursor.js'
 
 // Game Engine
