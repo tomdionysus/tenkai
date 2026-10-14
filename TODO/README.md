@@ -30,6 +30,7 @@ game played over a Node server, the page a pure client with no game rules, its s
 the live game, most of its drawing on Tenkai's indexed and palette classes, the server hardened for long play (Tenkai
 0.3.0 carries the engine side). To pick it up again: 3f's "Next" and 3g's status say what is left; the
 reverse-engineering tools and guides are in local/amiga-tools.
+| 3i | [03i-duneii-on-tenkai.md](03i-duneii-on-tenkai.md) | The Tenkai side of 3h (2026-10-14): what the Dune II client does by hand that `lib/` does or nearly does (mouse plumbing, point-in-rectangle, rectangle edges, window fitting), and the order to take it in; behaviour and pictures unchanged |
 | 4 | [04-docs-and-release.md](04-docs-and-release.md) | Example games, real docs, 1.0 on npm with provenance |
 
 ## Guiding decisions
