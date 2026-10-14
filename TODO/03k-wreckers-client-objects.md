@@ -104,8 +104,15 @@ fullscreen window and the split HUD (the user, 2026-10-14: "Be careful. We chang
 HUD since then"): they show that the screens' modules load and draw, not how the game looks now, and the game
 in a tab is the only picture of that.
 
-**Left:** `CommanderMenu`, `GameMenu`, `Scanner`, `Screens`, `TerminalScreen`, `PromotionLetter`, `FactoryScreen`
-and `Dossier` still take picture bags and callbacks shaped for them in the assembly (each could take `Pictures`
-and `Fonts`); the server-side free functions (`Aliens.floorOf`, `Droids.floorOf` and `queuePoint`,
-`Outside.STRUGGLE`, `TerminalStatus.signed`) are 03g's; `check.js` and the four test pages are scripts, not
-objects, and stay so.
+**Second pass (2026-10-14).** The server's free functions are statics of their classes (`Aliens.floorOf`,
+`Droids.floorOf` and `queuePoint`, `Outside.struggleFrame`, `TerminalStatus.signed`); `Station.act`'s map
+actions and `GameMenu`'s keys and clicks switch on their one value; the letter's keys are a table. The drawing
+classes that made scratch canvases on the global `document` (`Dossier`, `FactoryScreen`, `PromotionLetter`, the
+front end's `Screen` through `Title` and `Ending`, `Slots`, `Layout.panel`) are given it, through the assembly
+and `FrontEnd`; `CharacterView`'s clock is no longer defaulted to the global. The screen classes keep their
+picture bags: a bag of exactly what a class draws with is the explicit dependency, where a `Pictures` lookup
+would be a locator. Gates as above, the title played in a tab.
+
+**Left:** `check.js` and the four test pages are scripts, not objects, and stay so. The server's big classes
+(`Station` 870 lines, `Droids` 893, `Aliens` 825, `Officer` 425) are 03g's and a pass of their own, under the
+same identical-output gates.
