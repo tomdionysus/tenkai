@@ -51,6 +51,19 @@ describe('BitmapFont', () => {
     expect(c.drawImage.calls.argsFor(0)[5]).toEqual(84)
   })
 
+  it('should draw a font that is a region of a sheet, its cells on a wider pitch than its glyphs', () => {
+    var sheet = { width: 288, height: 300 }
+    var f = new BitmapFont({ image: sheet, cellWidth: 16, cellHeight: 16, pitchX: 18, pitchY: 18, originX: 0, originY: 72, characters: ' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ', upperCase: true })
+    expect(f.columns).toEqual(16)
+    expect(f.advance('A')).toEqual(16)
+    var c = context()
+    f.draw(c, 'a1', 10, 20)
+    // 'A' is cell 33: column 1 of row 2; '1' cell 17: column 1 of row 1
+    expect(c.drawImage.calls.argsFor(0)).toEqual([sheet, 18, 72 + 36, 16, 16, 10, 20, 16, 16])
+    expect(c.drawImage.calls.argsFor(1)).toEqual([sheet, 18, 72 + 18, 16, 16, 26, 20, 16, 16])
+    expect(new BitmapFont({ image: sheet, cellWidth: 8, cellHeight: 8, pitchX: 9, originX: 18 }).columns).toEqual(30)
+  })
+
   it('should fall back to the untinted sheet where no canvas can be made', () => {
     expect(font().tinted('#ff0000')).toBe(image)
     expect(BitmapFont.rgb('#c80')).toEqual([204, 136, 0])

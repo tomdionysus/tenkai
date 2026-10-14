@@ -23,8 +23,20 @@ All [Scene](Scene.md) options, plus:
 | `offsetX`, `offsetY` | `0` | Top-left of the region of the image to draw. |
 | `width`, `height` | the image's size | Size of the region, and of what is drawn. |
 
+| `repeatX` | `false` | Repeat the region across the scene's span: a parallax strip. `offsetX` then scrolls within the strip (any amount, either way), which starts at `sourceX`, `sourceY` of the image. |
+| `sourceX`, `sourceY` | `0` | With `repeatX`, where the strip is on the image. |
+| `span` | the game's width, else the region's | With `repeatX`, how far across to cover. |
+| `fill` | none | A colour painted over the span before the image: the sky behind a strip. |
+
 If you leave out `width` or `height`, they are read from the image when the scene is created, so the asset
 must already be loaded. Assets from `getAsset` in `init` are.
+
+```js
+// A parallax strip at half the camera's speed, the sky behind it
+const far = new BackgroundScene({ asset: game.getAsset('level1'), repeatX: true, sourceY: 224, width: 800, height: 104, fill: '#5a6ea8', z: 0 })
+// each step:
+far.offsetX = camera.x * 0.5
+```
 
 ## Drawing order
 

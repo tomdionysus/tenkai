@@ -47,7 +47,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 ### Scenes
 
 - [Scene](api/Scene.md): the base container for child scenes and entities.
-- [BackgroundScene](api/BackgroundScene.md): a scene with a single background image.
+- [BackgroundScene](api/BackgroundScene.md): a scene with a single background image, or a strip repeated
+  across as a parallax layer over a fill.
 - [TiledScene](api/TiledScene.md): a scene drawn from a tile map, flat or in depth with characters among
   the scenery.
 - [Shroud](api/Shroud.md): the fog of war over a TiledScene: unseen cells covered, seen ground edged by its seen

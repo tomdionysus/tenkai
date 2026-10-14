@@ -16,6 +16,24 @@ describe('BackgroundScene', () => {
     expect(x1.height).toEqual('HEIGHT')
   })
 
+  it('should repeat a strip across its span, scrolled by its offset, over a fill', () => {
+    var element = { width: 1000, height: 400 }
+    var strip = new BackgroundScene({ asset: { element }, repeatX: true, sourceX: 0, sourceY: 224, width: 800, height: 104, span: 320, fill: '#5a6ea8' })
+    strip.offsetX = 1650
+    var context = jasmine.createSpyObj('context', ['drawImage', 'fillRect', 'save', 'restore', 'translate', 'scale', 'rotate'])
+    strip.drawContent(context)
+    expect(context.fillStyle).toEqual('#5a6ea8')
+    expect(context.fillRect).toHaveBeenCalledWith(0, 0, 320, 104)
+    // 1650 mod 800 is 50: the strip starts 50 to the left, and one copy covers the 320
+    expect(context.drawImage.calls.allArgs()).toEqual([[element, 0, 224, 800, 104, -50, 0, 800, 104]])
+    strip.offsetX = -10
+    strip.width = 100
+    context.drawImage.calls.reset()
+    strip.drawContent(context)
+    expect(context.drawImage.calls.allArgs().map((a) => a[5])).toEqual([-90, 10, 110, 210, 310])
+    expect(new BackgroundScene({ asset: { element }, repeatX: true, width: 50, height: 10 }).spanWidth).toEqual(50)
+  })
+
   describe('draw', () => {
     var x1, context
     beforeEach(() => {

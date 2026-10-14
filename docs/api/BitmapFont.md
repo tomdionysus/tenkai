@@ -27,7 +27,9 @@ font.draw(context, 'WARNING#PLASMODIAN WAVE', 40, 32, { colour: '#cc0000' })
 |---|---|---|
 | `image` | | The glyph sheet: an image, a canvas, or an Asset holding one. |
 | `cellWidth`, `cellHeight` | | Size of a glyph cell. |
-| `columns` | image width / cellWidth | Cells to a row of the sheet. |
+| `columns` | image width / pitchX | Cells to a row of the sheet. |
+| `originX`, `originY` | 0 | Where the cells start on the sheet: a font that is a region of a larger picture. |
+| `pitchX`, `pitchY` | `cellWidth`, `cellHeight` | The distance from one cell to the next on the sheet, for cells with a gap between them. |
 | `characters` | | The character of each cell in order (a string), or an object mapping characters to cell numbers. |
 | `widths` | cellWidth | Advance per cell (array) or per character (object), for proportional fonts. |
 | `spacing` | 0 | Extra pixels between characters. |
