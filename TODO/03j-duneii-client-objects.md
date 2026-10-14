@@ -193,6 +193,17 @@ the panel for a unit, a yard, a factory, the palace and the starport, each windo
 5. **The assets by role.** Touches every constructor's signature, so after the parts are settled.
 6. **The small habits:** the facings, the looks table, the switches, `GameClient`'s callbacks in its options.
 
+**Done (2026-10-14): step 1.** `Browser`, `Connection` (the client once joined; `Battle` reads through it, `Orders`
+sends through it), `Battle`, `Orders` with `OrderFeedback`, `Interaction` (so the sidebar's closure bag went too),
+`ClientAssembly` (the only `new` of collaborators; `DuneClient` and `PlayScreen` build nothing; `CampaignView` and
+`Radar` take their screens and parts), every `order`, `state`, `house`, `people`, `credits`, `saves`, `document`,
+`now` and `random` closure or global replaced; `MapView.show`, `PlayScreen.hide` and `aiming` in place of the
+engine reaching in. Still closures, for step 4: the Options window's `saveLoad` and `controls`, Game controls'
+`back` (the two open each other). Specs: `spec/` in `local/duneii` (`npx jasmine --config=spec/support/jasmine.json`),
+`Battle`, `Orders`, `OrderFeedback`, `Interaction`. Checked in a tab: the yard selected at the start, a unit's
+announcement, Move and its target, the yard's hint and build window, Build This, Options and Continue, the Mentat's
+help with a subject, and on a second server the house choice and the Bene Gesserit's introduction.
+
 03i's A (camera) and B (box selection) fit after step 2 (`MapInput` is their caller) and need not wait for the rest.
 What this plan does not do: no change to any order sent, any pixel drawn or any sound played; no change to the
 server or to `lib/` beyond the additive `GameClient` option; no new abstractions beyond the classes named.
