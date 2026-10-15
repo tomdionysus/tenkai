@@ -112,6 +112,13 @@ Fill a rectangle with a source rectangle repeated across and down: a frame's mid
 repeating a plain stretch or a pattern. `phaseX` and `phaseY` say which column and row of the source the first
 column and row show, so the repeats run on into the picture's own pattern.
 
+### shade(src, { dx, dy, table, key, clip })
+
+Put the pixels of this surface under `src`'s shape (its set pixels: not -1, nor `key`) through `table` (an array, or
+a function of the number): a shadow that darkens whatever it falls on, as palette games cast them, with a table
+that clears a bit of each number or one of darker colours. The shape's own colours are not drawn. `clip` limits it
+to a rectangle of this surface. Returns the surface.
+
 ### flipVertical()
 
 Turn the surface upside down in place (its rows in reverse order), as the original games mirror a sprite top to

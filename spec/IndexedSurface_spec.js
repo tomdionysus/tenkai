@@ -140,6 +140,23 @@ describe('IndexedSurface', () => {
     expect(Array.from(s.pixels)).toEqual([0, 0])
   })
 
+  it('should shade what is under a shape through a table, within a clip', () => {
+    var shape = new IndexedSurface({ width: 2, height: 2, transparent: true, pixels: Int16Array.from([5, -1, 5, 5]) })
+    var s = numbered(4, 3)
+    expect(s.shade(shape, { dx: 1, dy: 1, table: (c) => c & ~1 })).toBe(s)
+    expect(Array.from(s.pixels)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12])
+    s = numbered(4, 3)
+    s.shade(shape, { dx: 1, dy: 1, table: [0, 0, 0, 0, 0, 0, 99], clip: { x: 0, y: 0, width: 4, height: 2 } })
+    expect(Array.from(s.pixels)).toEqual([1, 2, 3, 4, 5, 99, 7, 8, 9, 10, 11, 12])
+  })
+
+  it('should not shade where the shape has its key colour', () => {
+    var shape = new IndexedSurface({ width: 2, height: 1, pixels: Uint8Array.from([0, 3]) })
+    var s = numbered(2, 1)
+    s.shade(shape, { table: (c) => c + 10, key: 0 })
+    expect(Array.from(s.pixels)).toEqual([1, 12])
+  })
+
   it('should turn upside down in place', () => {
     var s = numbered(2, 3)
     expect(s.flipVertical()).toBe(s)
