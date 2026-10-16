@@ -229,6 +229,17 @@ describe('SoundManager', () => {
       expect(ctx.sources[1].start.calls.argsFor(0)[1]).toEqual(3)
     })
 
+    it('should play only a duration from its offset, one sound out of many, and keep its end through a seek', async () => {
+      var h = sounds.play('all.ogg', { offset: 3, duration: 1.5 })
+      await settle()
+      expect(ctx.sources[0].start.calls.argsFor(0).slice(1)).toEqual([3, 1.5])
+      h.seek(4)
+      expect(ctx.sources[1].start.calls.argsFor(0).slice(1)).toEqual([4, 0.5])
+      h.seek(5)
+      expect(ctx.sources.length).toEqual(2)
+      expect(h.playing).toBe(false)
+    })
+
     it('should set its own volume and its channel', async () => {
       var h = sounds.play('a.ogg', { volume: 0.25 })
       expect(h.volume).toEqual(0.25)

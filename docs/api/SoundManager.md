@@ -75,7 +75,7 @@ and expect anything played before then to be silent.
 
 ## Methods
 
-### `play(src, { channel, loop, volume, offset, loopStart, loopEnd, rate })`
+### `play(src, { channel, loop, volume, offset, duration, loopStart, loopEnd, rate })`
 
 Play a sound and return its handle. `src` is a URL, or a list of layers that start together, each a URL or
 `{ src, loop }`. The sound starts once all its layers have loaded, at the same moment; the handle works at
@@ -87,6 +87,7 @@ once, so the sound can be stopped or sought before it starts.
 | `loop` | `false` | Loop every layer that does not say otherwise. |
 | `volume` | 1 | Its own volume, under the channel's. |
 | `offset` | 0 | Start this many seconds in. |
+| `duration` | to the end | Play only this many seconds from `offset`, then end: one sound out of a file that holds many (an audio sprite, its sounds' offsets and lengths in the game's own index). A `seek` keeps the same end. Not for looping layers. |
 | `loopStart`, `loopEnd` | whole sound | For looping layers: play from the start, then repeat this region (seconds), as sampled instruments and engine hums do. A layer can give its own. |
 | `rate` | 1 | Playback rate: 2 is an octave up and twice as fast. An old sound chip played a sample at another period; the rate is the recorded period over the new one. |
 
