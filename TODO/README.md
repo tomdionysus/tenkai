@@ -33,7 +33,7 @@ game gives the engine arrives in `lib/` with specs and docs, and is recorded in 
 | Monkey Island 2 (1991) | `local/monkey2/TODO/` | Generated JavaScript on exported data, plays to Woodtick, halfway onto Tenkai; records the engine's gaps |
 | Golden Axe (arcade, 1989) | `local/golden-axe/TODO/` | Rounds 1 and 2 as Ax, Gilius or Tyris; on Tenkai and as objects (four passes, 2026-10-14); fidelity by emulator assessed and parked |
 | Myst (1993) | `local/myst/TODO/` | Myst Island and D'ni from the user's own copy; drove the point-and-click core; stock taken, the Tenkai and objects passes still to do |
-| Paradroid 90 (Amiga, 1990) | `local/paradroid-90/TODO/` | Rewritten on Tenkai as behaviour classes (2026-10-16): one live ship for up to four players, drawn and heard as the original for every play checked; the high score entry and the ship cleared still to draw, then archive |
+| Paradroid 90 (Amiga, 1990) | `local/paradroid-90/TODO/` | Rewritten on Tenkai as behaviour classes: one live ship for up to four players, drawn and heard as the original for every play checked, its data by name; archived as 1.0.0 with the branch `original` (2026-10-18); the trimmings next |
 
 | 1945, Arkanoid, Tim the Enchanter | [examples/1945/TODO/](../examples/1945/TODO/STATE.md), [examples/arkanoid/TODO/](../examples/arkanoid/TODO/STATE.md), [examples/tim-the-enchanter/TODO/](../examples/tim-the-enchanter/TODO/STATE.md) | The three example games; nothing open |
 
