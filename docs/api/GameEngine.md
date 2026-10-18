@@ -247,7 +247,7 @@ step by step, without a clock.
 ### `draw(context)`
 
 Draws a frame: clears to black, then draws the scenes, the engine's own entities and the mode through the
-viewport, then the screens marked `under`, then `drawOver`, then the other screens, then the HUD.
+viewport, then the screens marked `under`, then `drawOver`, then the other screens, then `drawTop`, then the HUD.
 
 ### `reportError(error)`
 
@@ -259,6 +259,11 @@ canvas's transform, and reports it here, once for each different message, to the
 
 The game's own drawing over its scenes and under its screens, in the viewport's coordinates: a status panel that
 a menu screen covers. Does nothing; override it.
+
+### `drawTop(context)`
+
+The game's own drawing over everything, its screens too, in the viewport's coordinates: a pointer of the game's
+own (a [Cursor](Cursor.md)), as old games drew theirs over their menus. Does nothing; override it.
 
 ### `addAsset(name, src)` / `getAsset(name)`
 
