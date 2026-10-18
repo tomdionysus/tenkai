@@ -25,6 +25,18 @@ describe('Screen', () => {
     expect(s.update).toHaveBeenCalledWith(0.1, 'input')
   })
 
+  it('should let a screen\'s click ask which button was pressed', () => {
+    const game = new GameEngine({ enableScroll: false, enableZoom: false })
+    const listeners = {}
+    game.element = { addEventListener: (name, fn) => { listeners[name] = fn } }
+    game._bindMouseWheel()
+    const pressed = []
+    game.showScreen(new Screen({ click: () => { pressed.push(game.mouseButton); return true } }))
+    listeners.mousedown({ x: 1, y: 1, button: 2 })
+    listeners.mousedown({ x: 1, y: 1 })
+    expect(pressed).toEqual([2, 0])
+  })
+
   it('should be shown on top, moved to the top when shown again, and hidden', () => {
     const game = engine()
     const a = new Screen()

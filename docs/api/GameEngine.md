@@ -62,6 +62,7 @@ new MyGame({ targetId: 'game' }).start()
 | `element` | The canvas, after start-up. |
 | `width`, `height` | The visible area in game pixels: the canvas size divided by `scale`. |
 | `mouseX`, `mouseY` | The last mouse position in game coordinates. |
+| `mouseButton` | The button of the last press (the `MouseEvent`'s: 0 left, 1 middle, 2 right), set before a screen's `click` is called, so a screen can answer the right button as its own. |
 | `input` | The keyboard, an [Input](Input.md). |
 | `time` | Game time in seconds: the steps run so far. |
 | `stepTime` | The length of a step in seconds. |
