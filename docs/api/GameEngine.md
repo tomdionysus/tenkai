@@ -235,6 +235,12 @@ Loads assets and audio, boots the canvas, shows the start screen if there is one
 calls `init`, then starts the game and triggers `running`. The
 optional `callback(err)` is called when this has finished or failed.
 
+### `attach(element)`
+
+Uses an element as the canvas without booting from the page: it is drawn on, its size taken, and its mouse
+events bound as `start` binds them. For running a game where there is no page: a check in Node gives a stand-in
+whose `addEventListener` keeps the listeners, calls them to click, and drives the game with `step` and `draw`.
+
 ### `stop()`
 
 Stops the game after the current frame.

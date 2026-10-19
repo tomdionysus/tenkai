@@ -5,6 +5,7 @@ import GameEngine from '../lib/GameEngine.js'
 import Asset from '../lib/Asset.js'
 import Audio from '../lib/Audio.js'
 import Util from '../lib/Util.js'
+import Screen from '../lib/Screen.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -892,6 +893,19 @@ describe('GameEngine', () => {
     })
   })
 
+  it('should run on an element given it, without the page, its mouse bound', () => {
+    const listeners = {}
+    const element = { width: 640, height: 400, getContext: () => null, addEventListener: (name, fn) => { listeners[name] = fn } }
+    const game = new GameEngine({ enableScroll: false, enableZoom: false, scale: 2 })
+    expect(game.attach(element)).toBe(game)
+    expect(game.element).toBe(element)
+    expect([game.width, game.height]).toEqual([320, 200])
+    const clicks = []
+    game.showScreen(new Screen({ click: (x, y) => { clicks.push([x, y, game.mouseButton]); return true } }))
+    listeners.mousedown({ x: 40, y: 20, button: 2 })
+    expect(clicks).toEqual([[20, 10, 2]])
+  })
+
   describe('start', () => {
     it('should correctly call methods', () => {
       var x1 = new GameEngine()
@@ -1172,4 +1186,5 @@ describe('GameEngine each and series', () => {
     GameEngine.series([(cb) => { order.push(1); cb() }, (cb) => { order.push(2); cb('stop') }, (cb) => { order.push(3); cb() }], (err) => order.push(err))
     expect(order).toEqual([1, 2, 'stop'])
   })
+
 })
