@@ -59,6 +59,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 
 ### Sprites and tiles
 
+- [IndexedScreen](api/IndexedScreen.md): a Screen in palette numbers: its own surface and palette, painted afresh
+  each frame (old games' windows and full screens).
 - [Sheet](api/Sheet.md): an image divided into tiles, with an anchor, animation clips, and for tilesets,
   what each tile is.
 - [BitmapFont](api/BitmapFont.md): text from a sheet of glyph cells, recoloured, wrapped, measured and
