@@ -26,3 +26,6 @@ sounds.play(14)
 | `unlock()`, `ready` | the first gesture: the audio context unlocked, sounds loaded |
 | `play(n)` | a sound or a phrase; resolves when it has ended |
 | `one(n)` | one sound, never a phrase |
+| `playing(n)` | whether effect `n` is playing on a voice |
+| `keep(n)` | effect `n` played unless it is playing: called while a sound should go on (an alarm), it starts again whenever it ends |
+| `stop(n)` | effect `n` stopped on every voice playing it |

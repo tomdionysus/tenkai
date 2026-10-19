@@ -32,4 +32,27 @@ describe('SoundBoard', () => {
     expect(m.played).toEqual(['a.wav@effects:1', 'say.wav@voice', 'b.wav@effects:2'])
     expect(board.turn).toBe(0)
   })
+
+  it('should keep an effect going without restarting it, and stop it by its number', () => {
+    var m = manager()
+    var live = []
+    m.play = (file) => {
+      m.played.push(file)
+      var h = { ended: Promise.resolve(), playing: true, stop () { this.playing = false } }
+      live.push(h)
+      return h
+    }
+    var board = new SoundBoard({ engine: engine(), sounds, voices: 3, manager: () => m })
+    board.unlock()
+    board.keep(1)
+    board.keep(1)
+    board.one(2)
+    expect(m.played).toEqual(['a.wav', 'b.wav'])
+    expect(board.playing(1)).toBe(true)
+    board.stop(1)
+    expect(board.playing(1)).toBe(false)
+    expect(live[1].playing).toBe(true)
+    board.keep(1)
+    expect(m.played).toEqual(['a.wav', 'b.wav', 'a.wav'])
+  })
 })
