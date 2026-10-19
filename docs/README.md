@@ -99,6 +99,11 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   into one numbering, drawn through colour tables or mirrored.
 - [IndexedFont](api/IndexedFont.md): text in palette colours from glyphs kept as bits, a colour per layer (letter,
   shadow).
+- [IndexedText](api/IndexedText.md): text laid out with an IndexedFont: lines, centring as old games centre,
+  wrapping, numbers right-aligned in places.
+- [TextBlocks](api/TextBlocks.md): windows' laid-out words by name, items run in order with the values given.
+- [IndexedPictures](api/IndexedPictures.md): pictures in palette numbers by name, cut from several sheets, each
+  with its anchor.
 - [IndexedTileMap](api/IndexedTileMap.md): a tile map drawn into a window of a surface, with a scrolling view,
   hidden cells and the cell under a point.
 - [IndexedSprites](api/IndexedSprites.md): an indexed sheet's pictures as Sheets for entities, in colour tables
@@ -136,6 +141,8 @@ Tenkai is client side: a game whose logic runs on a server (its own code) is a c
 - [GameClient](api/GameClient.md): the client of a game server: joining, input, commands and actions, each
   tick's state (as `StateDiff` patches) and events, and how far into the next tick it is.
 - [Trails](api/Trails.md): where things were at the last two ticks, to draw them between ticks.
+- [HeadlessCanvas](api/HeadlessCanvas.md): a canvas that draws nothing, to run the page in Node for checks
+  (with `GameEngine.attach`).
 - [ServerFinder](api/ServerFinder.md): finding the server for the page, and `ServerConfig`, the screen that asks
   the player for its address.
 
