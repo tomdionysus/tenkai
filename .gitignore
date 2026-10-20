@@ -11,3 +11,8 @@ examples/*/bundle.js
 
 # Local-only work with third-party copyrighted assets. Never commit, publish or deploy.
 local/
+
+# Blood shareware (examples/blood): the original installer and what it unpacks, and the data built from them
+examples/blood/original/
+examples/blood/data/
+examples/blood/**/node_modules/
