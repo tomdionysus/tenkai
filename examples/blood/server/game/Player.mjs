@@ -82,7 +82,11 @@ export default class Player {
         s.yvel -= mulscale(strafe, x, 30)
       }
     }
-    if (input.turn) this.ang = (this.ang + (input.turn >> 2)) & 2047
+    // A client of the remake sends where it looks (Quake's way: the view angles are the client's, so a mouse turns
+    // at once); a demo, the original's turn
+    if (input.ang !== undefined) this.ang = input.ang & 2047
+    else if (input.turn) this.ang = (this.ang + (input.turn >> 2)) & 2047
+    if (input.horiz !== undefined) this.horiz = input.horiz
     if (input.keys & KEY.spin180) this.spin = this.spin || -1024
     s.ang = this.ang
     if (!(input.buttons & BUTTON.jump)) this.cantJump = false
@@ -155,6 +159,16 @@ export default class Player {
     const p = POSTURES[this.posture]
     this.zView = this.sprite.z - p.eyeAboveZ
     this.zWeapon = this.sprite.z - p.weaponAboveZ
+  }
+
+  /** What the player's client is told of them: the view, and the status bar's numbers */
+  status () {
+    const s = this.sprite
+    return {
+      number: this.number, sprite: s.index, x: s.x, y: s.y, z: this.zView, ang: this.ang, horiz: this.horiz, sectnum: s.sectnum,
+      health: this.health >> 4, armor: this.armor || [0, 0, 0], weapon: this.weapon || 1, ammo: this.ammo || [], keys: this.keys.map((k) => k ? 1 : 0),
+      bob: this.bobHeight || 0, zWeapon: this.zWeapon - this.zView, tint: this.tint || null, dead: this.health <= 0 ? 1 : 0
+    }
   }
 
   /** The camera: { x, y, z, ang, horiz, sectnum } */

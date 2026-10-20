@@ -464,12 +464,15 @@ export default class Triggers {
   /** Build's dragpoint: a vertex moved, with the vertices of the walls that share it */
   dragPoint (n, x, y) {
     const walls = this.level.walls
+    const changed = this.game.changedWalls
     walls[n].x = x; walls[n].y = y
+    if (changed) changed.add(n)
     let cnt = walls.length, t = n
     do {
       if (walls[t].nextwall >= 0) {
         t = walls[walls[t].nextwall].point2
         walls[t].x = x; walls[t].y = y
+        if (changed) changed.add(t)
       } else {
         t = n
         do {
@@ -477,6 +480,7 @@ export default class Triggers {
           if (walls[lw].nextwall >= 0) {
             t = walls[lw].nextwall
             walls[t].x = x; walls[t].y = y
+            if (changed) changed.add(t)
           } else break
           cnt--
         } while (t !== n && cnt > 0)

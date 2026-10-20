@@ -74,6 +74,25 @@ export default class Game {
     return p
   }
 
+  /** A player leaves: their body goes */
+  removePlayer (number) {
+    const p = this.players[number]
+    if (!p) return
+    this.seqs.kill(p.sprite)
+    this.level.remove(p.sprite)
+    this.players[number] = null
+  }
+
+  /** The level after this one, by BLOOD.INI's EndingA (normal) and EndingB (secret), in the same episode */
+  nextMap () {
+    const info = this.level.info
+    const n = Number(this.ended && this.ended.secret ? info.endingb : info.endinga)
+    const episode = this.level.name.match(/^e(\d+)m/)
+    if (!n || !episode) return null
+    const name = 'e' + episode[1] + 'm' + n
+    return this.res.ini[name] ? name : null
+  }
+
   playerOf (sprite) { return this.players.find((p) => p && p.sprite === sprite) || null }
 
   /** One frame of the game (Blood's ProcessFrame), with each player's input for it */
