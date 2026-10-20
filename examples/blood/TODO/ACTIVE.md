@@ -69,9 +69,9 @@ original's own behaviour (counts, ranges, cross-references).
 
 ## Phase 4: the game on the server
 
-- [ ] 4a The world: map loaded, sectors and sprites as live objects, the Build tables (sin, clip), engine
+- [x] 4a The world: map loaded, sectors and sprites as live objects, the Build tables (sin, clip), engine
       queries (getzrange, cansee, hitscan, clipmove, pushmove) ported with checks
-- [ ] 4b The player: Blood's movement (input → velocity, friction, gravity, jump, crouch, swim), 30 ticks a second,
+- [x] 4b (movement) The player: Blood's movement (input → velocity, friction, gravity, jump, crouch, swim), 30 ticks a second,
       kicked by the original's constants; a demo played through the server as the check
 - [ ] 4c Sector effects (xsector): doors, lifts, switches, triggers, teleports, water, the sprite effects
 - [ ] 4d Weapons: pitchfork, flare gun, shotgun, Tommy gun, dynamite ...; hitscans, projectiles, damage
@@ -90,7 +90,7 @@ original's own behaviour (counts, ranges, cross-references).
 
 ## Phase 6: fidelity
 
-- [ ] 6a The original headless: js-dos `emulators` under Node with the shareware, driven by keys, screenshots out
+- [x] 6a The original headless: js-dos `emulators` under Node with the shareware, driven by keys, screenshots out
 - [ ] 6b Demos: BLOOD000-002.DEM parsed; played in the emulator and through the server; positions compared per tick
 - [ ] 6c Monte-carlo: random input scripts played in both, compared; the differences listed and closed
 - [ ] 6d Screenshots of the same view compared (the renderer against the original)

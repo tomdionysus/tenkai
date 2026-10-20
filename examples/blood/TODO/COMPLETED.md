@@ -42,3 +42,30 @@
   heights show at 0.625 of z / 16; the distance shading is much weaker than first guessed (1 / 409600 a unit of
   visibility a unit of distance, to be fitted more finely). The player starts in a coffin sector (type 614) whose
   lid slides open, and a light sector (amplitude -16) brightens the crypt: game logic, for the server.
+
+## Phase 6a-b (first part): the original traced from its memory, the movement matched (2026-10-21)
+
+- The original's RAM is inside the emulator's WebAssembly heap (`ci.transport.module.HEAPU8`): `fidelity/mem.mjs`
+  finds the player's sprite (status 6, type 231, clipdist 48) and Blood's sector, wall and sprite arrays from the
+  map, and reads them as it runs. Node gets in every 1 to 4 game ticks.
+- BLOOD.CFG needs a [KeyDefinitions] section: without it no game key is bound (Escape still works). The defaults
+  are in BLOOD.EXE's strings.
+- Attract mode plays BLOOD000.DEM (E1M1) about 65 s after boot; `-playback` does nothing here. The counter 934408
+  bytes before the player's sprite is the demo's input index, so `fidelity/trace.mjs` lines every sample up with
+  the input that made it. The counter moves before the player in a frame, so a sample may show the tick before.
+- Demos: a 411-byte header, then 22-byte inputs (sync flags, forward and strafe as signed bytes of 256, turn as
+  int16 with the angle moving turn >> 2, buttons, keys, use, weapon).
+- `fidelity/replay.mjs` plays a demo through the server's game and compares. Found and matched on the way:
+  - acceleration: mulscale8(0x4000, forward) scaled by 0xfe00 (the original runs 2032 for a demo's 2048); drag
+    0x2a00 per tick with mulscale16r, applied after the move; position += xvel >> 12;
+  - Blood's sector types are two above the reconstructed source's: 612 path, 613 step rotate, 614 slide marked
+    walls, 615 rotate marked, 616 slide all, 617 rotate all, 618 damage, 619 counter; sliding and rotating sectors
+    are put at their rest state at load (translate by -65536, rebase, translate to busy);
+  - E1M1 opens with a coffin lid (614) sliding shut over the start and the player rising through a stack link
+    (markers 11 and 12) into the graveyard: Blood's GetZRange looks through links, CheckLink carries the body;
+  - the player's tile comes from its sequence (PLAY1: idle 12032, moving +8, 14 clock ticks a frame), changing the
+    sprite's extents, so z; the idle tile returns below a speed of 0x8000;
+  - running into a wall whose far sector takes a wall push (E1M1's gate, a 617) triggers it, only at rest;
+  - a wall hit takes away the velocity into it (actWallBounceVector).
+- The result: within 20 units through tick 340 of BLOOD000; it then departs where the original is knocked about
+  by being shot at (the monsters, not yet on the server).

@@ -113,7 +113,8 @@ export default class Player {
   stance () {
     if (!this.seqs) return
     const s = this.sprite
-    const speed = approxDist(s.xvel, s.yvel)
+    // The original stands idle again below about half its walking speed (its trace changes tile between 51900 and 30318)
+    const speed = approxDist(s.xvel, s.yvel) >= 0x8000
     let id
     if (this.posture === SWIM) id = this.seqBase + 9
     else if (this.posture === CROUCH) id = speed ? this.seqBase + 15 : this.seqBase + 14
