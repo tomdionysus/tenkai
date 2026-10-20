@@ -18,11 +18,13 @@ const sounds = new SoundBoard({
 })
 game.on('mousedown', () => sounds.unlock())
 sounds.play(14)
+sounds.toggle('speech')   // the setup screen's SPEECH OFF
 ```
 
 | Member | |
 |---|---|
-| `new SoundBoard({ engine, base, sounds, phrases, voices, channel, manager })` | `sounds` by number `{ file, rate, speech }`; `voices` default 2; `channel` the effects' (default `'effects'`) |
+| `new SoundBoard({ engine, base, sounds, phrases, voices, channel, manager })` | `sounds` by number `{ file, rate, speech, group }` (`group` what it is switched on and off with: default `'speech'` for speech, `'effects'` for the rest); `voices` default 2; `channel` the effects' (default `'effects'`) |
+| `enable(group, on)`, `toggle(group)`, `enabled(group)` | a group of sounds switched off (not played) or on; `toggle` answers whether it is on now |
 | `unlock()`, `ready` | the first gesture: the audio context unlocked, sounds loaded |
 | `play(n)` | a sound or a phrase; resolves when it has ended |
 | `one(n)` | one sound, never a phrase |

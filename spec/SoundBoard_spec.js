@@ -33,6 +33,24 @@ describe('SoundBoard', () => {
     expect(board.turn).toBe(0)
   })
 
+  it('should switch a group of sounds off and on, speech and effects their own groups unless given', async () => {
+    var m = manager()
+    var board = new SoundBoard({ engine: engine(), sounds: Object.assign({ 5: { file: 'm.wav', group: 'music' } }, sounds), manager: () => m })
+    board.unlock()
+    expect(board.toggle('speech')).toBe(false)
+    await board.play(3)
+    await board.play(1)
+    expect(m.played).toEqual(['a.wav@effects:1'])
+    board.enable('effects', false)
+    board.enable('speech', true)
+    await board.play(1)
+    await board.play(3)
+    await board.play(5)
+    expect(m.played).toEqual(['a.wav@effects:1', 'say.wav@voice', 'm.wav@effects:1'])
+    expect(board.enabled('effects')).toBe(false)
+    expect(board.enabled('music')).toBe(true)
+  })
+
   it('should keep an effect going without restarting it, and stop it by its number', () => {
     var m = manager()
     var live = []

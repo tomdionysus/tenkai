@@ -37,10 +37,17 @@ palette.advanceCycles(1)
 
 Set one entry, or get it as `[r, g, b]`.
 
-### load(source, start, end)
+### load(source, start, end, to)
 
 Copy entries `start` to `end` (inclusive; default all) from `source`, three values per entry, indexed like
-the palette.
+the palette. With `to`, the range lands at that entry instead of its own (kept within the palette): a palette made
+of ranges of others, as a game's window colours after its own.
+
+```js
+const window = new Palette({ size: 48 })
+window.load(game.colors, 0, 31)
+window.load(dimmed.colors, 0, 15, 32)
+```
 
 ### scale(source, start, end, r, g, b, max)
 

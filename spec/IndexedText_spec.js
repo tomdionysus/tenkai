@@ -59,6 +59,7 @@ describe('TextBlocks', () => {
   const blocks = {
     plain: { x: 0, y: 0, width: 10, items: [{ op: 'text', text: 1, x: 0, y: 0 }, { op: 'colour', colour: 2 }, { op: 'string', of: 'name', x: 0, y: 4 }, { op: 'number', of: 'n', x: 0, y: 8, digits: 3 }] },
     flags: { x: 0, y: 0, width: 10, items: [{ op: 'text', text: 2, x: 0, y: 0 }, { op: 'skipIfFlag' }, { op: 'text', text: 2, x: 2, y: 0 }, { op: 'stopIfFlag' }, { op: 'text', text: 2, x: 4, y: 0 }] },
+    rows: { x: 0, y: 0, width: 10, items: [{ op: 'skipIfFlag', items: 2 }, { op: 'text', text: 2, x: 0, y: 0 }, { op: 'text', text: 2, x: 2, y: 0 }, { op: 'skipIfFlag', items: 2 }, { op: 'text', text: 2, x: 4, y: 0 }, { op: 'text', text: 2, x: 6, y: 0 }] },
     pen: { x: 0, y: 0, width: 10, items: [{ op: 'at', x: 3, y: 2 }, { op: 'string', string: 'A' }, { op: 'text', of: 'which', x: 6, y: 2 }] },
     centred: { x: 2, y: 0, width: 8, centreShift: 1, items: [{ op: 'centre', on: true }, { op: 'text', text: 2, x: 0, y: 0 }] }
   }
@@ -81,6 +82,15 @@ describe('TextBlocks', () => {
     s.clear()
     runner.draw(s, 'flags', {})
     expect(inked(s)).toEqual(['0,0', '2,0', '4,0'])
+  })
+
+  it('should skip so many items, asking a flag function at each skip with its ordinal', () => {
+    const s = new IndexedSurface({ width: 10, height: 4 })
+    runner.draw(s, 'rows', { flag: (n) => n === 0 })
+    expect(inked(s)).toEqual(['4,0', '6,0'])
+    s.clear()
+    runner.draw(s, 'rows', { flag: (n) => n === 1 })
+    expect(inked(s)).toEqual(['0,0', '2,0'])
   })
 
   it('should put plain strings at the pen, and a value\'s number as its text', () => {

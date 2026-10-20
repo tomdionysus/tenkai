@@ -18,6 +18,14 @@ describe('Palette', () => {
     expect(Array.from(p.colors)).toEqual([0, 0, 0, 1, 2, 3, 7, 7, 7, 6, 6, 6])
   })
 
+  it('should load a range to another place, kept within the palette', () => {
+    var p = new Palette({ size: 4 })
+    p.load([9, 9, 9, 8, 8, 8, 7, 7, 7], 0, 1, 2)
+    expect(Array.from(p.colors)).toEqual([0, 0, 0, 0, 0, 0, 9, 9, 9, 8, 8, 8])
+    p.load([5, 5, 5, 4, 4, 4], 0, 1, 3)
+    expect(Array.from(p.colors)).toEqual([0, 0, 0, 0, 0, 0, 9, 9, 9, 5, 5, 5])
+  })
+
   it('should rotate a range forward and back', () => {
     var p = ramp()
     p.rotate(2, 4)

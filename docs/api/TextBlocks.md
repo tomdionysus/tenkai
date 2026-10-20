@@ -26,12 +26,14 @@ A block is `{ x, y, width, items, centreShift, wrapIndent }`: centred lines are 
 | `text` `{ text, x, y }` | a text by its number; or `{ of }`: by the number a value holds, or the value if it is a string |
 | `string` `{ string }` | a plain string at the pen; or `{ of, x, y }`: a value as it is |
 | `number` `{ of, x, y, digits, signed }` | a value right-aligned in `digits` places (made positive unless `signed`) |
-| `stopIfFlag`, `skipIfFlag` | with the value `flag` set: stop here, or skip the next item |
+| `stopIfFlag`, `skipIfFlag` `{ items }` | with the value `flag` set: stop here, or skip the next `items` items (default 1) |
 
-A missing value (or an empty string) leaves its item out.
+A missing value (or an empty string) leaves its item out. The `flag` may be a function, `(n) => boolean`, asked at
+each stop or skip item with its ordinal in the block: a menu whose rows each follow a skip leaves out the one row
+that blinks.
 
 | Member | |
 |---|---|
 | `new TextBlocks({ blocks, text, words, colours, margin, startColour })` | `words(n)` a text by its number; `colours(colour)` the font's colours for a colour number (default `{ 1: colour }`); `margin` (default 0); `startColour` (default 1) |
-| `draw(surface, name, values, { text, colours })` | a block with its values; another font's `text` or other `colours` for this drawing; nothing for an unknown name |
+| `draw(surface, name, values, { text, colours })` | a block with its values (`flag` a boolean or `(n) => boolean`); another font's `text` or other `colours` for this drawing; nothing for an unknown name |
 | `has(name)` | whether there is such a block |

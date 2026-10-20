@@ -42,6 +42,10 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [Ticker](api/Ticker.md): a status strip run as a ticker tape, messages crossing it a pixel column a frame,
   with a text held alone for a pause.
 - [RollingCounter](api/RollingCounter.md): money or a score running toward its value, its digits rolling.
+- [Typewriter](api/Typewriter.md): a screen's words let out a letter at a time, a call for each as it comes, the
+  rest at once on a press.
+- [NameEntry](api/NameEntry.md): a name typed with the keys (a saved game's, a colony's): letters, digits and signs
+  by key code, Backspace, Enter and Escape.
 - [Shake](api/Shake.md): a screen shake, a part of the screen jolted by a pattern of offsets a frame.
 
 ### Scenes
@@ -100,7 +104,7 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [IndexedSheet](api/IndexedSheet.md): pictures in palette numbers by number, cut from a grid or an atlas, joined
   into one numbering, drawn through colour tables or mirrored.
 - [IndexedFont](api/IndexedFont.md): text in palette colours from glyphs kept as bits, a colour per layer (letter,
-  shadow).
+  shadow), or read from a sheet of glyphs.
 - [IndexedText](api/IndexedText.md): text laid out with an IndexedFont: lines, centring as old games centre,
   wrapping, numbers right-aligned in places.
 - [TextBlocks](api/TextBlocks.md): windows' laid-out words by name, items run in order with the values given.
@@ -125,7 +129,7 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
 - [SoundVoices](api/SoundVoices.md): a fixed number of voices, a new sound replacing the old unless held or
   of a higher priority, as old sound chips worked.
 - [SoundBoard](api/SoundBoard.md): sounds by number, phrases played part after part, effects taking turns on
-  voices, speech on its own channel, silent until the first gesture.
+  voices, speech on its own channel, groups switched off and on, silent until the first gesture.
 
 ### Point-and-click
 
