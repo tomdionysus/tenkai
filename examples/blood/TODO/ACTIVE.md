@@ -33,11 +33,11 @@ examples/blood/
 Read every file the shareware ships, with a dump tool that prints what each holds and checks that fit the
 original's own behaviour (counts, ranges, cross-references).
 
-- [ ] 1a RFF archives (BLOOD.RFF, SOUNDS.RFF, GUI.RFF): header, encrypted directory, per-file encryption flag, the
+- [x] 1a RFF archives (BLOOD.RFF, SOUNDS.RFF, GUI.RFF): header, encrypted directory, per-file encryption flag, the
       types in each (`formats/rff.mjs`, `tools/dump.mjs rff`)
-- [ ] 1b Palette and shade tables: BLOOD.PAL, the palookups (.PLU), the alternate palettes (water, beast); TABLES.DAT
-- [ ] 1c SHARE000.ART: tiles, sizes, picanm (animation, offsets); which tiles the maps and sequences use
-- [ ] 1d MAP files: Blood's encrypted v7 map (header key, sector/wall/sprite keys found by sanity), xsector/xwall/
+- [x] 1b Palette and shade tables: BLOOD.PAL, the palookups (.PLU), the alternate palettes (water, beast); TABLES.DAT
+- [x] 1c SHARE000.ART: tiles, sizes, picanm (animation, offsets); which tiles the maps and sequences use
+- [x] 1d MAP files: Blood's encrypted v7 map (header key, sector/wall/sprite keys found by sanity), xsector/xwall/
       xsprite bitfields, the episode's maps listed in BLOOD.INI; a check that every wall's nextsector/nextwall and
       every sprite's sector agree
 - [ ] 1e SEQ (sprite animation sequences) and QAV (weapon animations), SFX descriptors and RAW sounds, MID music,
@@ -46,8 +46,12 @@ original's own behaviour (counts, ranges, cross-references).
 
 ## Phase 2: the data built for the client
 
-- [ ] 2a `tools/build.mjs`: tiles into indexed atlases (palette numbers, not colours) with a JSON index; palettes and
-      palookups as PNG; sounds as WAV; maps and sequences as JSON (server reads the originals directly)
+- [ ] 2a `tools/build.mjs`: everything the client loads in a standard format (the user's rule, 2026-10-21: bitmaps
+      as PNG, sounds as WAV, music as WAV or MP3, so Tenkai's own classes load them). Tiles packed into atlas pages
+      as two PNGs each: a true-colour one for Tenkai's `Sheet` (HUD, menus) and an 8-bit grey one whose pixel
+      values are the palette numbers, for the shader; palettes and shade tables as PNGs; sounds as WAV; the
+      MIDIs rendered through a soundfont (js-synthesizer; no synth is installed here) to WAV or MP3; maps and
+      sequences as JSON (the server reads the originals through formats/ directly)
 - [ ] 2b A look at the tiles and maps in the browser (an atlas viewer page) to confirm the readers by eye
 
 ## Phase 3: drawing the world (client)

@@ -1,0 +1,17 @@
+{
+  "name": "blood-on-tenkai",
+  "private": true,
+  "type": "module",
+  "description": "Blood (Monolith, 1997) remade: a Node server and a Tenkai client",
+  "scripts": {
+    "data": "node tools/build.mjs",
+    "server": "node server/index.mjs",
+    "client": "esbuild src/main.js --bundle --outfile=bundle.js --servedir=. --serve=8047"
+  },
+  "dependencies": {
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "emulators": "^8.5.2"
+  }
+}
