@@ -108,7 +108,12 @@ export default class BuildView extends WebGLScene {
     this.palette = 0
     this.tint = [0, 0, 0, 0]
     /** How fast things darken with distance, against the map's visibility (tuned against the original). */
-    this.visScale = 1 / 65536
+    this.visScale = 1 / 409600
+    /** How much taller than wide the original's pixels were shown (320 by 200 on a 4:3 screen): 1.2; 1 to compare pixel for pixel with its screenshots. */
+    this.stretch = 1.2
+    /** The vertical scale against z / 16: Build shows its 320 by 200 pixels as 90 degrees both across and up, so heights
+     * look 0.625 of their size in x and y units (fitted to the original's screenshots: 0.6 best of 0.5 to 1). */
+    this.zscale = 0.625
     this.skyV = 200
     this.dirty = new Set()
     if (this.gl) this.setup(this.gl)
@@ -282,12 +287,12 @@ export default class BuildView extends WebGLScene {
     gl.useProgram(this.program)
     const eye = this.eye
     const a = eye.ang / ANGLES * TAU
-    // Build's view: 90 degrees across a 4:3 screen of 320 by 200 pixels, its pixels 1.2 times taller than wide;
-    // wider screens see more to the sides
+    // Build's view: 90 degrees across 320 by 200 pixels (160 pixels to a unit both ways), shown on a 4:3 screen, so
+    // its pixels 1.2 times taller than wide; wider screens see more to the sides
     const aspect = this.canvas.width / this.canvas.height
     gl.uniform3f(this.uniforms.uEye, eye.x, eye.y, eye.z)
     gl.uniform2f(this.uniforms.uFwd, Math.cos(a), Math.sin(a))
-    gl.uniform2f(this.uniforms.uTan, 0.75 * aspect, 0.625)
+    gl.uniform2f(this.uniforms.uTan, 0.625 * aspect * this.stretch, 0.625 / this.zscale)
     gl.uniform1f(this.uniforms.uHoriz, (eye.horiz - 100) / 100)
     gl.uniform1f(this.uniforms.uClock, this.clock)
     gl.uniform1i(this.uniforms.uPalette, this.palette)

@@ -46,7 +46,7 @@ original's own behaviour (counts, ranges, cross-references).
 
 ## Phase 2: the data built for the client
 
-- [ ] 2a `tools/build.mjs`: everything the client loads in a standard format (the user's rule, 2026-10-21: bitmaps
+- [x] 2a `tools/build.mjs`: everything the client loads in a standard format (the user's rule, 2026-10-21: bitmaps
       as PNG, sounds as WAV, music as WAV or MP3, so Tenkai's own classes load them). Tiles packed into atlas pages
       as two PNGs each: a true-colour one for Tenkai's `Sheet` (HUD, menus) and an 8-bit grey one whose pixel
       values are the palette numbers, for the shader; palettes and shade tables as PNGs; sounds as WAV; the
@@ -56,7 +56,7 @@ original's own behaviour (counts, ranges, cross-references).
 
 ## Phase 3: drawing the world (client)
 
-- [ ] 3a Tenkai: a `WebGLScene` primitive (a scene with its own WebGL canvas, drawn into the engine's canvas at its
+- [x] 3a Tenkai: a `WebGLScene` primitive (a scene with its own WebGL canvas, drawn into the engine's canvas at its
       place and size, with the engine's pixelated setting), spec and doc
 - [ ] 3b Build geometry renderer: sectors' floors and ceilings (sloped too), walls (one-sided, two-sided with upper
       and lower parts, masked), parallax sky, shading by sector shade and distance through the palookup in a

@@ -26,6 +26,8 @@ class Fly extends GameEngine {
       x: Number(params.get('x') || s.x), y: Number(params.get('y') || s.y), z: Number(params.get('z') || (map.sectors[s.sector].floorz - 0x2600)),
       ang: Number(params.get('ang') || s.ang), horiz: Number(params.get('horiz') || 100)
     }
+    if (params.get('stretch')) this.view.stretch = Number(params.get('stretch'))
+    if (params.get('vis')) this.view.visScale = 1 / Number(params.get('vis'))
     window.fly = this
   }
 
