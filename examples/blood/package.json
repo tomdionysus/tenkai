@@ -9,6 +9,7 @@
     "client": "esbuild src/main.js --bundle --outfile=bundle.js --servedir=. --serve=8047"
   },
   "dependencies": {
+    "earcut": "^3.2.4",
     "ws": "^8.22.0"
   },
   "devDependencies": {

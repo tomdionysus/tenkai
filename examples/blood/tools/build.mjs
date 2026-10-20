@@ -33,7 +33,9 @@ if (want('palettes')) {
   const clus = blood.ofType('CLU').map((e) => e.name)
   const clu = new Uint8Array(256 * clus.length); clus.forEach((n, k) => clu.set(blood.read(n + '.CLU'), k * 256))
   write('colours.png', png({ width: 256, height: clus.length, pixels: clu, type: 'grey' }))
-  write('palettes.json', JSON.stringify({ palettes: names, shades: plus, colours: clus }, null, 1))
+  // A pal number is a PLU's id; the shade rows are in directory order, so the client is given the row of each id
+  const shadeRows = {}; blood.ofType('PLU').forEach((e, k) => { shadeRows[e.id] = k })
+  write('palettes.json', JSON.stringify({ palettes: names, shades: plus, shadeRows, colours: clus }, null, 1))
 }
 
 if (want('tiles')) {
