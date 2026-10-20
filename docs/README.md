@@ -86,6 +86,8 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   handlers, and bodies that move and block each other.
 - [IsometricScene](api/IsometricScene.md): shows the world: entities placed by world position, drawn in
   depth order over a ground, with a camera that can glide between the game's ticks.
+- [WebGLScene](api/WebGLScene.md): a scene drawn through WebGL 2 on a canvas of its own, put into the game's
+  canvas under its children, for a 3D view in the scene tree.
 - [Camera](api/Camera.md): the scroll of a flat scene after a target: a lead, a speed, forward only or both
   ways, a limit, an eased other axis, and what is off screen.
 - [Motion](api/Motion.md): a character's movement through scripted steps and animation frames.
