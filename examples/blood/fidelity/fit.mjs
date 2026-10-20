@@ -55,7 +55,7 @@ export function score (a, b, width, height, mask) {
   return s / n
 }
 
-if (process.argv[1].endsWith('fit.mjs')) {
+if (process.argv[1] && process.argv[1].endsWith('fit.mjs')) {
   const [file, params, bottom = '40'] = process.argv.slice(2)
   const orig = readPNG(file)
   const page = await Page.open('http://127.0.0.1:8471/fly.html?' + params + '&stretch=1', { width: orig.width, height: orig.height, ready: 'window.fly && fly.view && fly.view.map' })
