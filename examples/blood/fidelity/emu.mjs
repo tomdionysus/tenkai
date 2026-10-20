@@ -15,7 +15,8 @@ if (typeof globalThis.ImageData === 'undefined') globalThis.ImageData = class Im
 
 /**
  * BLOOD.CFG as SETUP writes it (Apogee's script format; the keys and sections read from BLOOD.EXE's strings): 320 by
- * 200, no sound unless asked, the keys left to the game's defaults.
+ * 200, no sound unless asked, the keys as BLOOD.EXE's defaults (without [KeyDefinitions] no game key is bound;
+ * these are its table of defaults, with Jump on A, Crouch on Z and the letters the manual gives).
  */
 export function config (o = {}) {
   return `[Screen Setup]
@@ -42,6 +43,61 @@ BlasterDma8 = 1
 BlasterDma16 = 5
 BlasterEmu = 0x620
 ReverseStereo = 0
+[KeyDefinitions]
+Move_Forward = "Up" "Kpad8"
+Move_Backward = "Down" "Kpad2"
+Turn_Left = "Left" "Kpad4"
+Turn_Right = "Right" "KPad6"
+Turn_Around = "BakSpc" ""
+Strafe = "LAlt" "RAlt"
+Strafe_Left = "," ""
+Strafe_Right = "." ""
+Jump = "A" "/"
+Crouch = "Z" ""
+Run = "LShift" "RShift"
+AutoRun = "CapLck" ""
+Open = "Space" ""
+Weapon_Fire = "LCtrl" "RCtrl"
+Weapon_Special_Fire = "X" ""
+Aim_Up = "Home" "KPad7"
+Aim_Down = "End" "Kpad1"
+Aim_Center = "KPad5" ""
+Look_Up = "PgUp" "Kpad9"
+Look_Down = "PgDn" "Kpad3"
+Tilt_Left = "Insert" "Kpad0"
+Tilt_Right = "Delete" "Kpad."
+Weapon_1 = "1" ""
+Weapon_2 = "2" ""
+Weapon_3 = "3" ""
+Weapon_4 = "4" ""
+Weapon_5 = "5" ""
+Weapon_6 = "6" ""
+Weapon_7 = "7" ""
+Weapon_8 = "8" ""
+Weapon_9 = "9" ""
+Weapon_10 = "0" ""
+Inventory_Use = "Enter" "KpdEnt"
+Inventory_Left = "[" ""
+Inventory_Right = "]" ""
+Map_Toggle = "Tab" ""
+Map_Follow_Mode = "F" ""
+Shrink_Screen = "-" "Kpad-"
+Enlarge_Screen = "=" "Kpad+"
+Send_Message = "T" ""
+See_Coop_View = "K" ""
+See_Chase_View = "F7" ""
+Mouse_Aiming = "U" ""
+Toggle_Crosshair = "I" ""
+Next_Weapon = "'" ""
+Previous_Weapon = ";" ""
+Holster_Weapon = "ScrLck" ""
+Show_Opponents_Weapon = "Y" ""
+BeastVision = "B" ""
+CrystalBall = "C" ""
+JumpBoots = "J" ""
+MedKit = "M" ""
+ProximityBombs = "P" ""
+RemoteBombs = "R" ""
 [Controls]
 ControllerType = 0
 MouseSensitivity = 32768

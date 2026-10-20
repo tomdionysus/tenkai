@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blood remake status</title>
+<style>
+  :root { --bg: #111; --fg: #ddd; --dim: #888; --accent: #c33; --panel: #1b1b1b }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 system-ui, sans-serif }
+  header { padding: 12px 16px; border-bottom: 1px solid #333; display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap }
+  h1 { margin: 0; font-size: 18px; color: var(--accent) } #now { font-weight: 600 } #updated { color: var(--dim) }
+  main { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; padding: 16px }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr } }
+  section { background: var(--panel); padding: 12px; border-radius: 6px; min-width: 0 }
+  h2 { margin: 0 0 8px; font-size: 14px; color: var(--dim); text-transform: uppercase; letter-spacing: .05em }
+  iframe { width: 100%; aspect-ratio: 16 / 10; border: 0; background: #000 }
+  .shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px }
+  .shots figure { margin: 0 } .shots img { width: 100%; image-rendering: pixelated; background: #000 } figcaption { color: var(--dim); font-size: 12px }
+  pre { white-space: pre-wrap; font-size: 12px; margin: 0; max-height: 70vh; overflow: auto }
+  ul { margin: 0; padding-left: 18px; font-family: ui-monospace, monospace; font-size: 12px }
+</style>
+</head>
+<body>
+<header><h1>Blood on Tenkai</h1><span id="now"></span><span id="updated"></span></header>
+<main>
+  <div>
+    <section><h2>Live fly-through (arrows to move, A/Z up and down, click it first)</h2><iframe src="fly.html?x=-14976&y=33280&z=-26112&ang=0"></iframe></section>
+    <section style="margin-top:16px"><h2>Latest shots (the original beside the remake)</h2><div class="shots" id="shots"></div></section>
+  </div>
+  <div>
+    <section><h2>Recent commits</h2><ul id="commits"></ul></section>
+    <section style="margin-top:16px"><h2>Plan (TODO/ACTIVE.md)</h2><pre id="active"></pre></section>
+  </div>
+</main>
+<script>
+let last = ''
+async function refresh () {
+  try {
+    const s = await (await fetch('status/status.json?' + Date.now())).json()
+    if (s.updated === last) return
+    last = s.updated
+    document.getElementById('now').textContent = s.now
+    document.getElementById('updated').textContent = 'updated ' + new Date(s.updated).toLocaleTimeString()
+    document.getElementById('active').textContent = s.active
+    document.getElementById('commits').innerHTML = s.commits.map((c) => '<li>' + c.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</li>').join('')
+    document.getElementById('shots').innerHTML = s.images.map((i) => '<figure><img src="status/' + i.file + '"><figcaption>' + i.caption + '</figcaption></figure>').join('')
+  } catch (e) {}
+}
+refresh(); setInterval(refresh, 10000)
+</script>
+</body>
+</html>
