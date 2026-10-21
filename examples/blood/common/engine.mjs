@@ -173,12 +173,22 @@ export class Engine {
     if (!this._bySector || this._bySectorStamp !== this.world.stamp) {
       this._bySector = new Map()
       this._bySectorStamp = this.world.stamp
+      // In the order they came into the sector (Blood's InsertSpriteSect puts a sprite at its list's end, and a move
+      // to another sector is a removal and an insertion: what entered last is met last; at the map's load, by index)
+      const n = this.world.sprites.length
+      if (!this._enteredAt || this._enteredAt.length < n) {
+        const a = new Float64Array(Math.max(n, 4096)), b = new Int32Array(Math.max(n, 4096)).fill(-2)
+        if (this._enteredAt) { a.set(this._enteredAt); b.set(this._lastSect) }
+        this._enteredAt = a; this._lastSect = b; this._entered = this._entered || 0
+      }
       this.world.sprites.forEach((s, i) => {
-        if (!s || s.statnum >= 1024 || s.sectnum < 0) return
+        if (!s || s.statnum >= 1024 || s.sectnum < 0) { this._lastSect[i] = -2; return }
+        if (this._lastSect[i] !== s.sectnum) { this._lastSect[i] = s.sectnum; this._enteredAt[i] = ++this._entered }
         let l = this._bySector.get(s.sectnum)
         if (!l) this._bySector.set(s.sectnum, (l = []))
         l.push(i)
       })
+      for (const l of this._bySector.values()) if (l.length > 1) l.sort((a, b) => this._enteredAt[a] - this._enteredAt[b])
     }
     return this._bySector.get(sectnum) || []
   }
@@ -218,9 +228,10 @@ export class Engine {
         if (wal.y > ymax && wal2.y > ymax) continue
         const x1 = wal.x, y1 = wal.y, x2 = wal2.x, y2 = wal2.y
         const dx = x2 - x1, dy = y2 - y1
-        if (dx * (pos.y - y1) < (pos.x - x1) * dy) continue // back side
-        const dax0 = dx > 0 ? dx * (ymin - y1) : dx * (ymax - y1)
-        const day0 = dy > 0 ? dy * (xmax - x1) : dy * (xmin - x1)
+        // (Build's products are 32-bit)
+        if (Math.imul(dx, pos.y - y1) < Math.imul(pos.x - x1, dy)) continue // back side
+        const dax0 = dx > 0 ? Math.imul(dx, ymin - y1) : Math.imul(dx, ymax - y1)
+        const day0 = dy > 0 ? Math.imul(dy, xmax - x1) : Math.imul(dy, xmin - x1)
         if (dax0 >= day0) continue
         let clipyou = 0
         if (wal.nextsector < 0 || (wal.cstat & dawalclipmask)) clipyou = 1
@@ -311,9 +322,10 @@ export class Engine {
         intx = hitwall.x; inty = hitwall.y
         const c = clipit[hitwall.wall]
         const lx = c.x2 - c.x1, ly = c.y2 - c.y1
-        const t2 = lx * lx + ly * ly
+        // (Build's products are 32-bit: a wall longer than 46341 squares to a negative and is not slid along)
+        const t2 = (Math.imul(lx, lx) + Math.imul(ly, ly)) | 0
         if (t2 > 0) {
-          const t1 = (goalx - intx) * lx + (goaly - inty) * ly
+          const t1 = (Math.imul(goalx - intx, lx) + Math.imul(goaly - inty, ly)) | 0
           const i = (Math.abs(t1) >> 11) < t2 ? divscale(t1, t2, 20) : 0
           goalx = mulscale(lx, i, 20) + intx
           goaly = mulscale(ly, i, 20) + inty
@@ -388,17 +400,19 @@ export class Engine {
   }
 
   raytrace (clipit, x3, y3, x4, y4) {
+    const im = Math.imul
     let hit = -1
     for (let z = clipit.length - 1; z >= 0; z--) {
       const { x1, y1, x2, y2 } = clipit[z]
       const x21 = x2 - x1, y21 = y2 - y1
-      let topu = x21 * (y3 - y1) - (x3 - x1) * y21
+      // (32-bit products, as Build's)
+      let topu = (im(x21, y3 - y1) - im(x3 - x1, y21)) | 0
       if (topu <= 0) continue
-      if (x21 * (y4 - y1) > (x4 - x1) * y21) continue
+      if (im(x21, y4 - y1) > im(x4 - x1, y21)) continue
       const x43 = x4 - x3, y43 = y4 - y3
-      if (x43 * (y1 - y3) > (x1 - x3) * y43) continue
-      if (x43 * (y2 - y3) <= (x2 - x3) * y43) continue
-      const bot = x43 * y21 - x21 * y43
+      if (im(x43, y1 - y3) > im(x1 - x3, y43)) continue
+      if (im(x43, y2 - y3) <= im(x2 - x3, y43)) continue
+      const bot = (im(x43, y21) - im(x21, y43)) | 0
       if (bot === 0) continue
       let cnt = 256, nintx, ninty
       do {
@@ -407,7 +421,7 @@ export class Engine {
         nintx = x3 + scale(x43, topu, bot)
         ninty = y3 + scale(y43, topu, bot)
         topu--
-      } while (x21 * (ninty - y1) <= (nintx - x1) * y21)
+      } while (im(x21, ninty - y1) <= im(nintx - x1, y21))
       if (Math.abs(x3 - nintx) + Math.abs(y3 - ninty) < Math.abs(x3 - x4) + Math.abs(y3 - y4)) { x4 = nintx; y4 = ninty; hit = z }
     }
     return { wall: hit, x: x4, y: y4 }
@@ -418,7 +432,7 @@ export class Engine {
     const ox = ksgn(-dy), oy = ksgn(dx)
     let first = Math.abs(dx) <= Math.abs(dy)
     for (let guard = 0; guard < 4096; guard++) {
-      if (dx * (y - y1) > (x - x1) * dy) break
+      if (Math.imul(dx, y - y1) > Math.imul(x - x1, dy)) break
       if (!first) x += ox; else y += oy
       first = !first
     }

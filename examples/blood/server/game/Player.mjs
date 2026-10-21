@@ -187,6 +187,12 @@ export default class Player {
       const low = level.lowerLink ? level.lowerLink[s.sectnum] : -1
       if (low > 0 && (level.sprites[low].type === 14 || level.sprites[low].type === 10) && level.engine.getceilzofslope(s.sectnum, s.x, s.y) > this.zView) this.underwater = false
     }
+    // out of the water its air is full again, the choke gone, the diving suit off (BLOOD.EXE 0x3fe25)
+    if (!this.underwater) {
+      this.underwaterTime = 1200
+      this.chokeEffect = 0
+      if (this.powerups[118]) delete this.powerups[118]
+    }
     this.stance()
   }
 

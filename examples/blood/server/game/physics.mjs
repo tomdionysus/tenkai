@@ -181,6 +181,34 @@ export function approxDist (dx, dy) {
  * One tick of a dude's movement. `d` is the dude: { sprite, x (its xsprite), player? }; returns what it hit.
  * Sets d.height (Blood's xsprite height: how far above the floor its bottom is, >> 8), d.floorHit, d.ceilHit.
  */
+/**
+ * Blood's dude loop's actAirDrag (BLOOD.EXE 0x34684): every dude every frame, moving or not, before its move (so a
+ * still one in a sector's wind is blown along: E1M6's gargoyles from tick 1); under water 5376
+ */
+export function dudeDrag (level, s, P = PHYSICS) {
+  const xs = level.xs(s.sectnum)
+  // first a panning floor carries what stands on it (or is below it): panVel << 9 along panAngle, while it pans,
+  // the angle turned by the first wall's when the floor's texture is relative to it (BLOOD.EXE 0x35e7b)
+  if (xs) {
+    const engine = level.engine, sec = level.sectors[s.sectnum], trig = level.trig
+    const { bottom } = level.extents(s)
+    if (engine.getflorzofslope(s.sectnum, s.x, s.y) <= bottom) {
+      let ang = xs.panAngle, speed = 0
+      if (xs.panAlways || xs.state || xs.busy) {
+        speed = xs.panVel << 9
+        if (!xs.panAlways && xs.busy) speed = mulscale(speed, xs.busy, 16)
+      }
+      if (sec.floorstat & 64) {
+        const w = level.walls[sec.wallptr], w2 = level.walls[w.point2]
+        ang = (ang + trig.getangle(w2.x - w.x, w2.y - w.y) + 512) & 2047
+      }
+      s.xvel += mulscale(speed, trig.Cos(ang), 30)
+      s.yvel += mulscale(speed, trig.Sin(ang), 30)
+    }
+  }
+  airDrag(level, s, xs && xs.underwater ? 5376 : P.airDrag)
+}
+
 export function moveDude (level, d, P = PHYSICS) {
   const s = d.sprite
   const engine = level.engine
@@ -191,8 +219,8 @@ export function moveDude (level, d, P = PHYSICS) {
   // Blood's actAirDrag first, before the move and gravity: so the original's velocities match to the unit in
   // BLOOD000, on the ground and falling (fidelity/trace.mjs reads them)
   // (under water, Blood's dude loop drags it by 5376: BLOOD001's player in the lake at tick 317)
-  const xs0 = level.xs(s.sectnum)
-  airDrag(level, s, xs0 && xs0.underwater ? 5376 : P.airDrag)
+  if (!d.dragged) dudeDrag(level, s, P)
+  d.dragged = false
   if (s.xvel || s.yvel) {
     const cstat = s.cstat
     s.cstat &= ~257

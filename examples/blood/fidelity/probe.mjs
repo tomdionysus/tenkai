@@ -4,7 +4,7 @@
 //   PROBES='0x29f00:6:[eax],[edx],ebx;0x30b7f:9:ebp,esi' node fidelity/probe.mjs out.json [seconds] [demo]
 // Each probe: its address (the exe's linear addresses), how many bytes of whole instructions it moves to the stub
 // (at least 5, nothing relative among them), then up to 7 values: a register (eax ... edi, esp as it was), or
-// [reg+offset] what it points at. The out file: per frame { c, hits: [[probe, ...values]] }.
+// [reg+offset] what it points at, or [[reg+offset]+offset2] through a pointer kept there. The out file: per frame { c, hits: [[probe, ...values]] }.
 import fs from 'fs'
 import Emu from './emu.mjs'
 import Mem from './mem.mjs'
@@ -63,10 +63,12 @@ probes.forEach((p, id) => {
   code.push(0x81, 0xc1, ...u32(BUF)) // add ecx, BUF
   code.push(0xc7, 0x01, ...u32(id)) // mov dword [ecx], id
   p.vals.slice(0, 7).forEach((v, k) => {
-    const m = v.match(/^\[?(e[a-z]{2})(?:\+(0x[0-9a-f]+|\d+))?\]?$/)
-    if (!m || SLOT[m[1]] === undefined) throw new Error('what is ' + v)
-    code.push(0x8b, 0x44, 0x24, SLOT[m[1]]) // mov eax, [esp+slot]: the register as it was
-    if (v.startsWith('[')) code.push(0x8b, 0x80, ...u32(Number(m[2] || 0))) // mov eax, [eax+offset]
+    // reg, [reg+off], or [[reg+off]+off2]: what a pointer kept at reg+off points at
+    const m = v.match(/^(\[*)(e[a-z]{2})(?:\+(0x[0-9a-f]+|\d+))?\]?(?:\+(0x[0-9a-f]+|\d+))?\]?$/)
+    if (!m || SLOT[m[2]] === undefined) throw new Error('what is ' + v)
+    code.push(0x8b, 0x44, 0x24, SLOT[m[2]]) // mov eax, [esp+slot]: the register as it was
+    if (m[1].length >= 1) code.push(0x8b, 0x80, ...u32(Number(m[3] || 0))) // mov eax, [eax+offset]
+    if (m[1].length >= 2) code.push(0x8b, 0x80, ...u32(Number(m[4] || 0))) // mov eax, [eax+offset2]
     code.push(0x89, 0x41, 4 + 4 * k) // mov [ecx+4+4k], eax
   })
   code.push(0xff, 0x05, ...u32(IDX)) // inc dword [IDX]

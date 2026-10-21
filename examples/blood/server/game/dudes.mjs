@@ -3,7 +3,7 @@
 // function every fourth tick, the state after), with Blood's own steering (aiChooseDirection and CanMove) and senses
 // (sight by distance, periphery and line of sight; hearing). Their numbers are the original's dudeInfo (BLOOD.EXE).
 import { mulscale, dmulscale, divscale, CLIPMASK0, CLIPMASK1 } from '../../common/engine.mjs'
-import { moveDude, approxDist } from './physics.mjs'
+import { moveDude, dudeDrag, approxDist } from './physics.mjs'
 import { findSector } from './fx.mjs'
 import { BloodAI, START as AI_START, CULTIST, ZOMBIE } from './ai.mjs'
 import { STAT, CMD, SPRITE } from './triggers.mjs'
@@ -140,7 +140,10 @@ class Dude {
     if (this.x.health <= 0) return
     // Blood's actProcessSprites moves a dude only when it falls (kPhysFalling: in the air, or a frame of its sequence
     // changed its height) or anything moves it, its own speed or its floor's or ceiling's
+    dudeDrag(this.level, s)
+    this.dragged = true
     if ((s.flags & 4) || s.xvel || s.yvel || s.zvel || this.level.velFloor[s.sectnum] || this.level.velCeil[s.sectnum]) moveDude(this.level, this)
+    this.dragged = false
     if (this.kind.flies && !this.bloodAI) { s.xvel -= mulscale(s.xvel, 0x2000, 16); s.yvel -= mulscale(s.yvel, 0x2000, 16); s.zvel -= mulscale(s.zvel, 0x2000, 16) }
   }
 

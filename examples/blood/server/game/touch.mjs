@@ -30,7 +30,8 @@ export function processTouch (game, d) {
   const spriteOf = (hit) => {
     if ((hit & 0xe000) !== 0xc000) return null
     const h = level.sprites[hit & 0x1fff]
-    return h && h.extra > 0 ? h : null
+    // (with an xsprite: a player's sprite has one in Blood, the remake's player keeps its own)
+    return h && (h.extra > 0 || game.playerOf(h)) ? h : null
   }
   // On top of it: a thing or a dude is pushed off by how far it is from the middle while this one moves
   const top = spriteOf(d.ceilHit || 0)

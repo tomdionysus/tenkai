@@ -96,12 +96,12 @@ await new Promise((resolve) => {
       for (let i = lo; i <= hi; i++) { const o = arrays.sprites + i * 44; out.push([i, mem.i16(o + 26), mem.i16(o + 38), mem.i16(o + 14), mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i32(arrays.sprites + VEL + 4 * i + 32768)]) }
       sample.sprites = out
     }
-    // WATCHSPRITES=194,228: those sprites' place, status, tile and cstat, then xsprite and velocity
+    // WATCHSPRITES=194,228: those sprites' place, status, tile and cstat, then xsprite and velocity, sector and angle
     // (and its xsprite's health, the low 12 bits at 0x1c, and its first word, where the state bit is)
     if (arrays.sprites !== null) for (const i of watchSprites) {
       const o = arrays.sprites + i * 44, extra = mem.i16(o + 42)
       const xs = extra > 0 ? GLOBAL + XSTATE - 0x34 + 56 * extra : 0
-      sample['p' + i] = [mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i16(o + 26), mem.i16(o + 14), mem.u16(o + 12), xs ? mem.u16(xs + 0x1c) & 0xfff : -1, xs ? mem.u32(xs) : -1, ...[0, 1, 2].map((k) => mem.i32(arrays.sprites + VEL + 4 * i + k * 16384))]
+      sample['p' + i] = [mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i16(o + 26), mem.i16(o + 14), mem.u16(o + 12), xs ? mem.u16(xs + 0x1c) & 0xfff : -1, xs ? mem.u32(xs) : -1, ...[0, 1, 2].map((k) => mem.i32(arrays.sprites + VEL + 4 * i + k * 16384)), mem.i16(o + 24), mem.i16(o + 28)]
       if (xs && process.env.XDUMP) sample['x' + i] = Array.from({ length: 14 }, (_, k) => mem.u32(xs + 4 * k).toString(16))
     }
     // The monsters (DUDES=1): every sprite in the dudes' status, its place, angle and tile

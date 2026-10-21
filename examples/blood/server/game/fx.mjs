@@ -64,8 +64,10 @@ export default class Effects {
   spawn (nFx, sectnum, x, y, z, duration = 0) {
     const level = this.level, game = this.game, R = this.random
     if (sectnum < 0 || nFx < 0 || nFx >= this.data.length) return null
-    const sect = findSector(level, x, y, z, sectnum)
-    if (sect < 0) return null
+    // (FindSector only tests the place: the effect is put in the sector it was given, BLOOD.EXE 0x72ccc, even where
+    // the place is in another; a bubble above the water's surface is so gone in its first frame)
+    if (findSector(level, x, y, z, sectnum) < 0) return null
+    const sect = sectnum
     // At most 512 (Blood's gStatCount of its effects, those posted free among them): the oldest not already going
     // makes way (BLOOD.EXE 0x72c62)
     if (this.list.length + (this.pending || 0) >= 512) {
