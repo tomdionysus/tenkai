@@ -76,9 +76,12 @@ export default class Hud {
     const c = this.game.client
     const at = w.at + c.fraction() * 4
     const frame = q.frames[Math.max(0, Math.min(q.frames.length - 1, Math.floor(at / q.ticksPerFrame)))]
-    const bob = this.game.bob || { x: 0, y: 0 }
+    // Where Blood draws it (viewDrawScreen, BLOOD.EXE 0x1e282): the middle across and 220 down, moved by the sway
+    // and by how far the weapon's height has fallen behind the eye's
+    const sway = this.game.sway || { x: 0, y: 0 }
+    const x0 = 160 + sway.x, y0 = 220 + sway.y + ((you.zWeapon || 0) - 0xc00) / 128
     for (const t of frame.tiles) {
-      this.overlay.draw(t.picnum, q.x + t.x + bob.x, q.y + t.y + bob.y, {
+      this.overlay.draw(t.picnum, x0 + t.x, y0 + t.y, {
         scale: t.z / 65536 || 1, flipY: !!(t.stat & 4), alpha: t.stat & 32 ? 0.33 : t.stat & 1 ? 0.66 : 1,
         shade: Math.max(0, Math.min(63, t.shade + (this.game.weaponShade || 0))), pal: t.pal || 0
       })

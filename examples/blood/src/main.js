@@ -199,12 +199,15 @@ export default class BloodClient extends GameEngine {
     const lerp = (a, b) => a + (b - a) * t
     // The view shakes after a shot or a blast, by the server's amount
     const shake = you.shake ? (Math.random() * 2 - 1) * you.shake / 4 : 0
-    this.view.eye = { x: lerp(was.x, you.x), y: lerp(was.y, you.y), z: lerp(was.z, you.z) + shake, ang: this.look.ang, horiz: you.dead ? 100 : this.look.horiz, sectnum: you.sectnum }
-    // The weapon sways as the player moves (Blood's bob), and takes the light of where the player stands
-    const speed = Math.hypot(you.x - was.x, you.y - was.y)
-    this.bobPhase = (this.bobPhase || 0) + speed / 40
-    const amount = Math.min(1, speed / 150)
-    this.bob = { x: Math.sin(this.bobPhase) * 6 * amount, y: Math.abs(Math.cos(this.bobPhase)) * 6 * amount }
+    // The bob, as the server works it out each tick (Blood's playerProcess), between the last two: the eye moves
+    // across by its width and up and down by its height (Blood's view bobbing, both on by default), the weapon by
+    // the sway (viewDrawScreen, BLOOD.EXE 0x1d3a2 and 0x1e282)
+    const nb = you.bob || [0, 0, 0, 0], ob = was.bob || nb
+    const bob = nb.map((v, i) => lerp(ob[i], v))
+    const a = this.look.ang / 2048 * Math.PI * 2
+    const across = bob[0] / 16
+    this.view.eye = { x: lerp(was.x, you.x) - across * Math.sin(a), y: lerp(was.y, you.y) + across * Math.cos(a), z: lerp(was.z, you.z) + bob[1] + shake, ang: this.look.ang, horiz: you.dead ? 100 : this.look.horiz, sectnum: you.sectnum }
+    this.sway = { x: bob[2] / 256, y: bob[3] / 256 }
     const sec = this.world.map.sectors[you.sectnum]
     this.weaponShade = sec ? sec.floorshade : 0
     // Under water the world is seen through WATER.PAL (Blood's palette 1)

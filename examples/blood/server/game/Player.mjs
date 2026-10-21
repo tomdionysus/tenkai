@@ -52,6 +52,9 @@ export default class Player {
     this.bobAmp = 0
     this.bobHeight = 0
     this.bobWidth = 0
+    this.swayPhase = 0
+    this.swayHeight = 0
+    this.swayWidth = 0
     this.health = 100 << 4
     this.keys = [false, false, false, false, false, false, false, false]
     this.armor = [0, 0, 0]
@@ -373,6 +376,8 @@ export default class Player {
   view () {
     const s = this.sprite
     const posture = POSTURES[this.posture]
+    // (the speed for the bob, as the velocity is before the springs: BLOOD.EXE 0x3e636)
+    const speed = approxDist(s.xvel, s.yvel) >> 16
     // (BLOOD.EXE 0x3e664: each speed first moves toward the body's z speed, then the spring pulls it to its height)
     this.zViewVel += mulscale(s.zvel - this.zViewVel, 0x7000, 16)
     let dz = s.z - posture.eyeAboveZ - this.zView
@@ -382,6 +387,38 @@ export default class Player {
     dz = s.z - posture.weaponAboveZ - this.zWeapon
     this.zWeaponVel += dz > 0 ? mulscale(dz << 8, 0x8000, 16) : mulscale(dz << 8, 0xc00, 16)
     this.zWeapon += this.zWeaponVel >> 8
+    this.bob(posture, speed)
+  }
+
+  /**
+   * Blood's bob and sway (playerProcess, BLOOD.EXE 0x3fa10): the amplitude falls by 4 a tick; swimming, both
+   * phases go round by 17; on (or near) the ground, the bob's by the posture's pace times 4 (its running pace when
+   * running) and the sway's by half that, the amplitude growing by the speed up to 30 (60 running). The bob moves
+   * the eye (its height up and down, its width across), the sway the weapon in hand
+   */
+  bob (posture, speed) {
+    const trig = this.level && this.level.trig
+    if (!trig) return
+    const Sin = (a) => trig.Sin(a & 2047)
+    this.bobAmp = Math.max(0, this.bobAmp - 4)
+    const run = this.input && this.input.run ? 1 : 0
+    if (this.posture === SWIM) {
+      this.bobPhase = (this.bobPhase + 17) & 2047
+      this.swayPhase = (this.swayPhase + 17) & 2047
+      this.bobHeight = mulscale(posture.bobV * 10, Sin(this.bobPhase * 2), 30)
+    } else {
+      if (this.height < 256) {
+        const pace = posture.pace[run] * 4
+        this.bobPhase = (this.bobPhase + pace) & 2047
+        this.swayPhase = (this.swayPhase + Math.trunc(pace / 2)) & 2047
+        const most = run ? 60 : 30
+        if (this.bobAmp < most) this.bobAmp = Math.min(this.bobAmp + speed, most)
+      }
+      this.bobHeight = mulscale(posture.bobV * this.bobAmp, Sin(this.bobPhase * 2), 30)
+    }
+    this.bobWidth = mulscale(posture.bobH * this.bobAmp, Sin(this.bobPhase - 256), 30)
+    this.swayHeight = mulscale(posture.swayV * this.bobAmp, Sin(this.swayPhase * 2), 30)
+    this.swayWidth = mulscale(posture.swayH * this.bobAmp, Sin(this.swayPhase - 0x155), 30)
   }
 
   /** Through a link to the sector above or below (Blood's playerResetInertia, and into or out of water) */
@@ -437,7 +474,7 @@ export default class Player {
       number: this.number, sprite: s.index, x: s.x, y: s.y, z: this.zView, ang: this.ang, horiz: this.horiz, sectnum: s.sectnum,
       health: this.health >> 4, armor: this.armor.slice(), weapon: this.weapon, ammo: this.ammo.slice(), keys: this.keys.map((k) => k ? 1 : 0),
       weapons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((n) => this.weapons[n]), pack: this.pack.slice(), packItem: this.packItem, packActive: this.packActive.map((a) => a ? 1 : 0), packTime: this.packItemTime, powerups: Object.keys(this.powerups).map(Number),
-      qav: this.weaponState ? this.weaponState.status() : null, zWeapon: this.zWeapon - this.zView, hurt: this.hurt, flash: Math.round(this.flash * 10),
+      qav: this.weaponState ? this.weaponState.status() : null, zWeapon: this.zWeapon - this.zView, bob: [this.bobWidth, this.bobHeight, this.swayWidth, this.swayHeight], hurt: this.hurt, flash: Math.round(this.flash * 10),
       shake: this.shakeAmount, dead: this.health <= 0 ? 1 : 0, kills: this.kills, frags: this.frags || 0, deaths: this.deaths
     }
   }
