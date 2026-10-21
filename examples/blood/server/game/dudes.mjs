@@ -416,6 +416,12 @@ class Dude {
   choke () { this.melee(VECTOR.ratBite, 1902) }
 
   // --- hurt and killed ---
+  /** Blood's MoveDude, landing: the fall's damage past 100 << 4 of the force squared */
+  onLand (force) {
+    const damage = Math.floor(force * force / 2 ** 30) - (100 << 4)
+    if (damage > 0) this.game.combat.damage(this.sprite, this.sprite, 0, damage)
+  }
+
   damaged (source, kind, damage) {
     const s = this.sprite, x = this.x
     x.health = Math.max(0, x.health - damage)

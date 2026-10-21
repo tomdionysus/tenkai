@@ -246,21 +246,25 @@ export class Engine {
               }
             }
           } else if (kind === 16) {
-            // Wall sprite: its line, both sides unless one-sided
+            // Wall sprite (Build's clipmove): when its line meets the move's box, a line before the side the mover is
+            // on (only the front of a one-sided one), and a blocker at the end it is past
             const t = this.tile(spr.picnum)
             const k = (t.h * spr.yrepeat) << 2
             let daz = spr.cstat & 128 ? spr.z + (k >> 1) : spr.z
             if (t.yo) daz -= (t.yo * spr.yrepeat) << 2
             if (pos.z < daz + ceildist && pos.z > daz - k - flordist) {
               const ends = this.wallSpriteEnds(spr)
-              if (ends) {
-                let [ax, ay, bx, by] = ends
-                if (!(spr.cstat & 64) && dmulscale(by - ay, pos.x - ax, -(bx - ax), pos.y - ay, 0) < 0) [ax, ay, bx, by] = [bx, by, ax, ay]
-                if (!(spr.cstat & 64) || dmulscale(by - ay, pos.x - ax, -(bx - ax), pos.y - ay, 0) >= 0) {
-                  const ang = this.trig.getangle(bx - ax, by - ay)
-                  const dx = (this.trig.sintable[(ang + 1024) & 2047] * walldist) >> 14, dy = (this.trig.sintable[(ang + 512) & 2047] * walldist) >> 14
-                  addclipline(ax + dy + dx, ay - dx + dy, bx + dy - dx, by - dx - dy, j + 49152)
+              if (ends && clipinsideboxline(cx, cy, ends[0], ends[1], ends[2], ends[3], rad)) {
+                const [ax, ay, bx, by] = ends
+                const sin = this.trig.sintable
+                const dax = mulscale(sin[(spr.ang + 256 + 512) & 2047], walldist, 14), day = mulscale(sin[(spr.ang + 256) & 2047], walldist, 14)
+                if ((ax - pos.x) * (by - pos.y) >= (bx - pos.x) * (ay - pos.y)) addclipline(ax + dax, ay + day, bx + day, by - dax, j + 49152)
+                else {
+                  if (spr.cstat & 64) continue
+                  addclipline(bx - dax, by - day, ax - day, ay + dax, j + 49152)
                 }
+                if ((bx - ax) * (pos.x - ax) + (by - ay) * (pos.y - ay) < 0) addclipline(ax - day, ay + dax, ax + dax, ay + day, j + 49152)
+                else if ((ax - bx) * (pos.x - bx) + (ay - by) * (pos.y - by) < 0) addclipline(bx + day, by - dax, bx - dax, by - day, j + 49152)
               }
             }
           } else if (kind === 32) {
@@ -325,15 +329,16 @@ export class Engine {
   wallSpriteEnds (spr) {
     const t = this.tile(spr.picnum)
     if (!t.w) return null
-    const xoff = t.xo + spr.xoffset
+    // As Build's: an x-flip turns the tile's offset only, and the ends are scaled at full precision (mulscale16)
+    let xoff = t.xo + spr.xoffset
+    if (spr.cstat & 4) xoff = -xoff
     const k = spr.ang
     const l = spr.xrepeat
-    const dax = (this.trig.sintable[k & 2047] * l) >> 16, day = (this.trig.sintable[(k + 1536) & 2047] * l) >> 16
+    const dax = this.trig.sintable[k & 2047] * l, day = this.trig.sintable[(k + 1536) & 2047] * l
     const l2 = t.w
-    let k2 = (l2 >> 1) + xoff
-    if (spr.cstat & 4) k2 = -k2
-    const x1 = spr.x - dax * k2, y1 = spr.y - day * k2
-    return [x1, y1, x1 + dax * l2, y1 + day * l2]
+    const k2 = (l2 >> 1) + xoff
+    const x1 = spr.x - mulscale(dax, k2, 16), y1 = spr.y - mulscale(day, k2, 16)
+    return [x1, y1, x1 + mulscale(dax, l2, 16), y1 + mulscale(day, l2, 16)]
   }
 
   /** Build's rintersect: where the ray (x1, y1) + (vx, vy) t crosses the segment (x3, y3)-(x4, y4), or null */
@@ -836,4 +841,24 @@ export class Engine {
     }
     return out
   }
+}
+
+/** Build's clipinsideboxline: whether the line (x1, y1)-(x2, y2) meets the box of half-size walldist about (x, y) */
+export function clipinsideboxline (x, y, x1, y1, x2, y2, walldist) {
+  const r = walldist << 1
+  x1 += walldist - x; x2 += walldist - x
+  if (x1 < 0 && x2 < 0) return 0
+  if (x1 >= r && x2 >= r) return 0
+  y1 += walldist - y; y2 += walldist - y
+  if (y1 < 0 && y2 < 0) return 0
+  if (y1 >= r && y2 >= r) return 0
+  x2 -= x1; y2 -= y1
+  if (x2 * y1 >= y2 * x1) {
+    const a = x2 > 0 ? x2 * (0 - y1) : x2 * (r - y1)
+    const b = y2 > 0 ? y2 * (r - x1) : y2 * (0 - x1)
+    return a < b ? 1 : 0
+  }
+  const a = x2 > 0 ? x2 * (r - y1) : x2 * (0 - y1)
+  const b = y2 > 0 ? y2 * (0 - x1) : y2 * (r - x1)
+  return a >= b ? 2 : 0
 }

@@ -107,10 +107,11 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
       cultists, gargoyles and statues, rats, bats, hands, spiders, the bone eel; then aiDamageSprite's per-type part
 - [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
 - [x] F3b The drift of one draw in six ticks: Blood's CalcGameChecksum (found by logging rand()'s callers)
-- [ ] F3c The draws part: BLOOD000 at tick 529 (ai.cpp 0x5b9b9, a draw the zombies' AI makes there); BLOOD001
-      at 196 and BLOOD002 at 240 (the other monsters' thinks: the eel, bats, gargoyles, cultists: F2). Done for
-      BLOOD000 to 528: an explosion's reach (GetClosestSpriteSectors, CheckProximityWall), locked things let be, a dead
-      dude's status posted to the frame's end (actPostSprite), the gibs broken only on the floor
+- [ ] F3c The draws part: BLOOD000 at tick 569 (a cultist's think, aicult.cpp: F2); BLOOD001 at 196 and BLOOD002
+      at 240 (the other monsters' thinks: the eel, bats, gargoyles, cultists: F2). Done for BLOOD000 to 568 (its
+      positions to 569): an explosion's reach (GetClosestSpriteSectors, CheckProximityWall), locked things let be, a
+      dead dude's status posted to the frame's end (actPostSprite), the gibs broken only on the floor, a landing on
+      a slope (actFloorBounceVector), Build's wall-sprite clipping (its line's ends, x-flip, box test, side blockers)
 - [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed (`replay.mjs --steps` compares each tick's move).
       Done: the TNT bundle (lit on fire, thrown on letting go, lobbed if let go before the fuse catches, goes off on
       what it hits), Blood's explosion (fixed damage once, the concussion's damage) and actFireThing. Open: a slide

@@ -181,6 +181,27 @@ export default class Player {
   }
 
   /**
+   * Blood's MoveDude, landing: the player's landing sound by the surface (playerLandingSound, a hard one past 30 << 4
+   * of force squared), and the fall's damage past 100 << 4 of it
+   */
+  onLand (force, falling) {
+    let damage = Math.floor(force * force / 2 ** 30)
+    const game = this.game
+    if (game) {
+      if (damage > (15 << 4) && falling && this.floorHit) {
+        const surfType = game.res.surfType, level = this.level, h = this.floorHit
+        const pic = (h & 0xc000) === 0x4000 ? level.sectors[h & 0x3fff].floorpicnum : (h & 0xc000) === 0xc000 ? level.sprites[h & 0x3fff].picnum : level.walls[h & 0x3fff].picnum
+        const surf = surfType ? surfType[pic] : 0
+        const id = [-1, 600, 601, 602, 603, 604, 605, 605, 605, 600, 605, 605, 605, 604, 603][surf]
+        if (surf && id > 0) game.sound(this.sprite, id)
+      }
+      if (damage > (30 << 4)) game.sound(this.sprite, 701)
+    }
+    damage -= 100 << 4
+    if (damage > 0) { if (game) game.combat.damage(this.sprite, this.sprite, 0, damage); else this.damaged(this.sprite, 0, damage) }
+  }
+
+  /**
    * Where the player is: water (swimming, the air running out), a sector that hurts (Blood's damageType: lava,
    * fire, acid), and the pack's use keys (the doctor's bag heals from its store, up to 100)
    */

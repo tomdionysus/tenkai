@@ -2,7 +2,7 @@
 // original's thingInfo (BLOOD.EXE: mass, clipdist, how they bounce, what hurts them), and explosions by its
 // explodeInfo (damage falling off with distance, the concussion's push by size and mass).
 import { mulscale, divscale, ksqrt, scale, CLIPMASK0 } from '../../common/engine.mjs'
-import { approxDist, wallBounce, getZRange, checkLink, airDrag } from './physics.mjs'
+import { approxDist, wallBounce, getZRange, checkLink, airDrag, floorBounce } from './physics.mjs'
 import { STAT, CMD, SPRITE } from './triggers.mjs'
 import { DAMAGE } from './combat.mjs'
 
@@ -226,16 +226,16 @@ export default class Things {
     ;({ top, bottom } = level.extents(s))
     if (bottom >= zr.florz) {
       s.z += zr.florz - bottom
-      let v = s.zvel - level.velFloor[s.sectnum]
+      const v = s.zvel - level.velFloor[s.sectnum]
       if (v > 0) {
         s.flags |= 4
-        // actFloorBounceVector on a level floor: back up by what the bounce keeps
-        const t = 0x10000 - info.elastic
-        const t2 = mulscale(v, t, 16)
-        v = -(v - t2)
+        // Blood's actFloorBounceVector: back up by what the bounce keeps (along a slope's normal on a slope)
+        const vel = { x: s.xvel, y: s.yvel, z: v }
+        const t2 = floorBounce(level, vel, s.sectnum, info.elastic)
+        s.xvel = vel.x; s.yvel = vel.y
         const damage = mulscale(t2, t2, 30) - info.dmgResist
         if (damage > 0) this.damaged(s, s, DAMAGE.fall, damage)
-        s.zvel = v
+        s.zvel = vel.z
         if (!level.velFloor[s.sectnum] && Math.abs(s.zvel) < 0x10000) { s.zvel = 0; s.flags &= ~4 }
         // (the floor is what it hit, over a wall in the same move: Blood's MoveThing sets it last)
         hit = 0x4000 | s.sectnum

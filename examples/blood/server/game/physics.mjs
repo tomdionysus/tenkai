@@ -142,6 +142,33 @@ export function wallBounce (level, s, nWall, bounce = 0) {
   s.yvel -= mulscale(n.y, t2, 16)
 }
 
+/**
+ * Blood's actFloorBounceVector: `v` (x, y, z velocities) off the floor of `nSector`, keeping `elastic` (16.16) of what
+ * goes into it; a sloped floor (its floorheinum) takes it along its normal. Returns the force of the hit
+ */
+export function floorBounce (level, v, nSector, elastic) {
+  const t = 0x10000 - elastic
+  const sec = level.sectors[nSector]
+  if (!sec.floorheinum) {
+    const t2 = mulscale(v.z, t, 16)
+    v.z = -(v.z - t2)
+    return t2
+  }
+  const trig = level.trig
+  const w = level.walls[sec.wallptr], w2 = level.walls[w.point2]
+  const angle = trig.getangle(w2.x - w.x, w2.y - w.y) + 512
+  const t2 = sec.floorheinum << 4
+  const t3 = approxDist(-0x10000, t2)
+  const t4 = divscale(-0x10000, t3, 16), t5 = divscale(t2, t3, 16)
+  const t6 = mulscale(t5, trig.Cos(angle), 30), t7 = mulscale(t5, trig.Sin(angle), 30)
+  const t8 = Math.floor((v.x * t6 + v.y * t7 + v.z * t4) / 65536)
+  const t9 = mulscale(t8, 0x10000 + elastic, 16)
+  v.x -= mulscale(t6, t9, 16)
+  v.y -= mulscale(t7, t9, 16)
+  v.z -= mulscale(t4, t9, 16)
+  return mulscaler(t8, t, 16)
+}
+
 /** Blood's approxDist */
 export function approxDist (dx, dy) {
   dx = Math.abs(dx); dy = Math.abs(dy)
@@ -228,13 +255,17 @@ export function moveDude (level, d, P = PHYSICS) {
   if (zr.florz <= bottom) {
     d.floorHit = zr.florhit
     s.z += zr.florz - bottom
-    let v = s.zvel - level.velFloor[s.sectnum]
+    const v = s.zvel - level.velFloor[s.sectnum]
     if (v > 0) {
-      // A flat floor stops the fall dead (actFloorBounceVector with no bounce); the landing's damage
-      d.landed = v
-      v = 0
-      s.zvel = level.velFloor[s.sectnum]
-      d.falling = false
+      // Blood's actFloorBounceVector with no bounce: a flat floor stops the fall, a slope turns it along itself (the
+      // player keeps falling down it, BLOOD000 at tick 405); what it took is the landing's force (d.onLand: its damage)
+      const vel = { x: s.xvel, y: s.yvel, z: v }
+      const force = floorBounce(level, vel, s.sectnum, 0)
+      s.xvel = vel.x; s.yvel = vel.y
+      d.landed = force
+      if (d.onLand) d.onLand(force, (s.flags & 4) !== 0)
+      s.zvel = vel.z
+      if (Math.abs(s.zvel) < 0x10000) { s.zvel = level.velFloor[s.sectnum]; s.flags &= ~4; d.falling = false } else s.flags |= 4
     } else if (s.zvel === 0) { d.falling = false; s.flags &= ~4 }
   } else {
     d.floorHit = 0
