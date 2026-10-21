@@ -80,7 +80,7 @@ export default class Effects {
     if ((d.flags & 2) && R.rand() < 0x4000) s.cstat ^= 8
     if (d.seq) game.seqs.spawn(s, d.seq)
     if (!duration) duration = d.duration
-    if (duration) game.triggers.post(s.index, SPRITE, duration + R.Random2(duration >> 1), CMD.callback, () => this.remove(s))
+    if (duration) game.triggers.post(s.index, SPRITE, duration + R.Random2(duration >> 1), CMD.callback, () => this.removeNow(s))
     this.list.push(s)
     return s
   }
@@ -96,7 +96,30 @@ export default class Effects {
     this.game.seqs.kill(s)
     s.flags |= 32
     this.pending = (this.pending || 0) + 1
-    this.game.postSprite(() => { this.pending--; this.game.triggers.kill(s.index, SPRITE); this.level.remove(s) })
+    const posted = s.posted = (s.posted || 0) + 1
+    this.game.postSprite(() => {
+      if (s.posted !== posted) return
+      this.pending--
+      this.game.triggers.kill(s.index, SPRITE)
+      this.level.remove(s)
+    })
+  }
+
+  /**
+   * Blood's Remove callback (gCallback[1], BLOOD.EXE 0x73c18), as an effect's time runs out: unlike fxFree, at
+   * once: its events killed (in the middle of evProcess, so the queue's heap is as Blood's: BLOOD001 at tick 1959),
+   * its sequence, and the sprite
+   */
+  removeNow (s) {
+    if (s.statnum !== STAT.fx) return
+    const i = this.list.indexOf(s)
+    if (i >= 0) this.list.splice(i, 1)
+    this.game.triggers.kill(s.index, SPRITE)
+    this.game.seqs.kill(s)
+    // (one posted free already: deleted now, so no longer counted then)
+    if (s.flags & 32) this.pending--
+    s.posted = (s.posted || 0) + 1
+    this.level.remove(s)
   }
 
   /** Blood's CFX::fxProcess, each frame: drag, the move, the sector, the floor and ceiling, gravity */
