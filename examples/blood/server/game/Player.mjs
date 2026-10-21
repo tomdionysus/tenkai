@@ -229,23 +229,39 @@ export default class Player {
    */
   environment (input) {
     const s = this.sprite, level = this.level, game = this.game
-    const x = level.xs(s.sectnum)
-    const under = x && x.underwater
-    if (under && this.posture !== SWIM) this.posture = SWIM
-    else if (!under && this.posture === SWIM && !(level.upperLink && level.lowerLink[s.sectnum] >= 0)) this.posture = STAND
-    if (under && !this.powerups[118]) {
-      this.air = (this.air === undefined ? 30 * 15 : this.air) - 1
-      if (this.air < 0 && game && game.frame % 15 === 0) this.damaged(null, 4, 3 << 4)
-    } else this.air = 30 * 15
-    if (x && x.damageType > 0 && this.height === 0 && game) {
-      const amount = x.data ? Math.max(0, Math.min(1000, x.data)) : 1000
-      this.damaged(null, x.damageType - 1, Math.trunc(4 * amount / 120))
-    }
+    // (swimming: by the water links, Blood's CheckLink; the air and drowning: dudeLoop; a floor that hurts: Blood's
+    // ProcessTouchObjects, server/game/touch.mjs)
     if ((input.use & 8) && this.pack[0] > 0 && (this.health >> 4) < 100) {
       const heal = Math.min(this.pack[0], 100 - (this.health >> 4))
       this.health += heal << 4
       this.pack[0] -= heal
       if (game) game.sound(s, 776)
+    }
+  }
+
+  /**
+   * The player's part of Blood's first dude loop (BLOOD.EXE 0x34406), before its touches: the hand's choke (a
+   * chance of drowning's damage), and under water its air (1200 clock ticks, the diving suit's while it is on, put on
+   * as the air runs low), a choke's growing chance once the air is gone, the swimming sound, the bubbles thinning;
+   * out of water in a game alone, a remark on a chance after ten seconds' rest
+   */
+  dudeLoop () {
+    const s = this.sprite, game = this.game, R = game.random
+    if (this.choked && R.Chance(0x8000)) game.combat.damage(s, s, 4, 12)
+    if (this.underwater) {
+      const suit = !!this.powerups[118]
+      if (suit || this.godMode) this.underwaterTime = 1200
+      else this.underwaterTime = Math.max((this.underwaterTime ?? 1200) - 4, 0)
+      if (this.underwaterTime < 1080 && this.pack[1] > 0 && !suit) this.powerups[118] = this.pack[1]
+      if (this.underwaterTime === 0) {
+        this.chokeEffect = (this.chokeEffect || 0) + 4
+        if (R.Chance(this.chokeEffect)) game.combat.damage(s, s, 4, 48)
+      } else this.chokeEffect = 0
+      if (s.xvel || s.yvel) game.sound(s, 709)
+      if (this.bubbleTime) this.bubbleTime = Math.max(0, this.bubbleTime - 4)
+    } else if (!game.options.gameType && this.health > 0 && this.restTime >= 1200 && R.Chance(0x200)) {
+      this.restTime = -1
+      game.sound(s, 3100 + R.Random(4))
     }
   }
 

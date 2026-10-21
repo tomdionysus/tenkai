@@ -15,7 +15,33 @@ export const dmulscale = (a, b, c, d, n) => Math.floor((a * b + c * d) / 2 ** n)
 export const scale = (a, b, c) => Math.trunc(a * b / c)
 export const klabs = Math.abs
 export const ksgn = (a) => (a > 0) - (a < 0)
-export const ksqrt = (n) => Math.floor(Math.sqrt(Math.max(0, n)))
+// Build's ksqrt (nsqrtasm, BLOOD.EXE 0x8eee8): not an exact root but a lookup in initksqrt's tables, its input
+// shifted down to 12 bits by its size and the answer shifted back (GetWallNormal's lengths come out so)
+const SQRTABLE = new Uint16Array(4096), SHLOOKUP = new Uint16Array(4096 + 256)
+{
+  // msqrtasm: the root of n, rounded
+  const msqrt = (n) => {
+    let a = 0x40000000, b = 0x20000000
+    do {
+      if (n >= a) { n -= a; a += b * 4 }
+      a -= b; a >>>= 1; b >>>= 2
+    } while (b)
+    if (n >= a) a++
+    return a >>> 1
+  }
+  let j = 1, k = 0
+  for (let i = 0; i < 4096; i++) {
+    if (i >= j) { j <<= 2; k++ }
+    SQRTABLE[i] = (msqrt((i << 18) + 131072) << 1) & 0xffff
+    SHLOOKUP[i] = (k << 1) + ((10 - k) << 8)
+    if (i < 256) SHLOOKUP[i + 4096] = ((k + 6) << 1) + ((10 - (k + 6)) << 8)
+  }
+}
+export const ksqrt = (n) => {
+  n >>>= 0
+  const cx = n & 0xff000000 ? SHLOOKUP[(n >>> 24) + 4096] : SHLOOKUP[n >>> 12]
+  return SQRTABLE[n >>> (cx & 0xff)] >>> (cx >> 8)
+}
 /** Blood's mulscale with rounding (mulscale16r etc.) */
 export const mulscaler = (a, b, n) => Math.floor((a * b + 2 ** (n - 1)) / 2 ** n)
 

@@ -32,8 +32,9 @@ export default class Combat {
   damage (source, s, kind, damage) {
     if (s.statnum >= 1024) return 0
     const x = this.level.x(s)
-    // Players' bodies are made by the game, with no extra from the map
-    if (!x && !this.game.playerOf(s)) return 0
+    // Players' bodies are made by the game, with no extra from the map; so are the things it throws (a zombie's
+    // head: Blood's actSpawnThing gives them an xsprite, the remake keeps their health with the thing's move)
+    if (!x && !this.game.playerOf(s) && !(s.statnum === STAT.thing && this.game.things && this.game.things.moving.has(s.index))) return 0
     if (s.statnum === STAT.dude) {
       const factor = this.damageFactor(s, kind)
       if (!factor) return 0

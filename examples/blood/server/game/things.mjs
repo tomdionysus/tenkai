@@ -143,6 +143,11 @@ export default class Things {
   }
 
   /** A thing hurt: past its health it goes off (barrels, TNT) or breaks */
+  /** A thing set moving from outside (kicked, pushed): the thing loop takes it from now on */
+  wake (s) {
+    if (s.statnum === STAT.thing && !this.moving.has(s.index) && this.info[s.type]) this.moving.set(s.index, { health: this.info[s.type].startHealth << 4 })
+  }
+
   damaged (source, s, kind, damage) {
     const info = this.info[s.type]
     if (!info) return 0

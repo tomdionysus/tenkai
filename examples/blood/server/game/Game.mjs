@@ -1,6 +1,7 @@
 // The game on the server: a level, its players, and Blood's frame (30 a second): busy motions, events, the players'
 // input and movement, the sprites. What the clients are told comes from here (see ../net/), and nothing of it is
 // decided on a client.
+import { processTouch } from './touch.mjs'
 import Level from './Level.mjs'
 import Player, { KEY } from './Player.mjs'
 import Triggers, { CMD, STAT, SECTOR_TYPE } from './triggers.mjs'
@@ -237,7 +238,10 @@ export default class Game {
     this.missiles.tick()
     this.things.explosionsTick()
     // (a player under water: its bubbles thin, Blood's dudes loop at 0x34575)
-    for (const p of this.players) if (p && p.underwater && p.bubbleTime) p.bubbleTime = Math.max(0, p.bubbleTime - 4)
+    // (Blood's first dude loop, at 0x34356: each dude's touches, ProcessTouchObjects, what its last move met before any
+    // dude moves again, server/game/touch.mjs; a player's own part first, its air, its bubbles, Player.dudeLoop)
+    for (const d of this.dudes.list.slice()) if (d.sprite.statnum === STAT.dude && d.x.health > 0) processTouch(this, d)
+    for (const p of this.players) if (p && p.health > 0) { p.dudeLoop(); processTouch(this, p) }
     // (the dudes in their list's order, Blood's headspritestat: the map's monsters first, then the players, whose
     // sprites came after: a zombie meets the player where the last tick left it, BLOOD000 at tick 697)
     this.dudes.move()
