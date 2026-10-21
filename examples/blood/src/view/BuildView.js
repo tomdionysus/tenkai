@@ -7,16 +7,17 @@
 // index (data/tiles.json), loads the atlas pages, palettes and shade tables from data/, and draws from an eye:
 // { x, y, z, ang, horiz } in Build's units. Sprites are given each frame as a list in Build's sprite fields.
 import { WebGLScene } from '../../../../index.js'
-import { mapGeometry, FLOATS, MASKED, TRANSLUCENT, TRANSLUCENT_MORE, SKY, ONE_SIDED } from './geometry.js'
+import { mapGeometry, FLOATS, MASKED, TRANSLUCENT, TRANSLUCENT_MORE, SKY, ONE_SIDED, PORTAL } from './geometry.js'
+import { mapLinks } from '../../common/links.mjs'
 import { ANGLES, TAU } from '../../common/build.mjs'
 
 const VERTEX = `#version 300 es
 precision highp float;
 precision highp int;
 in vec3 aPos; in vec2 aUV; in float aPic; in float aShade; in float aPal; in float aFlags; in float aVis;
-uniform vec3 uEye; uniform vec2 uFwd; uniform vec2 uTan; uniform float uHoriz; uniform float uClock;
+uniform vec3 uEye; uniform vec2 uFwd; uniform vec2 uTan; uniform float uHoriz; uniform float uClock; uniform vec3 uOffset;
 uniform highp isampler2D uInfo;
-out vec2 vUV; out float vShade; out float vDepth; out vec3 vDir;
+out vec2 vUV; out float vShade; out float vDepth; out vec3 vDir; out float vWorldZ;
 flat out ivec4 vRect; flat out int vPage; flat out int vPal; flat out int vFlags; flat out int vPic; flat out float vVis;
 const float NEAR = 4.0, FAR = 400000.0;
 int animate (int pic) {
@@ -29,7 +30,8 @@ int animate (int pic) {
   return pic - i % (frames + 1);
 }
 void main () {
-  vec3 d = aPos - uEye;
+  vec3 d = aPos + uOffset - uEye;
+  vWorldZ = aPos.z + uOffset.z;
   vec2 right = vec2(-uFwd.y, uFwd.x);
   float cx = dot(d.xy, right), cy = -d.z / 16.0, cz = dot(d.xy, uFwd);
   gl_Position = vec4(cx / uTan.x, cy / uTan.y + uHoriz * cz, cz * (FAR + NEAR) / (FAR - NEAR) - 2.0 * FAR * NEAR / (FAR - NEAR), cz);
@@ -44,17 +46,19 @@ const FRAGMENT = `#version 300 es
 precision highp float;
 precision highp int;
 precision highp usampler2DArray; precision highp usampler2D; precision highp isampler2D;
-in vec2 vUV; in float vShade; in float vDepth; in vec3 vDir;
+in vec2 vUV; in float vShade; in float vDepth; in vec3 vDir; in float vWorldZ;
 flat in ivec4 vRect; flat in int vPage; flat in int vPal; flat in int vFlags; flat in int vPic; flat in float vVis;
 uniform usampler2DArray uTiles; uniform usampler2D uShades; uniform sampler2D uPalettes; uniform isampler2D uInfo;
 uniform int uPalette; uniform int uShadeRows[16]; uniform float uVisScale; uniform int uSkyOffsets[16]; uniform int uSkyBits;
-uniform float uSkyV; uniform vec4 uTint; uniform int uDebug;
+uniform float uSkyV; uniform vec4 uTint; uniform int uDebug; uniform int uSkipPortals; uniform vec3 uClip;
 out vec4 color;
 uint texel (ivec4 r, int page, float u, float v) {
   int x = int(mod(floor(u), float(r.z))), y = int(mod(floor(v), float(r.w)));
   return texelFetch(uTiles, ivec3(r.x + x, r.y + y, page), 0).r;
 }
 void main () {
+  if (uSkipPortals == 1 && (vFlags & ${PORTAL}) != 0) discard;
+  if (uClip.z > 0.0 && uClip.x * (vWorldZ - uClip.y) < 0.0) discard;
   ivec4 r = vRect; int page = vPage;
   float u = vUV.x, v = vUV.y;
   int shade = int(vShade);
@@ -95,7 +99,10 @@ export default class BuildView extends WebGLScene {
    * @param {function} options.image `image(name)`: a loaded Image of a file in data/ (the engine's getAsset)
    */
   constructor (options = {}) {
-    super(options)
+    // A stencil buffer, to draw through the floors and ceilings that link sectors
+    super(Object.assign({ contextAttributes: { antialias: false, alpha: true, premultipliedAlpha: false, stencil: true, depth: true } }, options))
+    this.portals = []
+    this.spriteCount = 0
     this.tilesIndex = options.tiles
     this.tiles = options.tiles.tiles
     this.palettesIndex = options.palettes
@@ -123,7 +130,7 @@ export default class BuildView extends WebGLScene {
     this.program = WebGLScene.program(gl, VERTEX, FRAGMENT)
     gl.useProgram(this.program)
     this.uniforms = {}
-    for (const n of ['uEye', 'uFwd', 'uTan', 'uHoriz', 'uClock', 'uInfo', 'uTiles', 'uShades', 'uPalettes', 'uPalette', 'uVisScale', 'uSkyOffsets', 'uSkyBits', 'uSkyV', 'uTint', 'uShadeRows', 'uDebug']) this.uniforms[n] = gl.getUniformLocation(this.program, n)
+    for (const n of ['uEye', 'uFwd', 'uTan', 'uHoriz', 'uClock', 'uInfo', 'uTiles', 'uShades', 'uPalettes', 'uPalette', 'uVisScale', 'uSkyOffsets', 'uSkyBits', 'uSkyV', 'uTint', 'uShadeRows', 'uDebug', 'uOffset', 'uSkipPortals', 'uClip']) this.uniforms[n] = gl.getUniformLocation(this.program, n)
     this.attributes = ATTRIBUTES.map(([name, size]) => ({ name, size, location: gl.getAttribLocation(this.program, name) }))
     this.mapVAO = this.vao(gl, (this.mapBuffer = gl.createBuffer()))
     this.spriteVAO = this.vao(gl, (this.spriteBuffer = gl.createBuffer()))
@@ -194,7 +201,19 @@ export default class BuildView extends WebGLScene {
   /** Show a map (as formats/map.mjs reads it; the view keeps it, and redraws a sector when told it changed). */
   setMap (map) {
     this.map = map
-    this.geometry = mapGeometry(map, this.tiles)
+    this.links = mapLinks(map)
+    this.geometry = mapGeometry(map, this.tiles, this.links)
+    // Each linked floor and ceiling: the range of its triangles (a sector's floor first, then its ceiling) and where it leads
+    this.portals = []
+    for (const [kind, list] of [['floor', this.links.floors], ['ceiling', this.links.ceilings]]) {
+      for (const [s, link] of list) {
+        const r = this.geometry.ranges[s], n = this.geometry.polygons[s].triangles.length
+        const pts = this.geometry.polygons[s].points
+        let cx = 0, cy = 0
+        for (let i = 0; i < pts.length; i += 2) { cx += pts[i]; cy += pts[i + 1] }
+        this.portals.push(Object.assign({ first: r.first + (kind === 'floor' ? 0 : n), count: n, cx: cx / (pts.length / 2), cy: cy / (pts.length / 2) }, link))
+      }
+    }
     const gl = this.gl
     if (!gl) return
     gl.bindBuffer(gl.ARRAY_BUFFER, this.mapBuffer)
@@ -226,6 +245,12 @@ export default class BuildView extends WebGLScene {
 
   /** The vertices of the sprites, facing the eye as Build draws them (face, wall and floor sprites). */
   spriteVertices () {
+    const out = this.buildSprites()
+    this.spriteCount = out.length / FLOATS
+    return out
+  }
+
+  buildSprites () {
     const out = []
     const eye = this.eye
     const a = eye.ang / ANGLES * TAU
@@ -281,7 +306,8 @@ export default class BuildView extends WebGLScene {
 
   render (gl) {
     gl.clearColor(0, 0, 0, 1)
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    gl.clearStencil(0)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT)
     if (!this.map) return
     this.flush(gl)
     gl.useProgram(this.program)
@@ -306,20 +332,99 @@ export default class BuildView extends WebGLScene {
     gl.disable(gl.CULL_FACE)
     gl.disable(gl.BLEND)
     gl.depthMask(true)
-    gl.bindVertexArray(this.mapVAO)
-    gl.drawArrays(gl.TRIANGLES, 0, this.geometry.data.length / FLOATS)
     const sprites = this.spriteVertices()
     if (sprites.length) {
       gl.bindBuffer(gl.ARRAY_BUFFER, this.spriteBuffer)
       gl.bufferData(gl.ARRAY_BUFFER, sprites, gl.STREAM_DRAW)
+    }
+    // The world, less the floors and ceilings that open onto linked sectors
+    this.pass(gl, [0, 0, 0], null)
+    // Through each link: its surface marked in the stencil, the depth there cleared, the world drawn again moved by
+    // the link's offset and cut at its plane (Blood draws the linked sector beyond the surface)
+    for (const portal of this.portals) {
+      if (!this.portalFacing(portal)) continue
+      gl.enable(gl.STENCIL_TEST)
+      gl.clear(gl.STENCIL_BUFFER_BIT)
+      gl.stencilFunc(gl.ALWAYS, 1, 0xff)
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.REPLACE)
+      gl.colorMask(false, false, false, false)
+      gl.depthMask(false)
+      gl.uniform1i(this.uniforms.uSkipPortals, 0)
+      gl.uniform3f(this.uniforms.uOffset, 0, 0, 0)
+      gl.uniform3f(this.uniforms.uClip, 0, 0, 0)
+      gl.bindVertexArray(this.mapVAO)
+      gl.drawArrays(gl.TRIANGLES, portal.first, portal.count)
+      gl.stencilFunc(gl.EQUAL, 1, 0xff)
+      gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP)
+      gl.depthMask(true)
+      gl.depthFunc(gl.ALWAYS)
+      this.farQuad(gl)
+      gl.useProgram(this.program)
+      gl.depthFunc(gl.LEQUAL)
+      gl.colorMask(true, true, true, true)
+      this.pass(gl, portal.offset, portal)
+      // A water surface over what is under it, half seen through
+      if (portal.water) {
+        gl.uniform1i(this.uniforms.uSkipPortals, 0)
+        gl.uniform3f(this.uniforms.uOffset, 0, 0, 0)
+        gl.uniform3f(this.uniforms.uClip, 0, 0, 0)
+        gl.enable(gl.BLEND)
+        gl.blendColor(0, 0, 0, 0.5)
+        gl.blendFunc(gl.CONSTANT_ALPHA, gl.ONE_MINUS_CONSTANT_ALPHA)
+        gl.bindVertexArray(this.mapVAO)
+        gl.drawArrays(gl.TRIANGLES, portal.first, portal.count)
+        gl.disable(gl.BLEND)
+      }
+      gl.disable(gl.STENCIL_TEST)
+    }
+    gl.bindVertexArray(null)
+  }
+
+  /** The world and its sprites, moved by an offset and cut at a portal's plane */
+  pass (gl, offset, portal) {
+    gl.uniform1i(this.uniforms.uSkipPortals, 1)
+    gl.uniform3f(this.uniforms.uOffset, offset[0], offset[1], offset[2])
+    gl.uniform3f(this.uniforms.uClip, portal ? portal.side : 0, portal ? portal.planeZ : 0, portal ? 1 : 0)
+    gl.disable(gl.BLEND)
+    gl.bindVertexArray(this.mapVAO)
+    gl.drawArrays(gl.TRIANGLES, 0, this.geometry.data.length / FLOATS)
+    if (this.spriteCount) {
       gl.bindVertexArray(this.spriteVAO)
       gl.enable(gl.BLEND)
       gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
       gl.enable(gl.POLYGON_OFFSET_FILL)
       gl.polygonOffset(-1, -4)
-      gl.drawArrays(gl.TRIANGLES, 0, sprites.length / FLOATS)
+      gl.drawArrays(gl.TRIANGLES, 0, this.spriteCount)
       gl.disable(gl.POLYGON_OFFSET_FILL)
+      gl.disable(gl.BLEND)
     }
-    gl.bindVertexArray(null)
   }
+
+  /** Whether the eye can see a portal's surface: above a floor portal, below a ceiling one, near enough */
+  portalFacing (p) {
+    const e = this.eye
+    if (p.side > 0 && e.z > p.planeZ) return false
+    if (p.side < 0 && e.z < p.planeZ) return false
+    return Math.hypot(p.cx - e.x, p.cy - e.y) < 65536
+  }
+
+  /** A quad over the whole screen at the far plane: resets the depth where the stencil allows */
+  farQuad (gl) {
+    if (!this.farProgram) {
+      this.farProgram = WebGLScene.program(gl, '#version 300 es\nin vec2 p; void main () { gl_Position = vec4(p, 1.0, 1.0); }',
+        '#version 300 es\nprecision mediump float; out vec4 c; void main () { c = vec4(0.0); }')
+      this.farVAO = gl.createVertexArray()
+      gl.bindVertexArray(this.farVAO)
+      const b = gl.createBuffer()
+      gl.bindBuffer(gl.ARRAY_BUFFER, b)
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, 1, 1, -1, -1, 1, 1, -1, 1]), gl.STATIC_DRAW)
+      const loc = gl.getAttribLocation(this.farProgram, 'p')
+      gl.enableVertexAttribArray(loc)
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
+    }
+    gl.useProgram(this.farProgram)
+    gl.bindVertexArray(this.farVAO)
+    gl.drawArrays(gl.TRIANGLES, 0, 6)
+  }
+
 }

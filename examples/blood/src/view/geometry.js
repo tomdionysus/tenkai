@@ -7,7 +7,7 @@ import earcut from 'earcut'
 import { slopeZ, loops, pow2 } from '../../common/build.mjs'
 
 export const FLOATS = 10
-export const MASKED = 1, TRANSLUCENT = 2, TRANSLUCENT_MORE = 4, SKY = 8, FULLBRIGHT = 16, ONE_SIDED = 32
+export const MASKED = 1, TRANSLUCENT = 2, TRANSLUCENT_MORE = 4, SKY = 8, FULLBRIGHT = 16, ONE_SIDED = 32, PORTAL = 64
 
 const pushVertex = (out, x, y, z, u, v, picnum, shade, pal, flags, vis) => { out.push(x, y, z, u, v, picnum, shade, pal, flags, vis) }
 
@@ -43,13 +43,15 @@ function planeUV (map, s, x, y, ceiling, tiles) {
   return [u, v]
 }
 
-function plane (out, map, s, ceiling, tiles, polygons) {
+function plane (out, map, s, ceiling, tiles, polygons, links) {
   const sec = map.sectors[s]
   const stat = ceiling ? sec.ceilingstat : sec.floorstat
   const pic = ceiling ? sec.ceilingpicnum : sec.floorpicnum
   const shade = ceiling ? sec.ceilingshade : sec.floorshade
   const pal = ceiling ? sec.ceilingpal : sec.floorpal
-  const flags = stat & 1 ? SKY : 0
+  let flags = stat & 1 ? SKY : 0
+  // A floor or ceiling that opens onto a linked sector (room over room) is drawn through, as a portal
+  if (links && (ceiling ? links.ceilings : links.floors).has(s)) flags = PORTAL
   const vis = sectorVisibility(map, s)
   const { points, triangles } = polygons
   for (let k = 0; k < triangles.length; k += 3) {
@@ -128,15 +130,15 @@ function wall (out, map, s, i, tiles) {
  * `count` in vertices), and `update(s)`, which rewrites a sector's range after its heights, pictures or panning
  * changed and returns that range.
  */
-export function mapGeometry (map, tiles) {
+export function mapGeometry (map, tiles, links = null) {
   const polygons = map.sectors.map((_, s) => triangulate(map, s))
   const ranges = []
   const parts = []
   let total = 0
   const sectorVertices = (s) => {
     const out = []
-    plane(out, map, s, false, tiles, polygons[s])
-    plane(out, map, s, true, tiles, polygons[s])
+    plane(out, map, s, false, tiles, polygons[s], links)
+    plane(out, map, s, true, tiles, polygons[s], links)
     const sec = map.sectors[s]
     for (let i = sec.wallptr; i < sec.wallptr + sec.wallnum; i++) wall(out, map, s, i, tiles)
     return out
