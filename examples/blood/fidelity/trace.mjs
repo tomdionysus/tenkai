@@ -48,6 +48,9 @@ const { default: BloodMap2 } = await import('../formats/map.mjs')
 const map = new BloodMap2(rff.read(Demo.load(new URL('../original/' + file, import.meta.url).pathname).options.levelName.toUpperCase() + '.MAP'))
 const arrays = mem.findArrays(map)
 console.log('arrays', JSON.stringify(arrays))
+// The counters and the random state are globals: found in E1M1, where the player's sprite is the 548th, so placed
+// from the sprite array's start (the player's index differs from map to map)
+const GLOBAL = arrays.sprites !== null ? arrays.sprites + 548 * 44 : P
 let dudesAtStart = 0
 const dudeIndex = new Set()
 if (arrays.sprites !== null) for (let i = 0; i < 4096; i++) if (mem.i16(arrays.sprites + i * 44 + 26) === 6) { dudesAtStart++; dudeIndex.add(i) }
@@ -59,7 +62,7 @@ const tStart = performance.now()
 await new Promise((resolve) => {
   const h = setInterval(() => {
     const s = mem.sprite(P)
-    const sample = { t: Math.round(performance.now() - tStart), c: C.map((c) => mem.i32(P + c)), r: mem.u32(P + RNG), x: s.x, y: s.y, z: s.z, ang: s.ang, sect: s.sectnum, pic: s.picnum }
+    const sample = { t: Math.round(performance.now() - tStart), c: C.map((c) => mem.i32(GLOBAL + c)), r: mem.u32(GLOBAL + RNG), x: s.x, y: s.y, z: s.z, ang: s.ang, sect: s.sectnum, pic: s.picnum }
     if (arrays.sectors !== null) for (const w of watch) sample['s' + w] = mem.sector(arrays.sectors, w)
     if (arrays.walls !== null) for (const w of watchWalls) sample['w' + w] = mem.wall(arrays.walls, w)
     // The monsters (DUDES=1): every sprite in the dudes' status, its place, angle and tile

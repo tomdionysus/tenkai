@@ -16,3 +16,6 @@ local/
 examples/blood/original/
 examples/blood/data/
 examples/blood/**/node_modules/
+examples/blood/fidelity/trace-blood001.json
+examples/blood/fidelity/trace-blood002.json
+examples/blood/fidelity/views/
