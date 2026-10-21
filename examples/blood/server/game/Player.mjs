@@ -67,6 +67,8 @@ export default class Player {
   }
 
   get pos () { return this.sprite }
+  /** Its sprite's xsprite (its medium: on land 0, in water 1, in goo 2) */
+  get x () { return this.level.x(this.sprite) }
 
   /** The slope the player aims along: through the middle of the view (z per 16384 of x and y, in x and y units) */
   slope () { return Math.round(16384 * (100 - this.horiz) / 100) }
@@ -289,13 +291,18 @@ export default class Player {
     const p = POSTURES[this.posture]
     this.zView = this.sprite.z - p.eyeAboveZ
     this.zWeapon = this.sprite.z - p.weaponAboveZ
-    if (type === 10 || type === 14) { // out of water or goo
+    if (type === 10 || type === 14) { // out of water or goo (BLOOD.EXE 0x301cf): standing, no bubbles, a splash
+      if (this.x) this.x.medium = 0
       this.posture = STAND
+      this.bubbleTime = 0
       if (!this.cantJump && (this.input.buttons & BUTTON.jump)) { this.sprite.zvel = -0x6aaaa; this.cantJump = true }
+      if (this.game) this.game.sound(this.sprite, 721)
     } else if (type === 9 || type === 13) {
       // into water (Blood's CheckLink, BLOOD.EXE 0x302cb): swimming, bubbles by how fast it fell in (|zvel| >> 12,
       // Blood's bubbleTime) from now on, and the splash
+      if (this.x) this.x.medium = type === 9 ? 1 : 2
       this.posture = SWIM
+      if (this.game) this.game.unburn(this.sprite)
       this.bubbleTime = Math.abs(this.sprite.zvel) >> 12
       if (this.game) {
         this.game.triggers.post(this.sprite.index, 3, 0, 20, () => this.bubble())
@@ -309,23 +316,10 @@ export default class Player {
    * 23-25) about its body with its speed, give or take, and again 4 clock ticks on
    */
   bubble () {
-    const s = this.sprite, game = this.game, R = game.random, level = this.level, trig = level.trig
+    const s = this.sprite
     if (!this.bubbleTime || s.statnum >= 1024) return
-    const { top, bottom } = level.extents(s)
-    const t = game.res.tiles[s.picnum] || { w: 0 }
-    for (let i = 0; i < (this.bubbleTime >> 6); i++) {
-      const nDist = (s.xrepeat * (t.w >> 1)) >> 2
-      const a = R.Random(2048)
-      const x = s.x + Math.floor(nDist * trig.Cos(a) / 2 ** 30), y = s.y + Math.floor(nDist * trig.Sin(a) / 2 ** 30)
-      const z = bottom - R.Random(bottom - top)
-      const f = game.fx.spawn(23 + R.Random(3), s.sectnum, x, y, z, 0)
-      if (f) {
-        f.xvel = s.xvel + R.Random2(0x1aaaa)
-        f.yvel = s.yvel + R.Random2(0x1aaaa)
-        f.zvel = s.zvel + R.Random2(0x1aaaa)
-      }
-    }
-    game.triggers.post(s.index, 3, 4, 20, () => this.bubble())
+    this.game.fx.bubbles(s, this.bubbleTime >> 6)
+    this.game.triggers.post(s.index, 3, 4, 20, () => this.bubble())
   }
 
   /** Moved by a teleporter: facing its way, still, the eye where the body is */

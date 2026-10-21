@@ -5,7 +5,7 @@
 import { mulscale, dmulscale, divscale, CLIPMASK0, CLIPMASK1 } from '../../common/engine.mjs'
 import { moveDude, approxDist } from './physics.mjs'
 import { findSector } from './fx.mjs'
-import { BloodAI, START as AI_START } from './ai.mjs'
+import { BloodAI, START as AI_START, CULTIST, ZOMBIE } from './ai.mjs'
 import { STAT, CMD, SPRITE } from './triggers.mjs'
 import { DAMAGE, VECTOR } from './combat.mjs'
 
@@ -417,6 +417,55 @@ class Dude {
   spiderBite () { this.melee(VECTOR.spiderBite, 1802) }
   eelBite () { this.melee(VECTOR.eelBite, 1701) }
   choke () { this.melee(VECTOR.ratBite, 1902) }
+
+  /**
+   * Through a link (Blood's MoveDude after CheckLink, BLOOD.EXE 0x301cf and 0x304af): out of water a cultist goes
+   * after its target again, the gill beast too, and the eel dies; into water or goo the swimmers' fire is put out,
+   * they bubble (EnemyBubble) and splash and swim on, a burning cultist again a plain one on a roll, and those that
+   * cannot swim (the hound, the spiders, the bat, the rat, the flesh gargoyle, 239) die of it as of a fall
+   */
+  linked (type) {
+    const s = this.sprite, x = this.x, game = this.game, R = game.random
+    const state = (at) => { if (this.bloodAI && at) this.aiNewState(at) }
+    if (type === 10 || type === 14) {
+      x.medium = 0
+      if (s.type === 201 || s.type === 202) state(CULTIST.goto)
+      else if (s.type === 217) { state(0x19edc); s.flags |= 6 }
+      else if (s.type === 218) this.die(s, DAMAGE.fall, 1000 << 4)
+      return
+    }
+    if (type !== 9 && type !== 13) return
+    x.medium = type === 9 ? 1 : 2
+    const swim = (at) => {
+      game.unburn(s)
+      game.triggers.post(s.index, 3, 0, CMD.callback, () => this.enemyBubble())
+      game.sound(s, 720)
+      state(at)
+    }
+    switch (s.type) {
+      case 201: case 202: swim(CULTIST.swimGoto); break
+      case 240:
+        // (water's chance 0xa00, goo's 0x400)
+        s.type = R.rand() < (type === 9 ? 0x500 : 0x200) ? 201 : 202
+        this.info = this.dudes.tables.dudeInfo[s.type]
+        swim(CULTIST.swimGoto)
+        break
+      case 203: swim(ZOMBIE.goto); break
+      case 204: swim(0x1ab58); break
+      case 217: swim(0x19fa0); s.flags &= ~6; break
+      case 206: case 211: case 213: case 214: case 215: case 219: case 220: case 239:
+        this.die(s, DAMAGE.fall, 1000 << 4)
+        break
+    }
+  }
+
+  /** Blood's EnemyBubble callback: |zvel| >> 18 bubbles, and again 4 clock ticks on */
+  enemyBubble () {
+    const s = this.sprite
+    if (s.statnum >= 1024) return
+    this.game.fx.bubbles(s, Math.abs(s.zvel) >> 18)
+    this.game.triggers.post(s.index, 3, 4, CMD.callback, () => this.enemyBubble())
+  }
 
   // --- hurt and killed ---
   /** Blood's MoveDude, landing: the fall's damage past 100 << 4 of the force squared */

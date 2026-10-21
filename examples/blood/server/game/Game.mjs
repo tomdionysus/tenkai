@@ -340,6 +340,12 @@ export default class Game {
   }
 
   // --- burning, drops, items coming back ---
+  /** A burning sprite put out (its xsprite's burnTime to 0: into water) */
+  unburn (target) {
+    const i = this.burning.findIndex((b) => b.sprite === target)
+    if (i >= 0) this.burning.splice(i, 1)
+  }
+
   burn (target, source, ticks) {
     if (target) {
       const b = this.burning.find((b) => b.sprite === target)

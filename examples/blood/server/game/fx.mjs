@@ -39,6 +39,28 @@ export default class Effects {
   get random () { return this.game.random }
 
   /** Blood's CFX::fxSpawn: an effect at a place, living `duration` clock ticks (0: its own, or its sequence's) */
+  /**
+   * The bubbles of Blood's PlayerBubble and EnemyBubble callbacks (BLOOD.EXE 0x74640, 0x748..): `n` bubbles (effects
+   * 23-25) about the sprite's body, at a height in it, with its speed give or take
+   */
+  bubbles (s, n) {
+    const game = this.game, R = this.random, level = this.level, trig = level.trig
+    const { top, bottom } = level.extents(s)
+    const t = game.res.tiles[s.picnum] || { w: 0 }
+    for (let i = 0; i < n; i++) {
+      const nDist = (s.xrepeat * (t.w >> 1)) >> 2
+      const a = R.Random(2048)
+      const x = s.x + Math.floor(nDist * trig.Cos(a) / 2 ** 30), y = s.y + Math.floor(nDist * trig.Sin(a) / 2 ** 30)
+      const z = bottom - R.Random(bottom - top)
+      const f = this.spawn(23 + R.Random(3), s.sectnum, x, y, z, 0)
+      if (f) {
+        f.xvel = s.xvel + R.Random2(0x1aaaa)
+        f.yvel = s.yvel + R.Random2(0x1aaaa)
+        f.zvel = s.zvel + R.Random2(0x1aaaa)
+      }
+    }
+  }
+
   spawn (nFx, sectnum, x, y, z, duration = 0) {
     const level = this.level, game = this.game, R = this.random
     if (sectnum < 0 || nFx < 0 || nFx >= this.data.length) return null
