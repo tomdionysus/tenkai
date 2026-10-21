@@ -36,6 +36,32 @@ describe('StartScreen', () => {
     expect(wide.logo).toEqual({ x: 1200 - 129 - 15, y: 600 - 86 - 15, width: 129, height: 86 })
   })
 
+  it('should put cover art above the title, centred with the lines under it', () => {
+    var s = new StartScreen({ logo: null, cover: { complete: true, naturalWidth: 400, naturalHeight: 400 } })
+    s._coverImage = s.cover
+    var plain = new StartScreen({ logo: null }).layout(1200, 600)
+    var l = s.layout(1200, 600)
+    // Half the shorter side, square, in the middle across
+    expect(l.cover).toEqual({ x: 450, y: l.cover.y, width: 300, height: 300 })
+    // Above the title, the title, subtitle and prompt moved down together
+    expect(l.cover.y + l.cover.height).toBeLessThan(l.title.y - l.title.size / 2)
+    expect(l.prompt.y - l.title.y).toEqual(plain.prompt.y - plain.title.y)
+    // The whole of it centred: as much room above the cover as below the prompt
+    var below = 600 - (l.prompt.y + l.prompt.size / 2)
+    expect(Math.abs(l.cover.y - below)).toBeLessThan(2)
+    var c = context()
+    s.draw(c, 1200, 600, 0)
+    expect(c.drawImage).toHaveBeenCalledWith(s.cover, 450, l.cover.y, 300, 300)
+  })
+
+  it('should keep cover art within a narrow screen', () => {
+    var s = new StartScreen({ logo: null, cover: { complete: true, naturalWidth: 800, naturalHeight: 400 } })
+    s._coverImage = s.cover
+    var l = s.layout(300, 900)
+    expect(l.cover.width).toBeLessThanOrEqual(300)
+    expect(l.cover.x).toBeGreaterThanOrEqual(0)
+  })
+
   it('should shrink a title too wide for the screen', () => {
     var s = new StartScreen({ title: 'A VERY LONG TITLE', logo: null })
     var c = context()

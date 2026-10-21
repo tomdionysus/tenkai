@@ -23,7 +23,7 @@ export default class BloodClient extends GameEngine {
   constructor (indexes, options = {}) {
     super(Object.assign({
       targetId: 'game', fullscreen: true, enableScroll: false, enableZoom: false, pixelated: true, keys: KEYS,
-      startScreen: { title: 'BLOOD', year: 1997, publisher: 'Monolith Productions', background: '#120000', color: '#e8d8c8', logoColor: '#a01010' }
+      startScreen: { title: 'BLOOD', year: 1997, publisher: 'Monolith Productions', cover: 'assets/cover.png', background: '#120000', color: '#e8d8c8', logoColor: '#a01010' }
     }, options))
     this.indexes = indexes
     addImages(this, indexes.tiles.pages.length)
