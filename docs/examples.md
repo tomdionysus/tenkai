@@ -162,3 +162,20 @@ back to the original.
 
 There is no point-and-click example in the repository yet. [Point-and-click adventures](point-and-click.md)
 walks through a small one built from the same classes.
+
+## Blood
+
+`examples/blood/`, a remake of Blood (Monolith, 1997) from the shareware's own files, as a client and a server: a
+Node server runs the game (no Tenkai in it) and the browser draws it. See its [README](../examples/blood/README.md);
+the shareware's data is not in the repository.
+
+**The view.** `BuildView` extends [WebGLScene](api/WebGLScene.md): the map's sectors and walls as triangles, the
+tiles as palette numbers in a texture array, each pixel through its pal's shade table and the palette in the
+shader, as the original drew in 256 colours. Room over room is drawn through the stencil.
+
+**The client.** The engine's `startScreen`, then `ServerFinder` and `GameClient` find and join the server; the
+state comes as `StateDiff` patches each tick and is drawn between the last two. The status bar and the weapon in
+hand are tiles drawn through [PictureAtlas](api/PictureAtlas.md); sounds and the music through `SoundManager`.
+
+**Fidelity.** The original runs headless in js-dos's emulator; its memory is read as it plays its own demos and
+demos of random input, and the server replays the same inputs to be compared tick by tick.
