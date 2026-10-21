@@ -107,8 +107,9 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
       cultists, zombies, gargoyles, rats, bats, hands, spiders, eels
 - [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
 - [x] F3b The drift of one draw in six ticks: Blood's CalcGameChecksum (found by logging rand()'s callers)
-- [ ] F3c BLOOD000's draws part at tick 352: the zombie's body rides the rising gibs in the original (its flight,
-      and a gib carried on it); then the other demos' draws (randlog.mjs on BLOOD001 and BLOOD002)
+- [ ] F3c The draws part: BLOOD000 at tick 352 (the zombie's body rides the rising gibs in the original: its
+      flight, and a gib carried on it); BLOOD001 at 184 and BLOOD002 at 218 (the zombies' chase: Blood's ai.cpp
+      draws three more there, 5df01, 5c5f4, 5c63e: the AI's own logic, F2); BLOOD002 at 184 (an explosion)
 - [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed (`replay.mjs --steps` compares each tick's move).
       Done: the TNT bundle (lit on fire, thrown on letting go, lobbed if let go before the fuse catches, goes off on
       what it hits), Blood's explosion (fixed damage once, the concussion's damage) and actFireThing. Open: a slide

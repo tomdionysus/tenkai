@@ -9,6 +9,7 @@ import Mem from './mem.mjs'
 import Demo from '../formats/dem.mjs'
 import BloodMap from '../formats/map.mjs'
 import RFF from '../formats/rff.mjs'
+import Lockstep from './lockstep.mjs'
 
 const [out = 'randlog.json', seconds = '20', demoFile] = process.argv.slice(2)
 const files = demoFile ? [{ path: 'BLOOD000.DEM', contents: new Uint8Array(fs.readFileSync(demoFile)) }] : []
@@ -58,7 +59,9 @@ const slackLin = (DATA_LIN + DATA_VSIZE + 0x3f) & ~0x3f, slackEnd = (DATA_LIN + 
 let slackZero = true
 for (let a = slackLin; a < slackEnd; a++) if (heap[base + a]) { slackZero = false; break }
 let ENTRIES, BUF
-if (slackZero && slackEnd - slackLin >= 2048) { ENTRIES = 256; BUF = slackLin } else { ENTRIES = 64; BUF = caveLin + 128 }
+// (stepped a frame at a time the calls need no tick beside them: twice as many fit)
+const STEPPED = !process.env.NOSTEP
+if (slackZero && slackEnd - slackLin >= 2048) { ENTRIES = STEPPED ? 512 : 256; BUF = slackLin } else { ENTRIES = 64; BUF = caveLin + 128 }
 // Beside each caller, the demo's tick count when it called
 const TICKS = BUF + ENTRIES * 4
 const counterLin = GLOBAL - 934408 - base
@@ -74,8 +77,10 @@ code.push(0x8b, 0x54, 0x24, 0x08) // mov edx, [esp+8]: the caller's return addre
 code.push(0x51) // push ecx
 code.push(0x81, 0xe1, ...u32(ENTRIES - 1)) // and ecx, ENTRIES-1
 code.push(0x89, 0x14, 0x8d, ...u32(BUF)) // mov [BUF + ecx*4], edx
-code.push(0x8b, 0x15, ...u32(counterLin)) // mov edx, [the tick count]
-code.push(0x89, 0x14, 0x8d, ...u32(TICKS)) // mov [TICKS + ecx*4], edx
+if (!STEPPED) {
+  code.push(0x8b, 0x15, ...u32(counterLin)) // mov edx, [the tick count]
+  code.push(0x89, 0x14, 0x8d, ...u32(TICKS)) // mov [TICKS + ecx*4], edx
+}
 code.push(0x59) // pop ecx
 code.push(0x41) // inc ecx
 code.push(0x89, 0x0d, ...u32(IDX)) // mov [IDX], ecx: the count of calls
@@ -91,12 +96,15 @@ mem.view.setUint32(base + IDX, 0, true)
 const jmp = [0xe9, ...u32((caveLin - (randLin + 5)) >>> 0), 0x90]
 heap.set(jmp, H)
 console.log('patched; stub', code.length, 'bytes')
+// One frame at a time (fidelity/lockstep.mjs), so the ring is read before it can fill
+const step = STEPPED ? Lockstep.install(mem, SEED, 0x200, { base, delta }) : null
 const counter = () => mem.i32(GLOBAL - 934408)
 const samples = []
 let last = 0
 const tStart = performance.now()
 await new Promise((resolve) => {
   const h = setInterval(() => {
+    if (step && !step.waiting()) return
     const count = mem.u32(base + IDX)
     const sample = { c: counter(), r: mem.u32(SEED), n: count }
     if (count !== last) {
@@ -106,11 +114,13 @@ await new Promise((resolve) => {
       sample.ticks = []
       for (let i = count - k; i < count; i++) {
         sample.calls.push(mem.u32(base + BUF + 4 * (i & (ENTRIES - 1))) - delta)
-        sample.ticks.push(mem.i32(base + TICKS + 4 * (i & (ENTRIES - 1))))
+        // stepped: the frame just done, which counted to this sample's count
+        sample.ticks.push(STEPPED ? sample.c : mem.i32(base + TICKS + 4 * (i & (ENTRIES - 1))))
       }
       last = count
     }
     if (samples.length === 0 || sample.calls || sample.c !== samples[samples.length - 1].c) samples.push(sample)
+    if (step) step.release()
     if (performance.now() - tStart > Number(seconds) * 1000) { clearInterval(h); resolve() }
   }, 1)
 })

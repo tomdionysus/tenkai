@@ -10,6 +10,7 @@ npm), and its memory is read while it plays: the remake's server replays the sam
 | `emu.mjs` | Starts the original: the shareware's files, a BLOOD.CFG with its keys bound, keys in, screenshots out |
 | `mem.mjs` | Reads the original's RAM inside the emulator's WebAssembly heap: the player's sprite, Blood's sector, wall and sprite arrays (found from the map) |
 | `trace.mjs` | Lets attract mode play a demo (its own, or one given in place of BLOOD000.DEM) and samples the player and its velocity, the demo's tick count, the random state (and with `DUDES=1` every monster and every sprite made) |
+| `lockstep.mjs` | Steps the original a frame at a time (a wait patched in where its frame begins), for readers that must see every frame |
 | `randlog.mjs` | Patches the original's rand() in memory to log each caller and the tick it was in (`../tools/randcalls.py --json` names the callers' source files) |
 | `findvel.mjs` | Finds Blood's velocity arrays in the original's memory (the words that follow the player's step), for the trace |
 | `replay.mjs` | Plays a demo's inputs through the server's game and compares with a trace, tick by tick (`--steps`: each tick's move) |

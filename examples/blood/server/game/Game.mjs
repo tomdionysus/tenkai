@@ -91,6 +91,13 @@ export default class Game {
 
   /** The sprite types the game itself handles when a channel or an event reaches them (Blood's OperateSprite) */
   operateSprite (s, x, event) {
+    // Gib objects (Blood's OperateSprite: the map's objects that break, the bits, the bodies, the head): off, on or
+    // a toggle breaks them (actActivateGibObject), if their state changes
+    if (s.type === 416 || s.type === 417 || s.type === 425 || s.type === 426 || s.type === 427) {
+      const state = event.cmd === CMD.off ? 0 : event.cmd === CMD.on ? 1 : x.state ^ 1
+      if (this.triggers.setSpriteState(s, x, state)) this.things.activateGibObject(s, x)
+      return true
+    }
     if (s.type >= 700 && s.type <= 708) {
       if (event.cmd === 0) { this.triggers.setSpriteState(s, x, 0); return true }
       if (event.cmd === 21) { // kCmdRepeat
@@ -117,6 +124,10 @@ export default class Game {
     if (s.type === 701 || s.type === 702) {
       const { bottom } = this.level.extents(s)
       this.missiles.drip(s, bottom, s.type === 702)
+    } else if (s.type === 706 || s.type === 707) {
+      // Bubbles (Blood's ActivateGenerator: an effect, one or a cluster, at the sprite's top)
+      const { top } = this.level.extents(s)
+      this.fx.spawn(s.type === 706 ? 23 : 26, s.sectnum, s.x, s.y, top, 0)
     } else if (s.type === 708) this.sound(s, x.data2)
   }
 

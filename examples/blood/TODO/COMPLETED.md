@@ -147,3 +147,12 @@
   the dudes' minds (aiProcessDudes: recoil from the frame's total damage, RecoilDude's draw), the effects. Dudes get
   their type's clipdist (actInit); a dead dude is thing 426 with its thingInfo; a dude rolls for a new target only
   for another attacker. The TNT bundle's strength is its hold over 240 (thrown at letting go, impact on what it hits).
+- fidelity/lockstep.mjs: the original stepped a frame at a time (ProcessFrame patched where a frame begins to wait
+  on a flag), so randlog.mjs reads every frame's draws (512 a frame) and nothing is lost. With it BLOOD001 and
+  BLOOD002 showed: Blood's event queue is a binary heap ordered by time alone (equal times come out in the heap's
+  order: ported as EventQueue in triggers.mjs); the bubble generators (706, 707) spawn effects 23 and 26; the gib
+  objects (416, 417, the bits, the bodies, the head) break on off, on or toggle (actActivateGibObject: data1 and
+  data2's gibs, data3's if burning, data4's sound, the drop; an unseen one stays); the map's things get their
+  thingInfo's clipdist and flags (actInit: a breakable's is 0); aiActivateDude picks a way first (its
+  aiChooseDirection draw) when the dude's state is off, then each type's cry. BLOOD001's and BLOOD002's draws
+  match the original's to tick 183.

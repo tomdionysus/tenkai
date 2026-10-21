@@ -9,7 +9,7 @@ import { DAMAGE } from './combat.mjs'
 // Blood's explosion kinds (explodeInfo's order): the thrown bundle's is the standard (1: the original's explosion
 // sprite has type 1), a barrel's the large (2)
 export const EXPLOSION = { small: 0, standard: 1, large: 2, fireball: 3, napalm: 5, spray: 6, tnt: 1 }
-const THING = { tntBarrel: 400, proxBomb: 401, remoteBomb: 402, tntStick: 418, tntBundle: 419, sprayBundle: 420, dripWater: 423, dripBlood: 424, bloodBits: 425, bloodChunks: 426, zombieHead: 427 }
+export const THING = { objectGib: 416, objectExplode: 417, tntBarrel: 400, proxBomb: 401, remoteBomb: 402, tntStick: 418, tntBundle: 419, sprayBundle: 420, dripWater: 423, dripBlood: 424, bloodBits: 425, bloodChunks: 426, zombieHead: 427 }
 
 export default class Things {
   constructor (game) {
@@ -20,6 +20,14 @@ export default class Things {
     this.moving = new Map() // sprite index -> { fuse, owner, onHit }
     this.explosions = [] // { x, y, z, sectnum, e, owner, time }
     this.bodies = new Map()
+    // Blood's actInit for the map's things: their type's size and physics (a breakable's clipdist is 0: its pieces
+    // come from where it is)
+    for (const s of this.level.sprites) {
+      if (s.statnum !== STAT.thing || !this.info[s.type]) continue
+      s.clipdist = this.info[s.type].clipdist
+      s.flags = this.info[s.type].flags
+      s.xvel = s.yvel = s.zvel = 0
+    }
   }
 
   mass (s) { const t = this.info[s.type] || (this.bodies.get(s.index)); return t ? t.mass : 0 }
@@ -63,15 +71,22 @@ export default class Things {
     // Blood's actSpawnThing for the bits and the head: locked for 180 clock ticks, then broken by what they hit into
     // their own gibs (actActivateGibObject: blood chunks, GIBTYPE 18 or 7) with their sound
     const gibObject = g.type === THING.bloodBits || g.type === THING.bloodChunks || g.type === THING.zombieHead
-      ? { gib: g.type === THING.bloodBits ? 19 : 8, sound: g.type === THING.zombieHead ? 318 : 319, unlock: this.game.clock + 180 } : null
+      ? { data1: g.type === THING.bloodBits ? 19 : 8, data2: 0, data3: 0, data4: g.type === THING.zombieHead ? 318 : 319, unlock: this.game.clock + 180 } : null
     this.moving.set(gib.index, { health: info.startHealth << 4, gibObject })
   }
 
-  /** Blood's actActivateGibObject: a gib object broken (its gib types, its sound) and gone */
+  /**
+   * Blood's actActivateGibObject: a gib object broken: its gib types (data1 and data2, data3 if it burns, each one
+   * more than the type), its sound (data4), what it drops; gone unless it is unseen (a map's may go off again)
+   */
   activateGibObject (s, o) {
-    if (o.gib > 0) this.game.fx.gibSprite(s, o.gib - 1)
-    if (o.sound > 0) this.game.sound(s, o.sound)
-    this.remove(s)
+    const g1 = Math.max(0, Math.min(31, o.data1 || 0)), g2 = Math.max(0, Math.min(31, o.data2 || 0)), g3 = Math.max(0, Math.min(31, o.data3 || 0))
+    if (g1 > 0) this.game.fx.gibSprite(s, g1 - 1)
+    if (g2 > 0) this.game.fx.gibSprite(s, g2 - 1)
+    if (g3 > 0 && o.burnTime > 0) this.game.fx.gibSprite(s, g3 - 1)
+    if (o.data4 > 0) this.game.sound(s, o.data4)
+    if (o.dropMsg > 0) this.game.drop(s, o.dropMsg)
+    if (!(s.cstat & 32768)) this.remove(s)
   }
 
   /** A dead dude's body (Blood's kThingBloodChunks, moved by its thingInfo; it does not die again) */

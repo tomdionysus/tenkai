@@ -33,7 +33,7 @@ export default class Triggers {
   constructor (game) {
     this.game = game
     this.level = game.level
-    this.events = [] // { time, type, index, cmd, callback }
+    this.events = new EventQueue() // { time, type, index, cmd, callback }
     this.busy = [] // { index, delta, busy, kind }
     this.base = { walls: this.level.walls.map((w) => ({ x: w.x, y: w.y })), sprites: this.level.sprites.map((s) => ({ x: s.x, y: s.y, z: s.z })) }
     this.byChannel = null
@@ -94,23 +94,17 @@ export default class Triggers {
 
   /** Blood's evPost: a command for an object, `delay` clock ticks (120 a second) from now */
   post (index, type, delay, cmd, callback) {
-    this.events.push({ time: this.game.clock + delay, index, type, cmd, callback, seq: this.seq = (this.seq || 0) + 1 })
+    const time = this.game.clock + delay
+    this.events.insert(time, { time, index, type, cmd, callback })
   }
 
   /** Blood's evKill: forgets the events posted for an object */
-  kill (index, type) { this.events = this.events.filter((e) => !(e.index === index && e.type === type)) }
+  kill (index, type) { this.events.kill((e) => e.index === index && e.type === type) }
 
-  /** Blood's evProcess: the events due by now, in the order of their times */
+  /** Blood's evProcess: the events due by now, in the order Blood's queue gives them (equal times by its heap) */
   processEvents () {
-    for (;;) {
-      let best = -1
-      for (let i = 0; i < this.events.length; i++) {
-        const e = this.events[i]
-        if (e.time > this.game.clock) continue
-        if (best < 0 || e.time < this.events[best].time || (e.time === this.events[best].time && e.seq < this.events[best].seq)) best = i
-      }
-      if (best < 0) return
-      const e = this.events.splice(best, 1)[0]
+    while (this.events.size && this.events.lowest() <= this.game.clock) {
+      const e = this.events.remove()
       if (e.cmd === CMD.callback) { if (e.callback) e.callback(e.index, e.type) } else this.message(e.type, e.index, e)
     }
   }
@@ -673,3 +667,57 @@ export default class Triggers {
 }
 
 export { dmulscale }
+
+/**
+ * Blood's event queue (pqueue.h's VanillaPriorityQueue): a binary heap from 1 on, ordered by time alone, so events
+ * due at the same time come out in the heap's order, not the order they were posted; removing takes the last into
+ * the place and sifts it down only (as Blood's Delete does). The remake's must be the same for its draws to be.
+ */
+export class EventQueue {
+  constructor () { this.items = [null] }
+  get size () { return this.items.length - 1 }
+  lowest () { return this.items[1].time }
+
+  insert (time, item) {
+    const q = this.items
+    q.push(item)
+    let j = q.length - 1
+    while (j > 1 && q[j >> 1].time > item.time) { q[j] = q[j >> 1]; j >>= 1 }
+    q[j] = item
+  }
+
+  down (n) {
+    const q = this.items, count = q.length - 1
+    const item = q[n]
+    while ((count >> 1) >= n) {
+      let j = n * 2
+      if (j < count && q[j].time > q[j + 1].time) j++
+      if (item.time <= q[j].time) break
+      q[n] = q[j]
+      n = j
+    }
+    q[n] = item
+  }
+
+  remove () {
+    const q = this.items
+    const top = q[1]
+    const last = q.pop()
+    if (q.length > 1) { q[1] = last; this.down(1) }
+    return top
+  }
+
+  delete (k) {
+    const q = this.items
+    const last = q.pop()
+    if (k < q.length) { q[k] = last; this.down(k) }
+  }
+
+  /** Blood's Kill: every event that matches, deleted in turn from the front */
+  kill (match) {
+    for (let i = 1; i < this.items.length;) {
+      if (match(this.items[i])) this.delete(i)
+      else i++
+    }
+  }
+}

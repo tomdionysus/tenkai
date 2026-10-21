@@ -237,12 +237,37 @@ class Dude {
   }
 
   /** Blood's aiActivateDude: alerted, it says so and goes after what it saw or heard */
+  /**
+   * Blood's aiActivateDude: woken for the first time (its xsprite's state off), it picks a way toward its target
+   * (aiChooseDirection, a draw); then each type's own cry (a draw or two, as aiActivateDude's), and the hunt
+   */
   activate () {
-    const [base, n] = this.kind.alert
-    if (base && Chance(0x8000)) this.game.sound(this.sprite, base + Random(n))
+    const s = this.sprite, x = this.x, trig = this.level.trig
+    const t = this.target >= 0 ? this.level.sprites[this.target] : null
+    const pos = t || this.targetPos || s
+    if (!x.state) { this.chooseDirection(trig.getangle(pos.x - s.x, pos.y - s.y)); x.state = 1 }
     if (this.stateName === 'buried' || this.stateName === 'laying') { this.setState('rise'); return }
+    const hunting = this.target >= 0
+    const cry = (id) => this.game.sound(s, id)
+    switch (s.type) {
+      case 201: case 202: case 246: case 247: case 248: case 249: case 230: { // cultists
+        const tommy = s.type === 201 || s.type === 230
+        if (!hunting) { if (Chance(0x8000)) cry((tommy ? 4008 : 1008) + Random(5)) } else if (Chance(0x8000)) cry((tommy ? 4003 : 1003) + Random(4))
+        break
+      }
+      case 203: // the axe zombie
+        if (hunting && Chance(0xa000)) cry([1103, 1104, 1105][Random(3)] || 1103)
+        break
+      case 204: if (hunting && Chance(0x4000)) cry(1201); break // the butcher
+      case 206: case 207: if (hunting) cry(Chance(0x4000) ? 1401 : 1400); break // gargoyles
+      case 218: if (hunting) cry(Chance(0x8000) ? 1501 : 1500); break // the bone eel
+      case 219: if (hunting && Chance(0xa000)) cry(2000); break // the bat
+      case 212: if (hunting) cry(1900); break // the hand
+      case 220: if (hunting) cry(2100); break // the rat
+      case 213: case 214: case 215: case 216: if (hunting) cry(1800); break // spiders
+    }
     if (this.stateName === 'proneIdle') { this.setState('proneChase'); return }
-    this.setState(this.target >= 0 ? 'chase' : 'goto')
+    this.setState(hunting ? 'chase' : 'goto')
   }
 
   think_buried () {
