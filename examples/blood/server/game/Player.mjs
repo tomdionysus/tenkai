@@ -67,6 +67,8 @@ export default class Player {
   }
 
   get pos () { return this.sprite }
+  /** Its posture's numbers (Blood's gPosture: eye and weapon heights, speeds) */
+  posture_ () { return POSTURES[this.posture] }
   /** Its sprite's xsprite (its medium: on land 0, in water 1, in goo 2) */
   get x () { return this.level.x(this.sprite) }
 

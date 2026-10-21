@@ -48,6 +48,8 @@ export default class Weapons {
     this.started = game.clock
     this.callbacksDone = -1
     this.barrel = 0
+    // the sawed-off's loaded barrels (Blood's weaponState for it: two when raised with the shells for them)
+    this.loaded = 2
   }
 
   playing () { return this.qavs[this.qav] }
@@ -66,6 +68,11 @@ export default class Weapons {
     if (q && (this.state === 'fire' || this.state === 'alt')) {
       const frame = Math.min(q.frames.length - 1, Math.floor(elapsed / q.ticksPerFrame))
       for (let f = this.callbacksDone + 1; f <= frame; f++) if (q.frames[f].callback > 0) this.shoot(w, q.frames[f].callback, this.state === 'alt')
+      this.callbacksDone = frame
+    } else if (q && this.state === 'reload') {
+      // the sawed-off's reload: its frame's callback throws the spent shells (Blood's EjectShell, BLOOD.EXE 0x4d104)
+      const frame = Math.min(q.frames.length - 1, Math.floor(elapsed / q.ticksPerFrame))
+      for (let f = this.callbacksDone + 1; f <= frame; f++) if (q.frames[f].callback > 0 && p.weapon === 3) { this.shellEject(25, 35); this.shellEject(48, 35) }
       this.callbacksDone = frame
     }
     if (q && q.frames.some((f) => f.sound.id > 0)) {
@@ -95,7 +102,8 @@ export default class Weapons {
     this.frames(w)
     // (Blood's WeaponProcess: the QAV's frames, then the aim, then what the buttons do)
     this.updateAim()
-    const done = !q || elapsed >= q.duration
+    // (Blood's StartQAV takes its first 4 off the weapon's timer as it starts: a QAV is over a tick before its length)
+    const done = !q || elapsed + 4 >= q.duration
     if (p.weapon === 6 && this.bundle(input, q, elapsed, done)) return
     const want = input.newWeapon || p.weapons.want
     switch (this.state) {
@@ -103,17 +111,19 @@ export default class Weapons {
         if (done) { p.weapon = this.next; this.play('up', WEAPONS[p.weapon].up); this.soundsDone = -1 }
         return
       case 'up':
-        if (done) this.play('idle', w.idle)
+        if (done) { if (p.weapon === 3) this.loaded = Math.min(2, p.ammo[2]); this.play('idle', w.idle) }
         return
       case 'fire': case 'alt':
         if (!done) return
         if (w.repeat && (input.buttons & (this.state === 'alt' ? 8 : 4)) && this.hasAmmo(w)) { this.fire(this.state, this.state === 'alt' ? w.alt[0] : w.fire[0], w); return }
-        if (w.reload && p.weapon === 3 && this.barrel === 0 && this.hasAmmo(w)) { this.play('reload', w.reload); return }
+        // (done: on to the buttons in the same frame, as Blood's WeaponProcess once the weapon's timer is out)
         this.play('idle', w.idle)
-        return
+        break
       case 'reload':
-        if (done) this.play('idle', w.idle)
-        return
+        if (!done) return
+        this.loaded = Math.min(2, p.ammo[2])
+        this.play('idle', w.idle)
+        break
     }
     // Idle: a change of weapon, a shot, or nothing
     if (want && want !== p.weapon && p.weapons[want] && this.hasAmmo(WEAPONS[want] || {})) {
@@ -124,15 +134,19 @@ export default class Weapons {
       return
     }
     p.weapons.want = 0
-    if ((input.buttons & 4) && this.hasAmmo(w)) {
-      const qav = w.fire[p.weapon === 3 ? this.barrel : 0]
+    const loaded = p.weapon !== 3 || this.loaded > 0
+    if ((input.buttons & 4) && this.hasAmmo(w) && loaded) {
+      const qav = w.fire[p.weapon === 3 ? 2 - this.loaded : 0]
       this.fire('fire', qav, w)
-    } else if ((input.buttons & 8) && w.alt && this.hasAmmo(w)) {
+    } else if ((input.buttons & 8) && w.alt && this.hasAmmo(w) && loaded) {
       this.fire('alt', w.alt[0], w)
     } else if (!this.hasAmmo(w) && p.weapon !== 1) {
       // Out of ammo: the best weapon there is ammo for
       const best = [4, 3, 5, 2, 6, 7, 1].find((n) => p.weapons[n] && this.hasAmmo(WEAPONS[n]))
       if (best && best !== p.weapon) { this.next = best; this.play('down', w.down) }
+    } else if (w.reload && p.weapon === 3 && this.loaded === 0 && this.hasAmmo(w) && this.state === 'idle') {
+      // nothing pressed: the sawed-off empty is reloaded (Blood's WeaponUpdateState, at WeaponProcess's end)
+      this.play('reload', w.reload)
     }
   }
 
@@ -212,6 +226,29 @@ export default class Weapons {
   use (w, n = 1) { if (w.ammo >= 0) this.p.ammo[w.ammo] = Math.max(0, this.p.ammo[w.ammo] - n) }
 
   /**
+   * Blood's SpawnShellEject (0x4abf4) and fxSpawnEjectingShell (0x73578): the eye's height set again; a shell
+   * (effect 40-42) from beside the gun, a quarter of the way from the weapon's height to the eye's, thrown aside
+   * at the speed asked give or take a quarter, a turn give or take 56, and up
+   */
+  shellEject (side, speed) {
+    const p = this.p, s = p.sprite, game = this.game, R = game.random, trig = game.level.trig
+    p.zView = s.z - p.posture_().eyeAboveZ
+    const t = p.zWeapon - p.zView
+    const z = p.zWeapon - t + (t >> 2)
+    let x = s.x + mulscale(s.clipdist - 4, trig.Cos(s.ang), 28), y = s.y + mulscale(s.clipdist - 4, trig.Sin(s.ang), 28)
+    x += mulscale(side, trig.Cos((s.ang + 512) & 2047), 30)
+    y += mulscale(side, trig.Sin((s.ang + 512) & 2047), 30)
+    const f = game.fx.spawn(40 + R.Random(3), s.sectnum, x, y, z, 0)
+    if (!f) return
+    const v = R.Random2(Math.trunc((Math.trunc(speed / 4) << 18) / 120))
+    const ang = (s.ang + R.Random2(56) + 512) & 2047
+    const vel = v + Math.trunc((speed << 18) / 120)
+    f.xvel = mulscale(vel, trig.Cos(ang), 30)
+    f.yvel = mulscale(vel, trig.Sin(ang), 30)
+    f.zvel = s.zvel - 0x20000 - Math.trunc((R.Random2(20) << 18) / 120)
+  }
+
+  /**
    * Blood's UpdateAimVector (BLOOD.EXE 0x4ae18): with auto-aim the nearest dude (then thing, for the weapons that
    * take things) within the weapon's angle, in sight and at a height the view's slope could reach, by how close it
    * is to the line of sight; its middle (its type's aim height) aimed at, a seeker's target led by its speed. The
@@ -289,12 +326,14 @@ export default class Weapons {
       case 3: { // the sawed-off: one barrel, or both (alt)
         // (Blood's FireShotgun, BLOOD.EXE 0x4cf44: its sound first, 411 for a barrel, 412 for both; sixteen pellets a
         // barrel, each spread by Random3 in x, y (2500) and z (1500))
-        const barrels = alt ? 2 : 1
+        const barrels = alt ? Math.max(1, this.loaded) : 1
         const shells = Math.min(barrels, p.ammo[2])
+        this.loaded = Math.max(0, this.loaded - shells)
         game.sound(s, shells === 1 ? 411 : 412)
         for (let i = 0; i < shells * 16; i++) {
           const x = dx + R(2500), y = dy + R(2500), z = dz + R(1500)
-          combat.fireVector(s, 0, zw, x, y, z, VECTOR.shell)
+          // (v1.11 fires vector 4, the table's fifth: 6 of damage, BLOOD.EXE 0x4d036)
+          combat.fireVector(s, 0, zw, x, y, z, VECTOR.shellAP)
         }
         this.use(w, shells)
         this.barrel = alt ? 0 : (this.barrel + 1) % 2
