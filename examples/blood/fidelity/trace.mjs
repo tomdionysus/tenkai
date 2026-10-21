@@ -87,7 +87,7 @@ await new Promise((resolve) => {
     // HEAP=1: Blood's event queue (d:0x11194c: time and event pairs, the count at +0x2008), as [time, index, type, cmd]
     if (process.env.HEAP) {
       const q = GLOBAL + RNG - 0x1cb18 + 0x11194c, n = mem.i32(q + 0x2008), h = []
-      for (let i = 1; i <= n && i < 0x400; i++) { const d = mem.u32(q + i * 8 + 4); h.push([mem.i32(q + i * 8), d & 0x1fff, (d >> 13) & 7, (d >> 16) & 0xff]) }
+      for (let i = 1; i <= n && i < 0x400; i++) { const d = mem.u32(q + i * 8 + 4); h.push([mem.i32(q + i * 8), d & 0x1fff, (d >> 13) & 7, (d >> 16) & 0xff, d >>> 24]) }
       sample.heap = h
     }
     // SPRITES=540-600: every sprite in that index range: [index, status, type, tile, x, y]

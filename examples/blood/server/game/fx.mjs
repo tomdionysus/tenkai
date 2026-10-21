@@ -134,6 +134,25 @@ export default class Effects {
   }
 
   /** Blood's fxBloodSpurt: every 6 clock ticks while the spurt flies, a drop with its speed over 256 */
+  /**
+   * Blood's fxZombieBloodSpurt: the headless zombie's neck spurts from its top, every 4 clock ticks while data1
+   * lasts (4 off it each time), then again after 60 while data2 lasts (data1 back to 40)
+   */
+  zombieSpurt (s) {
+    const level = this.level, R = this.random, x = level.x(s)
+    if (!x || s.statnum >= 1024) return
+    const { top } = level.extents(s)
+    const f = this.spawn(27, s.sectnum, s.x, s.y, top, 0)
+    // (v1.11's, BLOOD.EXE 0x740fd: the zombie's own speed, spread in x and y, and up by 0x6aaaa)
+    if (f) {
+      f.xvel = s.xvel + R.Random2(0x11111)
+      f.yvel = s.yvel + R.Random2(0x11111)
+      f.zvel = s.zvel - 0x6aaaa
+    }
+    if (x.data1 > 0) { this.game.triggers.post(s.index, SPRITE, 4, CMD.callback, () => this.zombieSpurt(s)); x.data1 -= 4 }
+    else if (x.data2 > 0) { this.game.triggers.post(s.index, SPRITE, 60, CMD.callback, () => this.zombieSpurt(s)); x.data1 = 40; x.data2-- }
+  }
+
   bloodSpurt (s) {
     if (s.statnum !== STAT.fx) return
     const b = this.spawn(FX.blood, s.sectnum, s.x, s.y, s.z, 0)

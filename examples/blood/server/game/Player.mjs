@@ -111,6 +111,9 @@ export default class Player {
     const posture = POSTURES[this.posture]
     if (input.buttons || input.forward || input.strafe || input.turn) this.restTime = 0
     else if (this.restTime >= 0) this.restTime += 4
+    // Blood's ProcessInput runs WeaponProcess here, before the turn and the push (BLOOD.EXE 0x3c29e): a throw takes
+    // the thrower's speed as the last tick left it (BLOOD002's bundle at tick 221)
+    if (this.weaponState) this.weaponState.tick(input)
     if (this.height < 256 || this.posture === SWIM) {
       const x = trig.Cos(s.ang), y = trig.Sin(s.ang)
       let speed = 0x10000
@@ -165,7 +168,6 @@ export default class Player {
     // Then, as Blood's playerProcess: the eye and the weapon's height follow the body, and the weapon (after the
     // turn: a shot goes where the player now faces, from where the weapon now is)
     this.view()
-    if (this.weaponState) this.weaponState.tick(input)
   }
 
   /**

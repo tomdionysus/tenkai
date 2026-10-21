@@ -147,7 +147,7 @@ export default class Things {
     const m = this.moving.get(s.index) || { health: info.startHealth << 4 }
     m.health = (m.health ?? info.startHealth << 4) - damage
     this.moving.set(s.index, m)
-    if (m.health <= 0 && (s.type === THING.tntBarrel || s.type === THING.tntBundle || s.type === THING.tntStick || s.type === THING.proxBomb || s.type === THING.remoteBomb)) this.explode(s, s.type === THING.tntBarrel ? EXPLOSION.large : EXPLOSION.tnt, source)
+    if (m.health <= 0 && (s.type === THING.tntBarrel || s.type === THING.tntBundle || s.type === THING.tntStick || s.type === THING.proxBomb || s.type === THING.remoteBomb)) this.explode(s, this.kindOf(s), source)
     else if (m.health <= 0 && !m.done && !m.body) {
       // Blood's actDamageSprite: at nothing a thing is told off (trTriggerSprite): a breakable breaks; a player who
       // blew it up may remark on it
@@ -157,7 +157,9 @@ export default class Things {
         this.game.random.Random(10)
         p.remarkAt = this.game.clock + 3600
       }
-      this.game.triggers.triggerSprite(s.index, CMD.off)
+      // (a gib thrown loose has its gib data, not the map's: Blood's OperateSprite breaks it from its xsprite)
+      if (m.gibObject) this.activateGibObject(s, m.gibObject)
+      else this.game.triggers.triggerSprite(s.index, CMD.off)
     }
     return damage
   }
@@ -179,18 +181,19 @@ export default class Things {
     for (const [index, m] of [...this.moving]) {
       const s = this.level.sprites[index]
       if (!s || s.statnum !== STAT.thing) { this.moving.delete(index); continue }
-      if (m.fuse !== undefined && --m.fuse <= 0) { this.explode(s, EXPLOSION.tnt, this.level.sprites[m.owner]); continue }
+      if (m.fuse !== undefined && --m.fuse <= 0) { this.explode(s, this.kindOf(s), this.level.sprites[m.owner]); continue }
       if (!(s.xvel || s.yvel || s.zvel || (s.flags & 4) || (s.flags & 2))) continue
       // Blood's actAirDrag on a moving thing, as on a dude (the thrown TNT slows so in BLOOD000)
       airDrag(this.level, s, 128)
       const hit = this.move(s)
+      // (gone in its move: a gib broken by its landing)
+      if (s.statnum !== STAT.thing) continue
       // Blood's gSpriteHit florhit: whether it lies on the floor (an explosion there is a different sequence)
       m.florhit = this.level.extents(s).bottom >= this.level.engine.getflorzofslope(s.sectnum, s.x, s.y) - 256
-      // A gib object, once unlocked, breaks on the floor it lands on (Blood's Impact on it, through kCmdOff; off a
-      // wall it bounces whole, as gib 572 in BLOOD000 at tick 352)
-      if ((hit & 0xc000) === 0x4000 && m.gibObject && this.game.clock >= m.gibObject.unlock) { this.activateGibObject(s, m.gibObject); continue }
+      // (a gib object breaks when its health is gone: a hard landing's damage, once it is unlocked; gib 892 in
+      // BLOOD000 lands at tick 703 with 7 of 240 taken and stays whole)
       // Blood's Impact: whatever it hits (floor, ceiling, wall, a sprite other than its thrower) sets it off
-      if (hit && m.impact && ((hit & 0xc000) !== 0xc000 || (hit & 0x3fff) !== m.owner)) { this.explode(s, EXPLOSION.tnt, this.level.sprites[m.owner]); continue }
+      if (hit && m.impact && ((hit & 0xc000) !== 0xc000 || (hit & 0x3fff) !== m.owner)) { this.explode(s, this.kindOf(s), this.level.sprites[m.owner]); continue }
       // Blood's MakeSplash: a drip that hits anything splashes where it is (its own sprite plays the splash)
       if (hit && (s.type === THING.dripWater || s.type === THING.dripBlood) && !m.splashed) this.makeSplash(s, m)
     }
@@ -235,7 +238,29 @@ export default class Things {
     // Blood's MoveThing: no clipping at a parallaxed sky (things fly above it, as the gibs in BLOOD000)
     let zr = getZRange(level, s, s.clipdist << 2, 0)
     ;({ top, bottom } = level.extents(s))
-    if ((s.flags & 2) && bottom < zr.florz) { s.z += 455; s.zvel += 58254 }
+    if ((s.flags & 2) && bottom < zr.florz) {
+      s.z += 455
+      s.zvel += 58254
+      // A falling zombie's head bleeds a trail (BLOOD.EXE 0x2f0a8): effect 27 with its speed, and 0x44444 turned
+      // by angles of the clock (Blood's RotateVector, rounded)
+      if (s.type === THING.zombieHead) {
+        const f = this.game.fx.spawn(27, s.sectnum, s.x, s.y, s.z, 0)
+        if (f) {
+          const c = this.game.clock, trig = level.trig
+          const rot = (a, b, ang) => {
+            const cs = trig.Cos(ang & 2047), sn = trig.Sin(ang & 2047)
+            return [Math.floor((a * cs - b * sn + 2 ** 29) / 2 ** 30), Math.floor((a * sn + b * cs + 2 ** 29) / 2 ** 30)]
+          }
+          let v2c = 0x44444, v28 = 0, v24 = 0
+          ;[v2c, v28] = rot(v2c, v28, (c * 11) & 2047)
+          ;[v2c, v24] = rot(v2c, v24, (c * 5) & 2047)
+          ;[v28, v24] = rot(v28, v24, (c * 3) & 2047)
+          f.xvel = s.xvel + v2c
+          f.yvel = s.yvel + v28
+          f.zvel = s.zvel + v24
+        }
+      }
+    }
     if (checkLink(level, s)) zr = getZRange(level, s, s.clipdist << 2, 0)
     ;({ top, bottom } = level.extents(s))
     m0.floorHit = bottom >= zr.florz ? zr.florhit : 0
@@ -284,6 +309,13 @@ export default class Things {
       if (s.z >= top && s.z <= bottom) return i
     }
     return -1
+  }
+
+  /** Blood's actExplodeSprite's kind by the thing: a TNT stick's small, a barrel's large, the rest standard */
+  kindOf (s) {
+    if (s.type === THING.tntStick) return EXPLOSION.small
+    if (s.type === THING.tntBarrel) return EXPLOSION.large
+    return EXPLOSION.standard
   }
 
   /**

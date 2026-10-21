@@ -6,7 +6,7 @@ import { mulscale, dmulscale, divscale, CLIPMASK0, CLIPMASK1 } from '../../commo
 import { moveDude, approxDist } from './physics.mjs'
 import { findSector } from './fx.mjs'
 import { BloodAI, START as AI_START } from './ai.mjs'
-import { STAT, CMD } from './triggers.mjs'
+import { STAT, CMD, SPRITE } from './triggers.mjs'
 import { DAMAGE, VECTOR } from './combat.mjs'
 
 // The game's one generator (Blood's), set by the Dudes from the game
@@ -425,7 +425,8 @@ class Dude {
   damaged (source, kind, damage) {
     const s = this.sprite, x = this.x
     x.health = Math.max(0, x.health - damage)
-    if (x.health <= 0) { this.die(source, kind, damage); return damage }
+    // (Blood's actDamageSprite: a blast that kills with less than 10 << 4 kills as a fall does: no gibs)
+    if (x.health <= 0) { this.die(source, kind === DAMAGE.explode && damage < (10 << 4) ? DAMAGE.fall : kind, damage); return damage }
     // A new target: the one that hurt it (Blood's aiDamageSprite)
     // (a roll only for another than its target: damage by its type's change-target chance, its kin's for its kind)
     if (this.bloodAI) { if (source && source.statnum === STAT.dude) this.aiDamaged(source, damage); this.cumulDamage = (this.cumulDamage || 0) + damage; return damage }
@@ -436,25 +437,56 @@ class Dude {
     return damage
   }
 
+  /**
+   * Blood's actKillDude (BLOOD.EXE 0x2af..): its trigger (off), what it carried (its key, its drop), a cultist's gun
+   * on a roll; the death's sequence by the damage (+1, blown up +2, burnt +3, the spirit's 14 or 11) and each type's
+   * own: a cultist's cry, the axe zombie's (and on a chance its head off, spurting); a blast's gibs and blood; then
+   * a body, a thing (426)
+   */
   die (source, kind, damage) {
-    const s = this.sprite, level = this.level
-    // Blood's actKillDude: blown up (the flying body, +2), burnt (+3), anything else (+1)
-    const seq = kind === DAMAGE.explode ? 2 : kind === DAMAGE.burn ? 3 : 1
-    const id = this.dudes.library.get(this.info.seqStartID + seq) ? this.info.seqStartID + seq : this.info.seqStartID + 1
-    // (its cstat as the sequence's frames leave it: a body still blocks, as Blood's, and a gib can ride it)
-    this.dudes.seqs.spawn(s, id)
-    // What it carried first (Blood's actKillDude drops before the gibs: the original's sprite order in BLOOD000)
-    if (this.x.dropMsg) this.game.drop(s, this.x.dropMsg)
-    // Blown apart (Blood's actKillDude): its gib types' pieces fly (GibSprite), and four spurts of blood
+    const s = this.sprite, level = this.level, game = this.game, R = game.random, x = this.x, info = this.info
+    if (s.type !== 249) game.triggers.triggerSprite(s.index, CMD.off)
+    s.flags |= 7
+    if (x.key) game.drop(s, 99 + x.key)
+    if (x.dropMsg) game.drop(s, x.dropMsg)
+    if (s.type === 201) { const r = R.Random(100); if (r < 10) game.drop(s, 42); else if (r < 50) game.drop(s, 69) }
+    else if (s.type === 202) { const r = R.Random(100); if (r <= 10) game.drop(s, 41); else if (r <= 50) game.drop(s, 67) }
+    let nSeq = 1
     if (kind === DAMAGE.explode) {
-      for (const g of this.info.gibType) if (g >= 0) this.game.fx.gibSprite(s, g)
-      for (let i = 0; i < 4; i++) this.game.fx.spawnBlood(s)
+      nSeq = 2
+      if ([201, 202, 230, 239, 240, 245, 246, 247, 248, 249, 250, 252].includes(s.type)) game.sound(s, 717)
+    } else if (kind === DAMAGE.burn) { game.sound(s, 351); nSeq = 3 } else if (kind === DAMAGE.spirit) nSeq = s.type === 204 ? 11 : s.type === 203 || s.type === 205 ? 14 : 1
+    const lib = this.dudes.library, seqs = this.dudes.seqs, base = info.seqStartID
+    const play = (n) => { if (lib.get(base + n)) seqs.spawn(s, base + n) }
+    if (!lib.get(base + nSeq)) play(1)
+    else if (s.type === 201 || s.type === 202 || s.type === 247 || s.type === 248) {
+      game.sound(s, 1018 + R.Random(2))
+      play(nSeq)
+    } else if (s.type === 203) {
+      game.sound(s, 1107 + R.Random(2))
+      const head = (vz) => {
+        const { top } = level.extents(s)
+        game.fx.gibSprite(s, 27, { x: s.x, y: s.y, z: top }, { x: s.xvel >> 1, y: s.yvel >> 1, z: vz })
+      }
+      if (nSeq === 2) { play(2); head(-0xccccc) }
+      else if (nSeq === 1 && R.Chance(0x4000)) {
+        play(7)
+        game.triggers.post(s.index, SPRITE, 0, CMD.callback, () => game.fx.zombieSpurt(s))
+        game.sound(s, 362)
+        x.data1 = 35; x.data2 = 5
+        head(-0x111111)
+      } else if (nSeq === 14) play(14)
+      else if (nSeq === 3) play(13)
+      else play(nSeq)
+    } else {
+      play(nSeq)
+      if (kind !== DAMAGE.explode) game.sound(s, ({ zombie: 1105, gargoyle: 1405, rat: 2102, bat: 2002, spider: 1803, hand: 1903, eel: 1703 }[KIND_OF[s.type]] || 1018))
     }
-    // The body is a thing now, Blood's kThingBloodChunks (426) with that thing's mass and bounce: it keeps what
-    // knocked it, flies, falls and lands (actKillDude to kStatThing)
-    this.game.sound(s, kind === DAMAGE.explode ? 717 : ({ cultist: 1018, zombie: 1105, gargoyle: 1405, rat: 2102, bat: 2002, spider: 1803, hand: 1903, eel: 1703 }[KIND_OF[s.type]] || 1018))
-    // Its own trigger (Blood's actKillDude: trTriggerSprite with off, while still a dude)
-    this.game.triggers.triggerSprite(s.index, CMD.off)
+    // Blown apart: its gib types' pieces fly (GibSprite), and four spurts of blood
+    if (kind === DAMAGE.explode) {
+      for (const g of info.gibType) if (g >= 0) game.fx.gibSprite(s, g)
+      for (let i = 0; i < 4; i++) game.fx.spawnBlood(s)
+    }
     this.dudeType = s.type
     s.type = 426
     // (its status is posted, Blood's actPostSprite: the frame's lists of things, the explosions' among them, see it

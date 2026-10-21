@@ -108,14 +108,13 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
       part, aiActivateDude's); gargoyles and statues, rats, bats, hands, spiders, the bone eel to do
 - [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
 - [x] F3b The drift of one draw in six ticks: Blood's CalcGameChecksum (found by logging rand()'s callers)
-- [ ] F3c The draws part: BLOOD000 at tick 647 (an explosion's fixed damage, actor.cpp 0x33a37); BLOOD001 at 245
-      and BLOOD002 at 240 (the other monsters: F2). Done for BLOOD000 to 646 (positions to 699): an explosion's reach
-      (GetClosestSpriteSectors, CheckProximityWall), locked things let be, a dead dude's status and a freed effect
-      posted to the frame's end (actPostSprite, actPostProcess's evKill), gibs broken on the floor, slopes
-      (actFloorBounceVector), Build's wall-sprite and face-sprite clipping (the lines' facing), Build's hitscan width,
-      Blood's VectorScan (see-through pixels, masked walls, links), the vector's effects in their order, sprites
-      taken first in first out (Blood's free list), splashes and explosions on their own sprites; the event queue
-      matches the original's to tick 470 (fidelity/trace.mjs HEAP=1)
+- [ ] F3c The draws part: BLOOD000 at tick 725 (a cultist's chooseDirection: positions part at 700); BLOOD001 at
+      245 (a cultist's shot: its pellets' effects); BLOOD002 matches to the end of its log (299). Done: an explosion's
+      reach and kind (a TNT stick's small), locked things let be, a weak blast's kill a plain death, actKillDude's
+      order and the zombie's and cultists' cases (the head off and its spurt, its trail in flight), the weapon before
+      the push (ProcessInput), a dead dude's status and freed effects posted to the frame's end, gibs broken by their
+      health, slopes, Build's sprite clipping and hitscan width, Blood's VectorScan, sprites first in first out, the
+      event queue as the original's (fidelity/trace.mjs HEAP=1)
 - [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed (`replay.mjs --steps` compares each tick's move).
       Done: the TNT bundle (lit on fire, thrown on letting go, lobbed if let go before the fuse catches, goes off on
       what it hits), Blood's explosion (fixed damage once, the concussion's damage) and actFireThing. Open: a slide
