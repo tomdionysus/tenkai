@@ -626,6 +626,14 @@ export default class Triggers {
     for (const x of level.xsectors) x.busy = x.state << 16
     for (const x of level.xwalls) x.busy = x.state << 16
     for (const x of level.xsprites) x.busy = x.state << 16
+    // (Blood's trInit: a sprite shot to trigger it stops a hitscan (256); one pushed to trigger it stops the
+    // action key's (4096, ActionScan's mask 0x10000040))
+    for (const s of level.sprites) {
+      const x = s && s.statnum < 1024 ? level.x(s) : null
+      if (!x) continue
+      if (x.vector) s.cstat |= 256
+      if (x.push) s.cstat |= 4096
+    }
     level.sectors.forEach((sec, i) => {
       const x = level.xs(i)
       if (!x) return

@@ -28,7 +28,7 @@ export class Resources {
     const exe = BloodExe.load(path.join(dir, 'BLOOD.EXE'))
     // Each tile's surface (SURFACE.DAT, a byte a tile): what a shot leaves on it (VECTORDATA's surfaces)
     this.surfType = new Uint8Array(fs.readFileSync(path.join(ROOT, 'original', 'SURFACE.DAT')))
-    this.tables = { dudeInfo: exe.dudeInfo(), vectorData: exe.vectorData(), weaponItems: exe.weaponItems(), ammoItems: exe.ammoItems(), items: exe.items(), missileInfo: exe.missileInfo(), thingInfo: exe.thingInfo(), explodeInfo: exe.explodeInfo(), gibThings: exe.gibThings(), fxData: exe.fxData(), gibList: exe.gibList(), aiStates: exe.aiStates() }
+    this.tables = { dudeInfo: exe.dudeInfo(), vectorData: exe.vectorData(), weaponItems: exe.weaponItems(), ammoItems: exe.ammoItems(), items: exe.items(), missileInfo: exe.missileInfo(), thingInfo: exe.thingInfo(), explodeInfo: exe.explodeInfo(), gibThings: exe.gibThings(), fxData: exe.fxData(), gibList: exe.gibList(), aiStates: exe.aiStates(), weaponUpgrade: exe.weaponUpgrade() }
     this.qavs = {}
     for (const e of this.blood.ofType('QAV')) this.qavs[e.id] = qavRead(this.blood.read(e))
   }

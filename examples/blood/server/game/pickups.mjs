@@ -68,8 +68,13 @@ export default class Pickups {
     if (had && (w.ammoType < 0 || ammoHad >= AMMO_MAX[w.ammoType])) return false
     p.weapons[w.weapon] = true
     if (w.ammoType >= 0) p.ammo[w.ammoType] = Math.min(AMMO_MAX[w.ammoType], ammoHad + w.count)
-    // Blood switches to a weapon better than the one in hand when it is new
-    if (!had && w.weapon > p.weapon) p.weapons.want = w.weapon
+    // Blood's WeaponUpgrade (0x4e3a4): a new weapon is taken up when its table says it beats the one in hand,
+    // unless that is a lit TNT bundle or spray can
+    if (!had) {
+      const lit = (p.weapon === 6 || p.weapon === 7) && p.weaponState && ['lit', 'throw', 'drop'].includes(p.weaponState.state)
+      const row = this.tables.weaponUpgrade[p.weapon]
+      if (!lit && row && row[w.weapon] && w.weapon !== p.weapon) p.weapons.want = w.weapon
+    }
     return true
   }
 
@@ -78,7 +83,8 @@ export default class Pickups {
     if (!a || a.ammoType === 255) return false
     if (p.ammo[a.ammoType] >= AMMO_MAX[a.ammoType]) return false
     p.ammo[a.ammoType] = Math.min(AMMO_MAX[a.ammoType], p.ammo[a.ammoType] + a.count)
-    if (a.weapon && !p.weapons[a.weapon]) { p.weapons[a.weapon] = true; if (a.weapon > p.weapon) p.weapons.want = a.weapon }
+    // (Blood's PickupAmmo, 0x3a3a0: the weapon it is for is had from now on, but not taken up)
+    if (a.weapon) p.weapons[a.weapon] = true
     return true
   }
 

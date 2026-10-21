@@ -305,31 +305,67 @@ export default class Game {
     if (x && x.wallPush && !x.key && !(x.busy & 0xffff)) this.triggers.triggerSector(w.nextsector, CMD.sectorPush)
   }
 
-  /** The action key: the sector, wall or sprite the player faces, pushed (Blood: a hitscan of 64 units ahead) */
+  /**
+   * The action key: Blood's ActionScan, as ProcessInput (BLOOD.EXE 0x3c1f4) has it inline. A hitscan (Blood's
+   * HitScan, range 128, mask 0x10000040) from the eye along the facing and the view's slope; within 64 units: a
+   * sprite with a push trigger is pushed, a dude shoved by its mass first; a wall with one is pushed, else the sector
+   * beyond it if it opens by a push on its walls (wallPush, as a secret door); a floor or ceiling, its sector by its
+   * push. Failing those, the sector the player stands in, by its push. A sector or sprite gets command 30, a wall 50
+   */
   action (p) {
-    const level = this.level, s = p.sprite
-    const near = level.engine.neartag(s.x, s.y, p.zView, s.sectnum, s.ang, 64 << 4, 3, (o, kind, i) => {
-      const x = kind === 'sector' ? level.xs(i) : kind === 'wall' ? level.xw(i) : level.x(o)
-      return x && (kind === 'sector' ? x.push : kind === 'wall' ? x.push : x.push)
-    })
-    if (near.sprite >= 0) return this.push(p, 'sprite', near.sprite)
-    if (near.wall >= 0) return this.push(p, 'wall', near.wall)
-    if (near.sector >= 0) return this.push(p, 'sector', near.sector)
-    // The sector the player stands in, if it takes a push
-    const xs = level.xs(s.sectnum)
-    if (xs && xs.push) return this.push(p, 'sector', s.sectnum)
+    const level = this.level, s = p.sprite, trig = level.trig, engine = level.engine
+    const dx = trig.Cos(s.ang) >> 16, dy = trig.Sin(s.ang) >> 16, dz = p.slope()
+    const cstat = s.cstat
+    s.cstat &= ~256
+    const goal = { x: s.x + Math.floor((128 << 4) * trig.Cos(s.ang) / 2 ** 30), y: s.y + Math.floor((128 << 4) * trig.Sin(s.ang) / 2 ** 30) }
+    const h = engine.hitscan(s.x, s.y, p.zView, s.sectnum, dx, dy, dz << 4, 0x10000040, goal)
+    s.cstat = cstat
+    const kind = this.combat.hitType(h, p.zView)
+    const found = (() => {
+      if ((approxDist(s.x - h.x, s.y - h.y) >> 4) < 64) {
+        if (kind === 3) {
+          const t = level.sprites[h.sprite], x = level.x(t)
+          if (x && x.push) return ['sprite', h.sprite]
+          if (t.statnum === STAT.dude) {
+            const mass = (this.res.tables.dudeInfo[t.type] || {}).mass
+            if (mass > 0) {
+              const k = Math.trunc((0xccccc << 8) / mass)
+              t.xvel += Math.floor(dx * k / 65536)
+              t.yvel += Math.floor(dy * k / 65536)
+              t.zvel += Math.floor(dz * k / 65536)
+            }
+            if (x && x.push && !x.state && !x.isTriggered) this.triggers.triggerSprite(h.sprite, CMD.spritePush)
+          }
+        } else if (kind === 0 || kind === 4) {
+          const xw = level.xw(h.wall)
+          if (xw && xw.push) return ['wall', h.wall]
+          const next = level.walls[h.wall].nextsector
+          if (next >= 0) { const xs = level.xs(next); if (xs && xs.wallPush) return ['sector', next] }
+        } else if (kind === 1 || kind === 2) {
+          const xs = level.xs(h.sect)
+          if (xs && xs.push) return ['sector', h.sect]
+        }
+      }
+      const xs = level.xs(s.sectnum)
+      return xs && xs.push ? ['sector', s.sectnum] : null
+    })()
+    if (found) this.push(p, found[0], found[1])
   }
 
+  /** The push: a locked object says so (3062); one that needs a key the player lacks says so (3063); else triggered */
   push (p, kind, i) {
     const level = this.level
     const x = kind === 'sector' ? level.xs(i) : kind === 'wall' ? level.xw(i) : level.x(level.sprites[i])
+    if (x.locked && kind !== 'sprite') {
+      this.message(p, 'It\'s locked')
+      this.sound(p.sprite, 3062)
+    }
     if (x.key && !p.keys[x.key]) {
       this.message(p, 'That requires a key.')
-      this.sound(p.sprite, 3062)
+      this.sound(p.sprite, 3063)
       return
     }
-    if (x.locked) { this.sound(p.sprite, 3062); return }
-    if (kind === 'sector') this.triggers.triggerSector(i, CMD.sectorPush)
+    if (kind === 'sector') this.triggers.triggerSector(i, CMD.spritePush)
     else if (kind === 'wall') this.triggers.triggerWall(i, CMD.wallPush)
     else this.triggers.triggerSprite(i, CMD.spritePush)
   }

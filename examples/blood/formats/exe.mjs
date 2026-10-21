@@ -227,6 +227,15 @@ export default class BloodExe {
     return out
   }
 
+  /**
+   * Blood's weapon upgrade table (d:0x166a4, 13 by 13 bytes): [in hand][picked up] is 1 when picking up the
+   * second switches to it (WeaponUpgrade, 0x4e3a4)
+   */
+  weaponUpgrade () {
+    const { objs } = this.le(), D = objs[3]
+    return Array.from({ length: 13 }, (_, r) => Array.from(this.b.slice(D.file + 0x166a4 + r * 13, D.file + 0x166a4 + r * 13 + 13)))
+  }
+
   dudeInfo () {
     const at = this.find([0x00, 0x10, 0x28, 0x00, 0x46, 0x00, 0xb0, 0x04, 0x00, 0x00, 0x30])
     if (at < 0) throw new Error('dudeInfo not found')
