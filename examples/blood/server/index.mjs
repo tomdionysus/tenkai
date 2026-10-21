@@ -18,6 +18,7 @@ const opt = (name, d) => { const i = args.indexOf('--' + name); return i >= 0 ? 
 const PORT = Number(opt('port', process.env.PORT || 8053))
 const MODE = { single: 0, coop: 1, bloodbath: 2 }[opt('mode', 'coop')] ?? 1
 const MAX_PLAYERS = 8
+const CHEATS = args.includes('--cheats')
 
 const res = new Resources()
 let game = null, snaps = null
@@ -66,6 +67,22 @@ wss.on('connection', (socket) => {
       console.log(client.name, 'joined as player', number + 1)
     } else if (m.type === 'input' && client.player) {
       client.player.input = sanitize(m.input)
+    } else if (m.type === 'act' && client.player && CHEATS) {
+      // Testing only (--cheats): put the player somewhere, give them everything
+      const a = m.action || {}
+      const p = client.player, sp = p.sprite
+      if (a.warp) {
+        const sect = game.level.engine.updatesector(a.warp.x, a.warp.y, sp.sectnum)
+        if (sect >= 0) {
+          sp.x = a.warp.x; sp.y = a.warp.y; sp.sectnum = sect; sp.xvel = sp.yvel = sp.zvel = 0
+          sp.z = game.level.engine.getflorzofslope(sect, sp.x, sp.y) - (game.level.extents(sp).bottom - sp.z)
+          if (a.warp.ang !== undefined) p.ang = sp.ang = a.warp.ang
+          p.teleported(p.ang)
+          game.level.touched()
+        }
+      }
+      if (a.give) { for (let w = 1; w <= 7; w++) p.weapons[w] = true; p.ammo = p.ammo.map((_, i) => i ? 99 : 0); p.armor = [100, 100, 100] }
+      if (a.god !== undefined) p.godMode = !!a.god
     } else if (m.type === 'leave' && client.player) {
       game.removePlayer(client.player.number)
       client.player = null
