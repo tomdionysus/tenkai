@@ -5,7 +5,11 @@ function fakeGL () {
   return jasmine.createSpyObj('gl', ['viewport', 'clear', 'createShader', 'shaderSource', 'compileShader', 'getShaderParameter', 'getShaderInfoLog', 'createProgram', 'attachShader', 'linkProgram', 'getProgramParameter', 'getProgramInfoLog'])
 }
 function fakeCanvas (gl) {
-  return () => ({ width: 0, height: 0, getContext: (type) => type === 'webgl2' ? gl : null })
+  return () => ({ width: 0, height: 0, style: {}, parentNode: null, getContext: (type) => type === 'webgl2' ? gl : null })
+}
+function fakePage () {
+  var parent = { insertBefore: (node) => { node.parentNode = parent } }
+  return { width: 800, height: 450, style: {}, parentNode: parent, nextSibling: null, getBoundingClientRect: () => ({ left: 10, top: 20, width: 1600, height: 900 }) }
 }
 
 describe('WebGLScene', () => {
@@ -54,6 +58,24 @@ describe('WebGLScene', () => {
     expect(scene.gl).toBe(null)
     expect(render).not.toHaveBeenCalled()
     expect(context.drawImage).not.toHaveBeenCalled()
+  })
+
+  it('should present itself on the page over the game\'s canvas, hiding it, and withdraw again', () => {
+    var gl = fakeGL()
+    var render = jasmine.createSpy('render')
+    var scene = new WebGLScene({ createCanvas: fakeCanvas(gl), render })
+    var page = fakePage()
+    scene.present(page)
+    expect(render).toHaveBeenCalledWith(gl)
+    expect(scene.canvas.width).toEqual(800)
+    expect(scene.canvas.height).toEqual(450)
+    expect(scene.canvas.parentNode).toBe(page.parentNode)
+    expect(scene.canvas.style.left).toEqual('10px')
+    expect(scene.canvas.style.width).toEqual('1600px')
+    expect(page.style.visibility).toEqual('hidden')
+    scene.withdraw(page)
+    expect(scene.canvas.style.display).toEqual('none')
+    expect(page.style.visibility).toEqual('')
   })
 
   it('should compile a program, and name the shader that fails', () => {
