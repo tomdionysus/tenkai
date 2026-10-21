@@ -166,3 +166,48 @@
   only when falling or moved; standing on a face sprite it slides off it, undragged; no drag under water) and
   aiChooseDirection's halving toward zero: BLOOD000's zombie stirs, rises, is blown up and lands within a few
   units of the original's, and BLOOD001's draws match to tick 195.
+
+## Phases 1 to 6 as planned (2026-10-21)
+
+The formats (RFF, palettes, ART, maps, SEQ, QAV, SFX, DEM, KVX, and the QFN fonts), the data build, the WebGL
+renderer, the server's world, movement, sectors, weapons, monsters (first pass), items and the net, the client's
+start screen, input, sound and music, and the original run headless all done, as recorded above. What follows
+is the second day's work.
+
+## Fidelity, second pass (2026-10-21)
+
+- BLOOD001's draws taken from tick 1628 to 2305: the tommy gun's fire and alt sweep, its brass thrown by
+  fxSpawnEjectingBrass (up by Random2(40) against the shell's 20); the action key as ProcessInput's inline
+  ActionScan (a hitscan of range 128 along the view's slope; wallPush sectors beyond a wall: the secret door at
+  1821); trInit's cstat 4096 on push sprites and 256 on vector ones; PickupAmmo not taking up its weapon and
+  PickupWeapon by WeaponUpgrade's 13x13 table (d:0x166a4) and its lit-TNT test; an effect's timeout is the Remove
+  callback (gCallback[1], 0x73c18), at once inside evProcess, unlike fxFree's posting: the queue's heap stays the
+  original's, so a generator's buried event is never run, as in the original.
+- Doors as VDoorBusy (0x46230): closing on what is squashed above the ceiling (GetCrushedSpriteExtents, 0x45b84)
+  an interruptable door backs off, a crushing one hurts by its data (500 when none).
+- A sequence with its remove flag deletes its sprite when it ends (seqProcess, 0x53f01): explosions' smoke no
+  longer stays.
+- The bob and sway as playerProcess (0x3fa10) on the server; the client places the eye and the weapon by them as
+  viewDrawScreen (0x1d3a2, 0x1e282).
+- E1M1's secrets traced through the map: the wall-push doors, the masked walls' impact (only a masked wall's hit
+  triggers, 0x37aea), the dynamite secrets' invisible breakables relaying to their coffins' switches; the wall
+  crack (408) takes only explosions (its thingInfo).
+- Found on the way: the original's evKill callers probed (fidelity/probe.mjs with return addresses); traces must
+  use STEP=1 (lockstep) or their samples straddle ticks.
+
+## The client, second pass (2026-10-21)
+
+- The frame is all WebGL, straight to the page (WebGLScene's present/withdraw): copying the WebGL canvas into the
+  2D one cost 70 ms a frame on the Pi. The HUD draws in WebGL through the palette (view/Overlay.js), the status
+  numbers placed by their centres as DrawStatNumber does, text in Blood's QFN fonts (tiles from 4096).
+- The renderer: the sectors the eye can see (a walk through the openings, near first), solid surfaces through a
+  shader variant without a discard (so the GPU drops hidden pixels), the sky its own variant, one colour lookup a
+  pixel (shade table and palette combined), portals clipped by depth in the vertex shader and scissored to their
+  screen box, the depth and stencil discarded at the frame's end.
+- The server sends the whole changeable state (every sector and wall), so doors trInit moved are drawn where they
+  are; a client's key and use flags are events, one a press (holding the action key no longer re-toggles a door).
+- Input: the view turned once a drawn frame; the mouse looks from the start, without pointer lock where the
+  browser refuses it, and only while the page has the focus; crouch off Ctrl (Ctrl+W closes the tab).
+- The pack: chosen with [ and ], used with Enter or its own key, spent while on, shown in the status bar and in
+  a row above it.
+- StartScreen takes cover art (Blood's box), above the title, all of it centred; white on black.
