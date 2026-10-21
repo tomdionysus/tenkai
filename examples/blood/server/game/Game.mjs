@@ -52,6 +52,13 @@ export default class Game {
     this.missiles = new Missiles(this)
     this.things = new Things(this)
     this.fx = new Effects(this)
+    // A sequence that removes its sprite when it ends (its flag 2: smoke, sparks): Blood's seqProcess kills the
+    // sprite's events and deletes it there and then (BLOOD.EXE 0x53f01)
+    this.seqs.onRemove = (sp) => {
+      if (sp.statnum === STAT.fx) { this.fx.removeNow(sp); return }
+      this.triggers.kill(sp.index, 3)
+      this.level.remove(sp)
+    }
     this.kills = 0
     this.burning = []
     this.respawns = []
