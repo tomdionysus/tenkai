@@ -35,6 +35,7 @@ export default class Game {
     this.triggers = new Triggers(this)
     this.seqs = new Seqs(this.level, res.seqs)
     this.filterSprites()
+    if (this.options.monsters === false) for (const sp of this.level.sprites) if (sp.statnum === STAT.dude && sp.type >= 201 && sp.type < 300 && !(sp.type >= 231 && sp.type <= 238)) this.level.remove(sp)
     this.hideMarkers()
     linkSectors(this.level)
     this.takeStarts()
@@ -90,7 +91,13 @@ export default class Game {
   addPlayer (number = this.players.length) {
     const level = this.level
     const starts = this.options.gameType === 2 ? this.starts.bloodbath : this.starts.single
-    const start = starts.find((s) => s.number === number) || starts[number % Math.max(1, starts.length)]
+    let start = starts.find((s) => s.number === number) || starts[number % Math.max(1, starts.length)]
+    // In Bloodbath a random start, away from the others if one is (Blood's playerStart picks at random)
+    if (this.options.gameType === 2 && starts.length) {
+      const clear = starts.filter((z) => !this.players.some((p) => p && p.health > 0 && approxDist(p.sprite.x - z.x, p.sprite.y - z.y) < 1024))
+      const from = clear.length ? clear : starts
+      start = from[Math.floor(Math.random() * from.length)]
+    }
     const s = level.spawn(start.sectnum, start.x, start.y, start.z, STAT.dude, { cstat: 385, picnum: 3870, pal: 11 + (number & 3), clipdist: 48, xrepeat: 39, yrepeat: 37, ang: start.ang, type: 231 + number, shade: -8, flags: 2 })
     const fz = level.engine.getflorzofslope(s.sectnum, s.x, s.y)
     s.z += fz - level.extents(s).bottom
@@ -283,7 +290,12 @@ export default class Game {
   }
 
   message (player, text) { if (text) this.events.push({ type: 'message', text, player: player === null ? -1 : (player && player.number) }) }
-  endLevel (secret) { if (!this.ended) this.ended = { secret, frame: this.frame } }
+  endLevel (secret) {
+    if (this.ended) return
+    this.ended = { secret, frame: this.frame }
+    this.message(null, secret ? 'Secret level!' : 'Level complete')
+    this.sound(null, 3008)
+  }
   totalSecrets (n) { this.secrets.total = n }
   secret (cmd) { this.secrets.found++; this.message(null, 'A secret is revealed.') }
   breakWall (nWall) {

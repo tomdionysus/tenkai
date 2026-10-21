@@ -13,6 +13,8 @@
     "ws": "^8.22.0"
   },
   "devDependencies": {
-    "emulators": "^8.5.2"
+    "@breezystack/lamejs": "^1.2.7",
+    "emulators": "^8.5.2",
+    "js-synthesizer": "^1.13.0"
   }
 }

@@ -23,11 +23,22 @@ const CHEATS = args.includes('--cheats')
 const res = new Resources()
 let game = null, snaps = null
 const clients = new Set()
+// A connection's player, by number (a respawn or a new level makes a new Player; the number stays)
+const playerOf = (c) => c.number >= 0 && game ? game.players[c.number] || null : null
 
+const MONSTERS = opt('monsters', MODE === 2 ? 'off' : 'on') !== 'off'
 function newGame (map) {
-  game = new Game(res, { map, gameType: MODE, difficulty: Number(opt('difficulty', 2)) })
+  for (const c of clients) c.carried = playerOf(c)
+  game = new Game(res, { map, gameType: MODE, difficulty: Number(opt('difficulty', 2)), monsters: MONSTERS })
   snaps = new Snapshots(game)
-  for (const c of clients) if (c.player !== null) c.player = game.addPlayer(c.player.number)
+  for (const c of clients) {
+    const old = c.carried
+    if (!old) continue
+    const p = game.addPlayer(c.number)
+    // Into the next level with what they carried (Blood keeps the weapons and ammo; the keys stay behind)
+    Object.assign(p, { name: old.name, frags: old.frags, deaths: old.deaths, ammo: old.ammo, weapons: old.weapons, armor: old.armor, pack: old.pack })
+    if (old.health > 0) p.health = old.health
+  }
   console.log('level', map, '"' + (game.level.info.title || '') + '"')
 }
 newGame(opt('map', 'e1m1'))
@@ -48,25 +59,28 @@ const server = http.createServer((req, res2) => {
 // --- the players ---
 const wss = new WebSocketServer({ server, path: '/game' })
 wss.on('connection', (socket) => {
-  const client = { socket, player: null, last: null, name: '' }
+  const client = { socket, number: -1, last: null, name: '', get player () { return playerOf(this) } }
   clients.add(client)
   socket.on('message', (data) => {
     let m
     try { m = JSON.parse(data) } catch (e) { return }
     if (m.type === 'join') {
-      const taken = new Set([...clients].filter((c) => c.player).map((c) => c.player.number))
+      const taken = new Set([...clients].filter((c) => c.number >= 0).map((c) => c.number))
       let number = 0
       while (taken.has(number)) number++
       if (number >= MAX_PLAYERS) return send(client, { type: 'refused', reason: 'The game is full.' })
       client.name = String(m.name || 'Caleb').slice(0, 16)
-      client.player = game.addPlayer(number)
-      client.player.name = client.name
+      client.number = number
+      game.addPlayer(number).name = client.name
+      game.message(null, client.name + ' has joined')
       const state = snaps.forPlayer(snaps.world(), client.player)
       client.last = state
       send(client, { type: 'welcome', player: { number, name: client.name }, state, tick: game.frame })
       console.log(client.name, 'joined as player', number + 1)
     } else if (m.type === 'input' && client.player) {
       client.player.input = sanitize(m.input)
+      // The client numbers its inputs; each tick says the last one the game has taken (for prediction on the client)
+      client.player.inputSeq = Math.trunc(Number(m.input && m.input.seq) || 0)
     } else if (m.type === 'act' && client.player && CHEATS) {
       // Testing only (--cheats): put the player somewhere, give them everything
       const a = m.action || {}
@@ -84,13 +98,13 @@ wss.on('connection', (socket) => {
       if (a.give) { for (let w = 1; w <= 7; w++) p.weapons[w] = true; p.ammo = p.ammo.map((_, i) => i ? 99 : 0); p.armor = [100, 100, 100] }
       if (a.god !== undefined) p.godMode = !!a.god
     } else if (m.type === 'leave' && client.player) {
-      game.removePlayer(client.player.number)
-      client.player = null
+      game.removePlayer(client.number)
+      client.number = -1
     }
   })
   socket.on('close', () => {
     clients.delete(client)
-    if (client.player) { game.removePlayer(client.player.number); console.log(client.name, 'left') }
+    if (client.player) { game.removePlayer(client.number); console.log(client.name, 'left') }
   })
 })
 
@@ -115,14 +129,12 @@ function loop () {
   const now = Date.now()
   let steps = 0
   // The level waits for its first player (Blood starts a level when the player enters it)
-  if (![...clients].some((c) => c.player)) next = now
+  if (![...clients].some((c) => c.number >= 0)) next = now
   while (now >= next && steps < 5) {
     game.tick()
     broadcast()
-    if (game.ended) {
-      const nextMap = game.nextMap()
-      if (nextMap) newGame(nextMap)
-    }
+    // The end of a level: its tally held for five seconds, then the next level (or the first again)
+    if (game.ended && game.frame - game.ended.frame > 5 * TICK_RATE) newGame(game.nextMap() || 'e1m1')
     next += STEP
     steps++
   }

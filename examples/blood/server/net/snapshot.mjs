@@ -49,11 +49,13 @@ export class Snapshots {
       const now = WALL_FIELDS.map((f) => level.walls[n][f])
       if (now.some((v, i) => v !== this.wallsAtLoad[n][i])) walls[n] = now
     }
-    return { map: level.name, title: level.info.title || level.name, tick: game.frame, sprites, sectors, walls }
+    const ended = game.ended ? { secret: game.ended.secret, kills: game.kills, total: game.dudes.total, secrets: game.secrets.found, totalSecrets: game.secrets.total } : null
+    const players = game.players.filter(Boolean).map((p) => ({ number: p.number, name: p.name || 'Player ' + (p.number + 1), frags: p.frags || 0, deaths: p.deaths, kills: p.kills }))
+    return { map: level.name, title: level.info.title || level.name, song: (level.info.song || '').toLowerCase(), mode: game.options.gameType, tick: game.frame, sprites, sectors, walls, ended, players }
   }
 
   /** One player's state: the world, and what only they see (their view, their status, their messages) */
   forPlayer (world, player) {
-    return Object.assign({}, world, { you: player ? player.status() : null })
+    return Object.assign({}, world, { you: player ? player.status() : null, ack: player ? player.inputSeq || 0 : 0 })
   }
 }

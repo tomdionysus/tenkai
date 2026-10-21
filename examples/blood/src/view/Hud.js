@@ -45,7 +45,30 @@ export default class Hud {
       ctx.restore()
     }
     this.text(ctx, f)
+    if (c && c.state) this.board(ctx, c.state, f)
     ctx.restore()
+  }
+
+  /** The tally at a level's end, and the frags in Bloodbath */
+  board (ctx, state, f) {
+    const size = Math.max(12, Math.round(9 * f.sx))
+    ctx.font = 'bold ' + size + 'px monospace'
+    ctx.textAlign = 'center'
+    const line = (text, y, color = '#e8d8c8') => { ctx.fillStyle = 'black'; ctx.fillText(text, this.game.width / 2 + 2, y + 2); ctx.fillStyle = color; ctx.fillText(text, this.game.width / 2, y) }
+    if (state.ended) {
+      const e = state.ended
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; ctx.fillRect(0, 0, this.game.width, this.game.height)
+      line(state.title, this.game.height * 0.3, '#ff4030')
+      line(e.secret ? 'Secret level found' : 'Level complete', this.game.height * 0.3 + size * 2)
+      line('Kills ' + e.kills + ' of ' + e.total, this.game.height * 0.3 + size * 4)
+      line('Secrets ' + e.secrets + ' of ' + e.totalSecrets, this.game.height * 0.3 + size * 5.5)
+    } else if (state.mode === 2 || (this.game.input && this.game.input.down('scores'))) {
+      ctx.textAlign = 'right'
+      ctx.font = 'bold ' + Math.round(size * 0.8) + 'px monospace'
+      const sorted = (state.players || []).slice().sort((a, b) => b.frags - a.frags)
+      sorted.forEach((p, i) => { ctx.fillStyle = 'black'; ctx.fillText(p.name + '  ' + p.frags, this.game.width - 7, 7 + i * size + 1); ctx.fillStyle = '#e8d8c8'; ctx.fillText(p.name + '  ' + p.frags, this.game.width - 8, 6 + i * size) })
+    }
+    ctx.textAlign = 'left'
   }
 
   /** Red when hurt, gold when picking up (Blood's palette flashes) */

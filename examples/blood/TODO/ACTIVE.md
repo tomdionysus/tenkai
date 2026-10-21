@@ -40,7 +40,7 @@ original's own behaviour (counts, ranges, cross-references).
 - [x] 1d MAP files: Blood's encrypted v7 map (header key, sector/wall/sprite keys found by sanity), xsector/xwall/
       xsprite bitfields, the episode's maps listed in BLOOD.INI; a check that every wall's nextsector/nextwall and
       every sprite's sector agree
-- [ ] 1e SEQ (sprite animation sequences) and QAV (weapon animations), SFX descriptors and RAW sounds, MID music,
+- [x] 1e SEQ (sprite animation sequences) and QAV (weapon animations), SFX descriptors and RAW sounds, MID music,
       DEM demos (the input record: the fidelity test's gold), the others (.KVX voxels, .TXT)
 - [ ] 1f A format record in `formats/README.md`: each file's layout as found
 
@@ -52,19 +52,19 @@ original's own behaviour (counts, ranges, cross-references).
       values are the palette numbers, for the shader; palettes and shade tables as PNGs; sounds as WAV; the
       MIDIs rendered through a soundfont (js-synthesizer; no synth is installed here) to WAV or MP3; maps and
       sequences as JSON (the server reads the originals through formats/ directly)
-- [ ] 2b A look at the tiles and maps in the browser (an atlas viewer page) to confirm the readers by eye
+- [x] 2b A look at the tiles and maps in the browser (an atlas viewer page) to confirm the readers by eye
 
 ## Phase 3: drawing the world (client)
 
 - [x] 3a Tenkai: a `WebGLScene` primitive (a scene with its own WebGL canvas, drawn into the engine's canvas at its
       place and size, with the engine's pixelated setting), spec and doc
-- [ ] 3b Build geometry renderer: sectors' floors and ceilings (sloped too), walls (one-sided, two-sided with upper
+- [x] 3b Build geometry renderer: sectors' floors and ceilings (sloped too), walls (one-sided, two-sided with upper
       and lower parts, masked), parallax sky, shading by sector shade and distance through the palookup in a
       shader (indexed tiles, palette and shade table as textures), visibility by sector portals from the eye
-- [ ] 3c Sprites: face, wall and floor sprites, with their flags (flipped, translucent, one-sided), sorted; voxels
+- [x] 3c Sprites: face, wall and floor sprites, with their flags (flipped, translucent, one-sided), sorted; voxels
       as their face tile for now
-- [ ] 3d A fly-through page of each map (no server) to check the drawing against the original's screenshots
-- [ ] 3e The HUD in palette numbers (IndexedSurface, IndexedFont from the ART font tiles): status bar, messages,
+- [x] 3d A fly-through page of each map (no server) to check the drawing against the original's screenshots
+- [x] 3e The HUD in palette numbers (IndexedSurface, IndexedFont from the ART font tiles): status bar, messages,
       weapon in hand (QAV)
 
 ## Phase 4: the game on the server
@@ -73,19 +73,19 @@ original's own behaviour (counts, ranges, cross-references).
       queries (getzrange, cansee, hitscan, clipmove, pushmove) ported with checks
 - [x] 4b (movement) The player: Blood's movement (input → velocity, friction, gravity, jump, crouch, swim), 30 ticks a second,
       kicked by the original's constants; a demo played through the server as the check
-- [ ] 4c Sector effects (xsector): doors, lifts, switches, triggers, teleports, water, the sprite effects
-- [ ] 4d Weapons: pitchfork, flare gun, shotgun, Tommy gun, dynamite ...; hitscans, projectiles, damage
-- [ ] 4e Monsters: cultists, zombies, gargoyles, hell hounds, rats, bats, spiders ...: SEQ-driven states, AI
+- [x] 4c Sector effects (xsector): doors, lifts, switches, triggers, teleports, water, the sprite effects
+- [x] 4d Weapons: pitchfork, flare gun, shotgun, Tommy gun, dynamite ...; hitscans, projectiles, damage
+- [x] 4e (first pass) Monsters: cultists, zombies, gargoyles, hell hounds, rats, bats, spiders ...: SEQ-driven states, AI
       (sight, hearing, chase, attack), from the original's behaviour
-- [ ] 4f Items, keys, powerups, secrets, level end, episode flow
-- [ ] 4g The net: `ws` server, join/input/tick as GameClient speaks, snapshots as StateDiff patches, per-player
+- [x] 4f Items, keys, powerups, secrets, level end, episode flow
+- [x] 4g The net: `ws` server, join/input/tick as GameClient speaks, snapshots as StateDiff patches, per-player
       views, several players, Bloodbath spawns and respawn
 
 ## Phase 5: the client as a game
 
-- [ ] 5a StartScreen (the Tenkai landing page) → connect (ServerFinder) → the server's lobby → play
-- [ ] 5b Input: keys and mouse look (pointer lock) sent as held input; the view from the state, interpolated
-- [ ] 5c Sound: SoundBoard from the RAW sounds, positional by the state; music (MIDI: a soundfont, or skipped)
+- [x] 5a StartScreen (the Tenkai landing page) → connect (ServerFinder) → the server's lobby → play
+- [x] 5b Input: keys and mouse look (pointer lock) sent as held input; the view from the state, interpolated
+- [x] 5c Sound: SoundBoard from the RAW sounds, positional by the state; music (MIDI: a soundfont, or skipped)
 - [ ] 5d Menus, the automap, messages, the end of a level
 
 ## Phase 6: fidelity
@@ -94,6 +94,26 @@ original's own behaviour (counts, ranges, cross-references).
 - [ ] 6b Demos: BLOOD000-002.DEM parsed; played in the emulator and through the server; positions compared per tick
 - [ ] 6c Monte-carlo: random input scripts played in both, compared; the differences listed and closed
 - [ ] 6d Screenshots of the same view compared (the renderer against the original)
+
+## Now (2026-10-21, evening)
+
+Playable: `node server/index.mjs` serves the client and the game at http://127.0.0.1:8053/ (`--mode single|coop|bloodbath`,
+`--map e1m1`, `--difficulty 0-4`, `--monsters on|off`, `--cheats` for the test warp). E1M1 to E1M8 load and run; the
+level's end leads to the next by BLOOD.INI. Open, in the order to take them:
+
+- [ ] F1 Thing physics and explosions matched to the original (BLOOD000 departs at tick 340 where its thrown TNT
+      goes off): Blood's MoveThing, the explosion table, actRadiusDamage's knock
+- [ ] F2 The monsters traced from the original's memory (their sprites by index) and matched state by state:
+      cultists, zombies, gargoyles, rats, bats, hands, spiders, eels
+- [ ] F3 Blood's random numbers (its own generator) so a seeded run repeats the original's draws; then
+      Monte-Carlo runs of random inputs in both, compared
+- [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed
+- [ ] F5 The view against the original's screenshots at the same eye, for every map's start
+- [ ] G1 Sector damage (618: lava, fire), water (swimming, the water links), the hand's choke
+- [ ] G2 Powerups' effects (crystal ball, beast vision, cloak, death mask, jump boots), the pack's use keys
+- [ ] G3 Menus on the client: name, skill, mode; the death and restart in single player
+- [ ] V1 Flame and torch sprites drawn stretched; voxels (KVX) drawn as their 2D tiles for now
+- [ ] N1 Client-side prediction from the acknowledged input (Quake's): the movement code is shared (common/)
 
 ## Open decisions
 

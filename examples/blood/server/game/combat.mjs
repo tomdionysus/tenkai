@@ -30,8 +30,10 @@ export default class Combat {
    * Returns what was done, >> 4
    */
   damage (source, s, kind, damage) {
+    if (s.statnum >= 1024) return 0
     const x = this.level.x(s)
-    if (!x || s.statnum >= 1024) return 0
+    // Players' bodies are made by the game, with no extra from the map
+    if (!x && !this.game.playerOf(s)) return 0
     if (s.statnum === STAT.dude) {
       const factor = this.damageFactor(s, kind)
       if (!factor) return 0

@@ -11,7 +11,7 @@ import { json, addImages, image } from './data.js'
 const KEYS = {
   forward: ['KeyW', 'ArrowUp'], back: ['KeyS', 'ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'],
   strafeLeft: ['KeyA', 'Comma'], strafeRight: ['KeyD', 'Period'], jump: ['Space'], crouch: ['KeyC', 'ControlLeft'],
-  open: ['KeyE', 'Enter'], fire: ['KeyF'], altFire: ['KeyX'], walk: ['ShiftLeft', 'ShiftRight'], lookUp: ['PageUp'], lookDown: ['PageDown'], lookCenter: ['End'],
+  open: ['KeyE', 'Enter'], fire: ['KeyF'], scores: ['Tab'], altFire: ['KeyX'], walk: ['ShiftLeft', 'ShiftRight'], lookUp: ['PageUp'], lookDown: ['PageDown'], lookCenter: ['End'],
   ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n, i) => ['weapon' + (i + 1), ['Digit' + n]]))
 }
 const BUTTON = { jump: 1, crouch: 2, fire: 4, altFire: 8, lookUp: 16, lookDown: 32 }
@@ -35,6 +35,7 @@ export default class BloodClient extends GameEngine {
     this.view = this.addScene('view', new BuildView({ tiles: this.indexes.tiles, palettes: this.indexes.palettes, image: image(this) }))
     this.hud = new Hud(this)
     this.sounds = new Sounds(this, this.indexes.sounds)
+    this.sounds.manager.base = ''
     this.pointerLook()
     const finder = new ServerFinder({ key: 'blood-server', config: new ServerConfig({ document, title: 'Blood server' }) })
     this.client = new GameClient({ name: localStorage.getItem('blood-name') || 'Caleb', tickTime: 1 / 30 })
@@ -58,9 +59,18 @@ export default class BloodClient extends GameEngine {
   async loadMap (name) {
     if (this.mapName === name) return
     this.mapName = name
+    this.playSong(this.client.state.song)
     const map = await json('data/maps/' + name + '.json')
     this.world = new World(map)
     this.view.setMap(map)
+  }
+
+  /** The level's song (BLOOD.INI's Song), rendered to MP3 from the original's MIDI */
+  async playSong (song) {
+    if (!song || !this.sounds) return
+    if (!this.music) this.music = await json('data/music.json').catch(() => ({}))
+    const m = this.music[song]
+    if (m) this.sounds.manager.playMusic('data/' + m.file, { volume: 0.5 })
   }
 
   event (e) {
@@ -106,6 +116,10 @@ export default class BloodClient extends GameEngine {
     }
     // A script driving the page (the checks in tools/) holds keys by setting `forced`
     if (this.forced) { Object.assign(held, this.forced); if (this.forced.ang !== undefined) this.look.ang = this.forced.ang }
+    // Numbered when it changes: the server says which it has taken (Quake's way, for prediction)
+    const text = JSON.stringify(held)
+    if (text !== this.lastHeld) { this.lastHeld = text; this.inputSeq = (this.inputSeq || 0) + 1 }
+    held.seq = this.inputSeq
     this.client.input(held)
     this.view.clock += dt * 120
   }

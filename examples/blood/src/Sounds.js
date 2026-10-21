@@ -21,6 +21,6 @@ export default class Sounds {
       if (volume <= 0.01) return
     }
     const rate = (s.pitch || 65536) / 65536 * (1 + ((Math.random() * 2 - 1) * (s.pitchRange || 0)) / 65536)
-    this.manager.play(s.file, { channel: 'effects', volume: volume * 0.7, rate })
+    this.manager.play('data/' + s.file, { channel: 'effects', volume: volume * 0.7, rate })
   }
 }
