@@ -7,6 +7,7 @@ import Art from '../formats/art.mjs'
 import BloodMap from '../formats/map.mjs'
 import seq from '../formats/seq.mjs'
 import qav from '../formats/qav.mjs'
+import kvx from '../formats/kvx.mjs'
 import sfx, { rate, wav } from '../formats/sfx.mjs'
 import { palette, shadeTable } from '../formats/tables.mjs'
 import { png } from './png.mjs'
@@ -100,6 +101,26 @@ if (want('qavs')) {
   const qavs = {}
   for (const e of blood.ofType('QAV')) qavs[e.id] = Object.assign({ name: e.name }, qav(blood.read(e)))
   write('qavs.json', JSON.stringify(qavs))
+}
+
+if (want('voxels')) {
+  // Each voxel model's faces that can be seen (a voxel's side with no voxel beside it): x, y, z, side (0-5: -x +x
+  // -y +y -z +z), colour, flattened; with its size and pivot
+  console.log('voxels')
+  const models = {}
+  let faces = 0
+  for (const e of blood.ofType('KVX')) {
+    const v = kvx(blood.read(e))
+    const key = (x, y, z) => (x * 256 + y) * 256 + z
+    const solid = new Set(v.voxels.map(([x, y, z]) => key(x, y, z)))
+    const out = []
+    const dirs = [[-1, 0, 0], [1, 0, 0], [0, -1, 0], [0, 1, 0], [0, 0, -1], [0, 0, 1]]
+    for (const [x, y, z, c] of v.voxels) dirs.forEach(([dx, dy, dz], side) => { if (!solid.has(key(x + dx, y + dy, z + dz))) out.push(x, y, z, side, c) })
+    faces += out.length / 5
+    models[e.id] = { name: e.name, xsiz: v.xsiz, ysiz: v.ysiz, zsiz: v.zsiz, xpivot: v.xpivot, ypivot: v.ypivot, zpivot: v.zpivot, faces: out }
+  }
+  console.log('  ' + Object.keys(models).length + ' models, ' + faces + ' faces')
+  write('voxels.json', JSON.stringify(models))
 }
 
 if (want('sounds')) {

@@ -33,6 +33,7 @@ export default class BloodClient extends GameEngine {
 
   async init () {
     this.view = this.addScene('view', new BuildView({ tiles: this.indexes.tiles, palettes: this.indexes.palettes, image: image(this) }))
+    json('data/voxels.json').then((v) => this.view.setVoxels(v)).catch(() => {})
     this.hud = new Hud(this)
     this.sounds = new Sounds(this, this.indexes.sounds)
     this.sounds.manager.base = ''

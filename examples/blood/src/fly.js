@@ -21,6 +21,7 @@ class Fly extends GameEngine {
     const map = await json('data/maps/' + name + '.json')
     this.view = this.addScene('view', new BuildView({ tiles: this.tilesIndex, palettes: this.palettesIndex, image: image(this) }))
     this.view.setMap(map)
+    this.view.setVoxels(await json('data/voxels.json'))
     const s = map.start
     this.view.eye = {
       x: Number(params.get('x') || s.x), y: Number(params.get('y') || s.y), z: Number(params.get('z') || (map.sectors[s.sector].floorz - 0x2600)),

@@ -91,6 +91,39 @@ void main () {
 
 const ATTRIBUTES = [['aPos', 3], ['aUV', 2], ['aPic', 1], ['aShade', 1], ['aPal', 1], ['aFlags', 1], ['aVis', 1]]
 
+// Voxel models (KVX): each face of a model as two triangles in the model's own units, placed by its sprite
+const VOXEL_VERTEX = `#version 300 es
+precision highp float;
+in vec3 aV; in float aCol; in float aSide;
+uniform vec3 uEye; uniform vec2 uFwd; uniform vec2 uTan; uniform float uHoriz;
+uniform vec3 uOrigin; uniform vec2 uDir; uniform vec3 uScale; uniform vec3 uPivot; uniform vec3 uOffset;
+out float vDepth; flat out int vCol; flat out float vSideShade;
+const float NEAR = 4.0, FAR = 400000.0;
+void main () {
+  vec3 m = (aV - uPivot) * uScale;
+  // The model's x along the sprite's facing, its y to the right, its z down
+  vec3 w = vec3(uOrigin.xy + uDir * m.x + vec2(-uDir.y, uDir.x) * m.y, uOrigin.z + m.z) + uOffset;
+  vec3 d = w - uEye;
+  vec2 right = vec2(-uFwd.y, uFwd.x);
+  float cx = dot(d.xy, right), cy = -d.z / 16.0, cz = dot(d.xy, uFwd);
+  gl_Position = vec4(cx / uTan.x, cy / uTan.y + uHoriz * cz, cz * (FAR + NEAR) / (FAR - NEAR) - 2.0 * FAR * NEAR / (FAR - NEAR), cz);
+  vDepth = cz; vCol = int(aCol);
+  // Build's voxels are lit by side: tops brightest, the sides a little darker
+  vSideShade = aSide == 4.0 ? 0.0 : aSide == 5.0 ? 6.0 : aSide < 2.0 ? 2.0 : 4.0;
+}`
+const VOXEL_FRAGMENT = `#version 300 es
+precision highp float; precision highp int; precision highp usampler2D;
+in float vDepth; flat in int vCol; flat in float vSideShade;
+uniform usampler2D uShades; uniform sampler2D uPalettes; uniform int uPalette; uniform int uShadeRows[16];
+uniform float uShade; uniform int uPal; uniform float uVis; uniform float uVisScale; uniform vec4 uTint;
+out vec4 color;
+void main () {
+  int shade = clamp(int(uShade + vSideShade + vDepth * uVis * uVisScale), 0, 63);
+  uint c = texelFetch(uShades, ivec2(vCol, uShadeRows[uPal & 15] * 64 + shade), 0).r;
+  vec4 rgb = texelFetch(uPalettes, ivec2(int(c), uPalette), 0);
+  color = vec4(mix(rgb.rgb, uTint.rgb, uTint.a), 1.0);
+}`
+
 export default class BuildView extends WebGLScene {
   /**
    * @param {object} options All WebGLScene options, and:
@@ -103,6 +136,7 @@ export default class BuildView extends WebGLScene {
     super(Object.assign({ contextAttributes: { antialias: false, alpha: true, premultipliedAlpha: false, stencil: true, depth: true } }, options))
     this.portals = []
     this.spriteCount = 0
+    this.voxelSprites = []
     this.tilesIndex = options.tiles
     this.tiles = options.tiles.tiles
     this.palettesIndex = options.palettes
@@ -138,6 +172,86 @@ export default class BuildView extends WebGLScene {
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false)
     gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1)
     this.loadTextures(gl)
+    this.voxelProgram = WebGLScene.program(gl, VOXEL_VERTEX, VOXEL_FRAGMENT)
+    this.voxelUniforms = {}
+    for (const n of ['uEye', 'uFwd', 'uTan', 'uHoriz', 'uOrigin', 'uDir', 'uScale', 'uPivot', 'uOffset', 'uShades', 'uPalettes', 'uPalette', 'uShadeRows', 'uShade', 'uPal', 'uVis', 'uVisScale', 'uTint']) this.voxelUniforms[n] = gl.getUniformLocation(this.voxelProgram, n)
+    gl.useProgram(this.voxelProgram)
+    gl.uniform1i(this.voxelUniforms.uShades, 2)
+    gl.uniform1i(this.voxelUniforms.uPalettes, 3)
+    const rows = new Int32Array(16)
+    for (const [id, row] of Object.entries(this.palettesIndex.shadeRows)) rows[Number(id)] = row
+    gl.uniform1iv(this.voxelUniforms.uShadeRows, rows)
+    this.voxelMeshes = new Map()
+  }
+
+  /** The voxel models (data/voxels.json), given once loaded; their meshes are made when first drawn */
+  setVoxels (models) { this.voxelModels = models }
+
+  voxelMesh (gl, id) {
+    if (this.voxelMeshes.has(id)) return this.voxelMeshes.get(id)
+    const m = this.voxelModels && this.voxelModels[id]
+    if (!m) { this.voxelMeshes.set(id, null); return null }
+    // Each face a square of the voxel's side, as two triangles: corners by side
+    const f = m.faces, out = new Float32Array(f.length / 5 * 6 * 5)
+    const CORNERS = [
+      [[0, 0, 0], [0, 1, 0], [0, 1, 1], [0, 0, 1]], [[1, 0, 0], [1, 0, 1], [1, 1, 1], [1, 1, 0]],
+      [[0, 0, 0], [0, 0, 1], [1, 0, 1], [1, 0, 0]], [[0, 1, 0], [1, 1, 0], [1, 1, 1], [0, 1, 1]],
+      [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]], [[0, 0, 1], [0, 1, 1], [1, 1, 1], [1, 0, 1]]]
+    let o = 0
+    for (let i = 0; i < f.length; i += 5) {
+      const [x, y, z, side, c] = [f[i], f[i + 1], f[i + 2], f[i + 3], f[i + 4]]
+      const q = CORNERS[side]
+      for (const k of [0, 1, 2, 0, 2, 3]) { out[o++] = x + q[k][0]; out[o++] = y + q[k][1]; out[o++] = z + q[k][2]; out[o++] = c; out[o++] = side }
+    }
+    const vao = gl.createVertexArray()
+    gl.bindVertexArray(vao)
+    const buffer = gl.createBuffer()
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
+    gl.bufferData(gl.ARRAY_BUFFER, out, gl.STATIC_DRAW)
+    const at = (name, size, offset) => { const l = gl.getAttribLocation(this.voxelProgram, name); if (l < 0) return; gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, size, gl.FLOAT, false, 20, offset) }
+    at('aV', 3, 0); at('aCol', 1, 12); at('aSide', 1, 16)
+    gl.bindVertexArray(null)
+    const mesh = { vao, count: out.length / 5, m }
+    this.voxelMeshes.set(id, mesh)
+    return mesh
+  }
+
+  /** The sprites shown as voxel models (their tile's view kind 6 or 7, with a model), drawn into the depth buffer */
+  drawVoxels (gl, offset) {
+    if (!this.voxelModels || !this.voxelSprites.length) return
+    const u = this.voxelUniforms, eye = this.eye
+    const a = eye.ang / ANGLES * TAU, aspect = this.canvas.width / this.canvas.height
+    gl.useProgram(this.voxelProgram)
+    gl.uniform3f(u.uEye, eye.x, eye.y, eye.z)
+    gl.uniform2f(u.uFwd, Math.cos(a), Math.sin(a))
+    gl.uniform2f(u.uTan, 0.625 * aspect * this.stretch, 0.625 / this.zscale)
+    gl.uniform1f(u.uHoriz, (100 - eye.horiz) / 100)
+    gl.uniform3f(u.uOffset, offset[0], offset[1], offset[2])
+    gl.uniform1i(u.uPalette, this.palette)
+    gl.uniform1f(u.uVisScale, this.visScale)
+    gl.uniform4f(u.uTint, this.tint[0], this.tint[1], this.tint[2], this.tint[3])
+    gl.disable(gl.BLEND)
+    for (const s of this.voxelSprites) {
+      const t = this.tiles[s.picnum]
+      const mesh = this.voxelMesh(gl, t.voxel)
+      if (!mesh) continue
+      const m = mesh.m
+      // Spinning pickups (view 7) turn with the clock; the rest face their sprite's angle
+      const ang = (t.view === 7 ? this.clock * 4 : s.ang) / ANGLES * TAU
+      // A voxel as large as a pixel of its sprite's tile would be: xrepeat / 4 across, yrepeat * 4 down
+      const sx = s.xrepeat / 4, sz = s.yrepeat * 4
+      const bottom = s.cstat & 128 ? s.z + (m.zsiz * sz) / 2 : s.z
+      gl.uniform3f(u.uOrigin, s.x, s.y, bottom - m.zsiz * sz + m.zpivot * sz)
+      gl.uniform2f(u.uDir, Math.cos(ang), Math.sin(ang))
+      gl.uniform3f(u.uScale, sx, sx, sz)
+      gl.uniform3f(u.uPivot, m.xpivot, m.ypivot, m.zpivot)
+      gl.uniform1f(u.uShade, s.shade)
+      gl.uniform1i(u.uPal, s.pal)
+      gl.uniform1f(u.uVis, this.map.visibility)
+      gl.bindVertexArray(mesh.vao)
+      gl.drawArrays(gl.TRIANGLES, 0, mesh.count)
+    }
+    gl.useProgram(this.program)
   }
 
   vao (gl, buffer) {
@@ -252,6 +366,7 @@ export default class BuildView extends WebGLScene {
 
   buildSprites () {
     const out = []
+    this.voxelSprites = []
     const eye = this.eye
     const a = eye.ang / ANGLES * TAU
     const fwd = [Math.cos(a), Math.sin(a)], right = [-fwd[1], fwd[0]]
@@ -260,6 +375,8 @@ export default class BuildView extends WebGLScene {
       let pic = s.picnum
       const t0 = this.tiles[pic]
       if (!t0) continue
+      // Drawn as a voxel model instead, when there is one
+      if (this.voxelModels && (t0.view === 6 || t0.view === 7) && t0.voxel >= 0 && this.voxelModels[t0.voxel]) { this.voxelSprites.push(s); continue }
       let xflip = !!(s.cstat & 4)
       // Blood's views: 5 (mirrored for the other three) or 8 tiles by the angle from the sprite to the eye
       const kind = (s.cstat >> 4) & 3
@@ -388,6 +505,7 @@ export default class BuildView extends WebGLScene {
     gl.disable(gl.BLEND)
     gl.bindVertexArray(this.mapVAO)
     gl.drawArrays(gl.TRIANGLES, 0, this.geometry.data.length / FLOATS)
+    if (this.voxelSprites && this.voxelSprites.length && !portal) this.drawVoxels(gl, offset)
     if (this.spriteCount) {
       gl.bindVertexArray(this.spriteVAO)
       gl.enable(gl.BLEND)
