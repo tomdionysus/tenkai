@@ -49,7 +49,8 @@ const map = new BloodMap2(rff.read(Demo.load(new URL('../original/' + file, impo
 const arrays = mem.findArrays(map)
 console.log('arrays', JSON.stringify(arrays))
 let dudesAtStart = 0
-if (arrays.sprites !== null) for (let i = 0; i < 4096; i++) if (mem.i16(arrays.sprites + i * 44 + 26) === 6) dudesAtStart++
+const dudeIndex = new Set()
+if (arrays.sprites !== null) for (let i = 0; i < 4096; i++) if (mem.i16(arrays.sprites + i * 44 + 26) === 6) { dudesAtStart++; dudeIndex.add(i) }
 console.log('dudes (with players) at the start', dudesAtStart)
 const watch = (process.env.WATCH || '').split(',').filter(Boolean).map(Number)
 const watchWalls = (process.env.WATCHWALLS || '').split(',').filter(Boolean).map(Number)
@@ -61,6 +62,19 @@ await new Promise((resolve) => {
     const sample = { t: Math.round(performance.now() - tStart), c: C.map((c) => mem.i32(P + c)), r: mem.u32(P + RNG), x: s.x, y: s.y, z: s.z, ang: s.ang, sect: s.sectnum, pic: s.picnum }
     if (arrays.sectors !== null) for (const w of watch) sample['s' + w] = mem.sector(arrays.sectors, w)
     if (arrays.walls !== null) for (const w of watchWalls) sample['w' + w] = mem.wall(arrays.walls, w)
+    // The monsters (DUDES=1): every sprite in the dudes' status, its place, angle and tile
+    if (process.env.DUDES && arrays.sprites !== null) {
+      const d = {}
+      for (let i = 0; i < 1200; i++) {
+        const o = arrays.sprites + i * 44
+        const stat = mem.i16(o + 26)
+        // The dudes, the monsters that died (things now), and every sprite the game made after the map's (thrown TNT,
+        // missiles, effects)
+        if (stat >= 1024 || (stat !== 6 && !dudeIndex.has(i) && i < map.sprites.length)) continue
+        d[i] = [mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i16(o + 28) & 2047, mem.i16(o + 14), stat, mem.i16(o + 38)]
+      }
+      sample.dudes = d
+    }
     samples.push(sample)
     if (performance.now() - tStart > Number(seconds) * 1000) { clearInterval(h); resolve() }
   }, 1)

@@ -137,7 +137,7 @@ export default class Weapons {
         game.sound(s, 480)
         break
       case 6: // TNT: thrown (alt: dropped)
-        game.missiles.throwTNT(s, alt ? 0 : 0x80000, p.slope(), zw)
+        game.missiles.throwTNT(s, alt ? 0x10000 : 0x98000, p.slope(), zw)
         this.use(w, 1)
         break
       case 7: // the spray can: a short flame

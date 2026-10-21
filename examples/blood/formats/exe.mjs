@@ -77,6 +77,30 @@ export default class BloodExe {
     return out
   }
 
+  /** Blood's thingInfo (51 bytes each, types 400-429): i16 startHealth, mass, u8 clipdist, i16 flags, i32 elastic, dmgResist, i16 cstat, picnum, i8 shade, u8 pal, xrepeat, yrepeat, i32 dmgControl[7] */
+  thingInfo () {
+    const at = this.find([0x19, 0x00, 0xfa, 0x00, 0x20, 0x0b, 0x00, 0x00, 0x10, 0x00, 0x00, 0x50])
+    if (at < 0) throw new Error('thingInfo not found')
+    const out = {}
+    for (let k = 0; k < 30; k++) {
+      const o = at + k * 51, b = this.b
+      out[400 + k] = { startHealth: b.readInt16LE(o), mass: b.readInt16LE(o + 2), clipdist: b[o + 4], flags: b.readInt16LE(o + 5), elastic: b.readInt32LE(o + 7), dmgResist: b.readInt32LE(o + 11), cstat: b.readInt16LE(o + 15), picnum: b.readInt16LE(o + 17), shade: b.readInt8(o + 19), pal: b[o + 20], xrepeat: b[o + 21], yrepeat: b[o + 22], dmgControl: Array.from({ length: 7 }, (_, j) => b.readInt32LE(o + 23 + j * 4)) }
+    }
+    return out
+  }
+
+  /** Blood's explodeInfo (27 bytes each): u8 repeat, i8 dmg, u8 dmgRng, i32 radius (x 16 units), force (the concussion), burnTime, ticks, quake, flash */
+  explodeInfo () {
+    const at = this.find([40, 10, 10, 75, 0, 0, 0, 0xc2, 0x01, 0, 0])
+    if (at < 0) throw new Error('explodeInfo not found')
+    const out = []
+    for (let k = 0; k < 8; k++) {
+      const o = at + k * 27, b = this.b
+      out.push({ repeat: b[o], dmg: b.readInt8(o + 1), dmgRng: b[o + 2], radius: b.readInt32LE(o + 3), force: b.readInt32LE(o + 7), burnTime: b.readInt32LE(o + 11), ticks: b.readInt32LE(o + 15), quake: b.readInt32LE(o + 19), flash: b.readInt32LE(o + 23) })
+    }
+    return out
+  }
+
   dudeInfo () {
     const at = this.find([0x00, 0x10, 0x28, 0x00, 0x46, 0x00, 0xb0, 0x04, 0x00, 0x00, 0x30])
     if (at < 0) throw new Error('dudeInfo not found')

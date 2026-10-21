@@ -38,20 +38,18 @@ export default class Missiles {
     return m
   }
 
-  /** A bundle of TNT thrown (or dropped with no speed): it falls, bounces, and goes off when its fuse is out */
+  /**
+   * A bundle of TNT thrown (Blood's thing 419): it flies at `speed` (the original's first throw goes about 152 units a
+   * tick), falls and bounces as Blood's things do, and goes off when it meets a monster or its fuse is out
+   */
   throwTNT (thrower, speed, slope, zOffset) {
-    const level = this.level, trig = level.trig
-    const s = level.spawn(thrower.sectnum, thrower.x, thrower.y, thrower.z + zOffset, STAT.thing, { picnum: 3444, xrepeat: 32, yrepeat: 32, clipdist: 16, ang: thrower.ang, owner: thrower.index, type: 418, cstat: 0, flags: 2 })
-    s.xvel = mulscale(speed, trig.Cos(thrower.ang), 30) + thrower.xvel
-    s.yvel = mulscale(speed, trig.Sin(thrower.ang), 30) + thrower.yvel
-    s.zvel = mulscale(speed, slope, 14) - 0x40000
-    this.list.push({ sprite: s, type: 'tnt', life: 90, gravity: true })
+    this.game.things.fire(thrower, 419, zOffset, slope, speed || 0x98000, { fuse: 75, impact: true })
   }
 
-  /** A drip of water or blood from a generator: it falls, and splashes on what is under it */
+  /** A drip of water or blood from a generator (Blood's things 423 and 424): it falls, and splashes on the floor */
   drip (from, z, blood) {
-    const s = this.level.spawn(from.sectnum, from.x, from.y, z, STAT.thing, { picnum: blood ? 2263 : 2264, xrepeat: 16, yrepeat: 16, cstat: 0, type: blood ? 424 : 423 })
-    this.list.push({ sprite: s, type: 'drip', life: 300, blood })
+    const s = this.game.things.fire({ sectnum: from.sectnum, x: from.x, y: from.y, z, ang: 0, index: from.index }, blood ? 424 : 423, 0, 0, 0)
+    s.xrepeat = s.yrepeat = 24
   }
 
   tick () {

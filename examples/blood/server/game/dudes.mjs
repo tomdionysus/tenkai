@@ -18,6 +18,7 @@ const Random3 = (n) => R.Random3(n)
 const S = (seq, o = {}) => Object.assign({ seq, callback: null, ticks: 0, move: null, think: null, next: null }, o)
 
 // What each kind does: its states (by name) and its attacks
+// Seq offsets as the original shows them (fidelity/dudes.mjs: its zombies lie as ZOMB1I2, +12, and rise by ZOMB1M2, +9)
 const KINDS = {
   cultist: {
     states: {
@@ -34,7 +35,7 @@ const KINDS = {
       idle: S(0, { think: 'target' }), chase: S(8, { move: 'forward', think: 'chase' }), goto: S(8, { ticks: 600, move: 'forward', think: 'goto', next: 'idle' }),
       search: S(8, { ticks: 1800, move: 'forward', think: 'search', next: 'idle' }), recoil: S(5, { next: 'chase' }),
       hack: S(6, { callback: 'axe', ticks: 80, next: 'chase' }), ponder: S(0, { ticks: 120, move: 'turn', think: 'chase', next: 'chase' }),
-      buried: S(11, { think: 'target' }), rise: S(11, { ticks: 0, next: 'chase', seqEnd: true }), laying: S(13, { think: 'target' })
+      buried: S(12, { think: 'target' }), rise: S(9, { ticks: 0, next: 'chase', seqEnd: true }), laying: S(12, { think: 'target' })
     },
     alert: [1100, 2], search: [1100, 2], melee: 0x400
   },
@@ -328,7 +329,7 @@ class Dude {
     this.game.sound(this.sprite, 1002)
   }
 
-  throwTNT () { this.game.missiles.throwTNT(this.sprite, 0x60000, this.slope, 0) }
+  throwTNT () { this.game.missiles.throwTNT(this.sprite, 0x80000, this.slope, 0) }
 
   melee (vector, sound) {
     const s = this.sprite, trig = this.level.trig
@@ -359,12 +360,15 @@ class Dude {
 
   die (source, kind, damage) {
     const s = this.sprite, level = this.level
-    const seq = kind === DAMAGE.explode && damage > 0x500 ? 2 : kind === DAMAGE.burn ? 3 : 1
+    // Blood's actKillDude: blown up (the flying body, +2), burnt (+3), anything else (+1)
+    const seq = kind === DAMAGE.explode ? 2 : kind === DAMAGE.burn ? 3 : 1
     const id = this.dudes.library.get(this.info.seqStartID + seq) ? this.info.seqStartID + seq : this.info.seqStartID + 1
     this.dudes.seqs.spawn(s, id)
     s.cstat &= ~257
+    // The body is a thing now: it keeps what knocked it, flies, falls and lands (Blood's actKillDude to kStatThing)
     s.statnum = STAT.thing
-    s.xvel = s.yvel = 0
+    s.flags |= 2
+    this.game.things.body(s, this.info.mass)
     level.touched()
     this.game.sound(s, kind === DAMAGE.explode ? 717 : ({ cultist: 1018, zombie: 1105, gargoyle: 1405, rat: 2102, bat: 2002, spider: 1803, hand: 1903, eel: 1703 }[KIND_OF[s.type]] || 1018))
     // What it carried

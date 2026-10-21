@@ -12,6 +12,7 @@ import Weapons from './weapons.mjs'
 import Missiles from './missiles.mjs'
 import Dudes from './dudes.mjs'
 import Random from './random.mjs'
+import Things from './things.mjs'
 
 export const TICK_RATE = 30
 export const CLOCK_PER_TICK = 4
@@ -47,6 +48,7 @@ export default class Game {
     this.combat = new Combat(this)
     this.pickups = new Pickups(this)
     this.missiles = new Missiles(this)
+    this.things = new Things(this)
     this.kills = 0
     this.burning = []
     this.respawns = []
@@ -199,6 +201,7 @@ export default class Game {
     for (const p of this.players) if (p && p.health > 0) this.pickups.check(p)
     this.dudes.tick()
     this.missiles.tick()
+    this.things.tick()
     this.burn()
     this.respawnItems()
     this.frame++
