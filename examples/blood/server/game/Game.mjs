@@ -216,7 +216,11 @@ export default class Game {
   playerOf (sprite) { return this.players.find((p) => p && p.sprite === sprite) || null }
 
   /** One frame of the game (Blood's ProcessFrame), with each player's input for it */
+  /** Blood's actPostSprite: `f` changes a sprite's status at the frame's end, so the frame's lists keep it */
+  postSprite (f) { this.posted.push(f) }
+
   tick () {
+    if (!this.posted) this.posted = []
     if (!this.started) { this.triggers.start(this.options.gameType); this.started = true }
     this.events = []
     // Blood's CalcGameChecksum every eight frames (the network's sync check), whose first word is a draw of the
@@ -237,6 +241,8 @@ export default class Game {
     this.dudes.move()
     this.dudes.think()
     this.fx.process()
+    // Blood's actPostProcess: the status changes posted in the frame (actPostSprite), made at its end
+    for (const f of this.posted.splice(0)) f()
     this.burn()
     this.respawnItems()
     this.frame++

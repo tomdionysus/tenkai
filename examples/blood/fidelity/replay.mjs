@@ -44,14 +44,16 @@ export function replay (res, demo, ticks, onTick, options = {}) {
 if (process.argv[1] && process.argv[1].endsWith('replay.mjs')) {
   const args = process.argv.slice(2)
   const show = args.includes('--show') ? Number(args[args.indexOf('--show') + 1]) : 12
-  const [file, ticksArg] = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--show')
+  const [file, ticksArg] = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--show' && args[i - 1] !== '--seed')
   const trace = JSON.parse(fs.readFileSync(file))
   const demo = Demo.load(trace.demoPath || path.join(ROOT, 'original', trace.demo))
   const res = new Resources()
   // The trace's samples during the demo (after its first reset to tick 0); the remake starts from the original's
   // random state there, so a replay is the same every time
   const first = trace.samples.findIndex((s) => s.c[0] === 0)
-  const seed = trace.samples[first] && trace.samples[first].r
+  // (--seed N: the state before the level's set-up, as fidelity/random.mjs finds it, for a trace without it)
+  // (or the trace's own seed, when its tick-0 sample was taken after the frame: a stepped trace)
+  const seed = args.includes('--seed') ? Number(args[args.indexOf('--seed') + 1]) : trace.seed ?? (trace.samples[first] && trace.samples[first].r)
   const sim = replay(res, demo, Number(ticksArg || demo.inputs.length), null, seed !== undefined ? { seed } : {})
   // Up to the demo's end: attract mode then starts the next demo, counting from 0 again
   let after = trace.samples.slice(first)

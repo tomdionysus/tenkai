@@ -8,7 +8,7 @@
     "build": "../../node_modules/.bin/esbuild src/main.js --bundle --minify --outfile=bundle.js && ../../node_modules/.bin/esbuild src/fly.js --bundle --outfile=fly.bundle.js",
     "start": "node server/index.mjs",
     "soak": "node fidelity/soak.mjs",
-    "test": "node fidelity/soak.mjs 600 e1m1 && node fidelity/replay.mjs fidelity/trace-blood000.json 340 --show 0"
+    "test": "node fidelity/soak.mjs 600 e1m1 && node fidelity/replay.mjs fidelity/trace-blood000.json 400 --show 0"
   },
   "dependencies": {
     "earcut": "^3.2.4",

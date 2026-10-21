@@ -44,6 +44,8 @@ generator and the monsters' thinking schedule, the buried zombies' sequences, th
 the gibs, the velocities and the air drag, every random draw in BLOOD000 to tick 351 (the network checksum's,
 the effects', the gibs'). See `../TODO/ACTIVE.md` for what still parts them.
 
-The stored traces: `trace-blood000.json` (the player, BLOOD000), `trace-blood000-rng.json` (with the random
+The stored traces: `trace-blood000.json` (the player, BLOOD000, stepped a frame at a time, with its `seed`: the
+random state before the level's set-up, which a stepped trace's first sample is taken too late to hold; `replay.mjs
+--seed N` gives one to any trace), `trace-blood000-rng.json` (with the random
 state), `trace-blood000-dudes.json` (with the monsters). Traces of the longer demos are tens of megabytes and are
 kept out of git.

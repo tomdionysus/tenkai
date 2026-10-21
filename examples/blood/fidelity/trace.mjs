@@ -82,12 +82,12 @@ await new Promise((resolve) => {
     }
     if (arrays.sectors !== null) for (const w of watch) sample['s' + w] = mem.sector(arrays.sectors, w)
     if (arrays.walls !== null) for (const w of watchWalls) sample['w' + w] = mem.wall(arrays.walls, w)
-    // WATCHSPRITES=194,228: those sprites' place, status, tile and cstat
+    // WATCHSPRITES=194,228: those sprites' place, status, tile and cstat, then xsprite and velocity
     // (and its xsprite's health, the low 12 bits at 0x1c, and its first word, where the state bit is)
     if (arrays.sprites !== null) for (const i of watchSprites) {
       const o = arrays.sprites + i * 44, extra = mem.i16(o + 42)
       const xs = extra > 0 ? GLOBAL + XSTATE - 0x34 + 56 * extra : 0
-      sample['p' + i] = [mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i16(o + 26), mem.i16(o + 14), mem.u16(o + 12), xs ? mem.u16(xs + 0x1c) & 0xfff : -1, xs ? mem.u32(xs) : -1]
+      sample['p' + i] = [mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i16(o + 26), mem.i16(o + 14), mem.u16(o + 12), xs ? mem.u16(xs + 0x1c) & 0xfff : -1, xs ? mem.u32(xs) : -1, ...[0, 1, 2].map((k) => mem.i32(arrays.sprites + VEL + 4 * i + k * 16384))]
       if (xs && process.env.XDUMP) sample['x' + i] = Array.from({ length: 14 }, (_, k) => mem.u32(xs + 4 * k).toString(16))
     }
     // The monsters (DUDES=1): every sprite in the dudes' status, its place, angle and tile
@@ -107,15 +107,17 @@ await new Promise((resolve) => {
       }
       sample.dudes = d
     }
-    // Every sprite within NEAR of the player (NEAR=1500): index, place, tile, cstat, status, type
+    // Every sprite within NEAR of the player (NEAR=1500): index, place, tile, cstat, status, type, clipdist
     if (process.env.NEAR && arrays.sprites !== null) {
-      const r = Number(process.env.NEAR), n = []
+      // (NEAR=600@-2048,44800: around that point instead)
+      const [rs, at] = process.env.NEAR.split('@'), r = Number(rs), n = []
+      const [cx, cy] = at ? at.split(',').map(Number) : [s.x, s.y]
       for (let i = 0; i < 4096; i++) {
         const o = arrays.sprites + i * 44
         const stat = mem.i16(o + 26)
         if (stat >= 1024 || o === P) continue
         const x = mem.i32(o), y = mem.i32(o + 4)
-        if (Math.abs(x - s.x) < r && Math.abs(y - s.y) < r) n.push([i, x, y, mem.i32(o + 8), mem.i16(o + 14), mem.u16(o + 12), stat, mem.i16(o + 38)])
+        if (Math.abs(x - cx) < r && Math.abs(y - cy) < r) n.push([i, x, y, mem.i32(o + 8), mem.i16(o + 14), mem.u16(o + 12), stat, mem.i16(o + 38), mem.u8(o + 18)])
       }
       sample.near = n
     }

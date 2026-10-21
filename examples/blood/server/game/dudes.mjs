@@ -450,10 +450,15 @@ class Dude {
     this.game.triggers.triggerSprite(s.index, CMD.off)
     this.dudeType = s.type
     s.type = 426
-    s.statnum = STAT.thing
-    s.flags |= 2
-    this.game.things.body(s)
-    level.touched()
+    // (its status is posted, Blood's actPostSprite: the frame's lists of things, the explosions' among them, see it
+    // from the next frame)
+    this.game.postSprite(() => {
+      if (s.statnum !== STAT.dude || s.type !== 426) return
+      s.statnum = STAT.thing
+      s.flags |= 2
+      this.game.things.body(s)
+      level.touched()
+    })
     this.game.kills++
     if (source && this.game.playerOf(source)) this.game.playerOf(source).kills++
     this.dudes.remove(this)

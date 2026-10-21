@@ -186,8 +186,9 @@ export default class Things {
       const hit = this.move(s)
       // Blood's gSpriteHit florhit: whether it lies on the floor (an explosion there is a different sequence)
       m.florhit = this.level.extents(s).bottom >= this.level.engine.getflorzofslope(s.sectnum, s.x, s.y) - 256
-      // A gib object, once unlocked, breaks on what it hits (Blood's Impact on it, through kCmdOff)
-      if (hit && m.gibObject && this.game.clock >= m.gibObject.unlock) { this.activateGibObject(s, m.gibObject); continue }
+      // A gib object, once unlocked, breaks on the floor it lands on (Blood's Impact on it, through kCmdOff; off a
+      // wall it bounces whole, as gib 572 in BLOOD000 at tick 352)
+      if ((hit & 0xc000) === 0x4000 && m.gibObject && this.game.clock >= m.gibObject.unlock) { this.activateGibObject(s, m.gibObject); continue }
       // Blood's Impact: whatever it hits (floor, ceiling, wall, a sprite other than its thrower) sets it off
       if (hit && m.impact && ((hit & 0xc000) !== 0xc000 || (hit & 0x3fff) !== m.owner)) { this.explode(s, EXPLOSION.tnt, this.level.sprites[m.owner]); continue }
       if (hit && (s.type === THING.dripWater || s.type === THING.dripBlood) && (hit & 0xc000) === 0x4000) {
@@ -236,7 +237,8 @@ export default class Things {
         if (damage > 0) this.damaged(s, s, DAMAGE.fall, damage)
         s.zvel = v
         if (!level.velFloor[s.sectnum] && Math.abs(s.zvel) < 0x10000) { s.zvel = 0; s.flags &= ~4 }
-        hit = hit || (0x4000 | s.sectnum)
+        // (the floor is what it hit, over a wall in the same move: Blood's MoveThing sets it last)
+        hit = 0x4000 | s.sectnum
       } else if (s.zvel === 0) s.flags &= ~4
     } else if (s.flags & 2) s.flags |= 4
     if (top <= zr.ceilz) {
