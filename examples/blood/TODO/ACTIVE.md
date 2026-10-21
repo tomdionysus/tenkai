@@ -113,7 +113,9 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
 - [ ] G2 Powerups' effects (crystal ball, beast vision, cloak, death mask, jump boots), the pack's use keys
 - [ ] G3 Menus on the client: name, skill, mode; the death and restart in single player
 - [x] V1 (the exploder traps, 459, now hidden) Flame and torch sprites drawn stretched; voxels (KVX) drawn as their 2D tiles for now
-- [ ] N1 Client-side prediction from the acknowledged input (Quake's): the movement code is shared (common/)
+- [ ] N1 Client-side prediction: deliberately not done. The brief keeps game logic off the client; prediction would run
+      the movement there. The protocol is ready for it (numbered inputs, the server's ack, snapshots, interpolation);
+      it is the user's call. Done instead: the server latches presses between ticks, so taps are not lost.
 
 ## Open decisions
 

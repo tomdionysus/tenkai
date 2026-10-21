@@ -78,7 +78,15 @@ wss.on('connection', (socket) => {
       send(client, { type: 'welcome', player: { number, name: client.name }, state, tick: game.frame })
       console.log(client.name, 'joined as player', number + 1)
     } else if (m.type === 'input' && client.player) {
-      client.player.input = sanitize(m.input)
+      const p = client.player
+      const input = sanitize(m.input)
+      // A press is kept until a tick has seen it: a tap of fire, jump or open between two ticks is not lost
+      p.latched = p.latched || { buttons: 0, keys: 0, use: 0, newWeapon: 0 }
+      p.latched.buttons |= input.buttons
+      p.latched.keys |= input.keys
+      p.latched.use |= input.use
+      if (input.newWeapon) p.latched.newWeapon = input.newWeapon
+      p.held = input
       // The client numbers its inputs; each tick says the last one the game has taken (for prediction on the client)
       client.player.inputSeq = Math.trunc(Number(m.input && m.input.seq) || 0)
     } else if (m.type === 'act' && client.player && CHEATS) {

@@ -209,6 +209,12 @@ export default class Game {
   }
 
   playerTick (p) {
+    // The input a client holds, with the presses it made since the last tick (server/index.mjs latches them)
+    if (p.held) {
+      const l = p.latched || {}
+      p.input = Object.assign({}, p.held, { buttons: p.held.buttons | (l.buttons || 0), keys: p.held.keys | (l.keys || 0), use: p.held.use | (l.use || 0), newWeapon: p.held.newWeapon || l.newWeapon || 0 })
+      p.latched = { buttons: 0, keys: 0, use: 0, newWeapon: 0 }
+    }
     const before = p.sprite.sectnum
     p.changedSector = null
     p.tick(p.input)
