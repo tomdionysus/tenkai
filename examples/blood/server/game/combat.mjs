@@ -156,7 +156,8 @@ export default class Combat {
       }
       if (hit.sect >= 0) {
         // a floor (going down) or a ceiling, unless a link goes on to the sector beyond
-        const link = dz > 0 ? (level.lowerLink ? level.lowerLink[hit.sect] : -1) : (level.upperLink ? level.upperLink[hit.sect] : -1)
+        // (down through a floor: the sector's upper link, Blood's gUpperLink, its surface; up through a ceiling: its lower)
+        const link = dz > 0 ? (level.upperLink ? level.upperLink[hit.sect] : -1) : (level.lowerLink ? level.lowerLink[hit.sect] : -1)
         if (link < 0) return { kind: dz > 0 ? 2 : 1, hit }
         const a = level.sprites[link], b = level.sprites[a.owner & 0xfff]
         if (!b) return { kind: dz > 0 ? 2 : 1, hit }

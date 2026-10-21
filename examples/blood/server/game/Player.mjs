@@ -1,7 +1,7 @@
 // A player in the game on the server: its sprite, its input each tick (Blood's GINPUT: forward, strafe, turn,
 // buttons, keys), and Blood's ProcessInput: accelerating along the facing, turning, jumping, crouching, looking up
 // and down, and the eye's height following the body.
-import { mulscale, mulscaler } from '../../common/engine.mjs'
+import { mulscale } from '../../common/engine.mjs'
 import { moveDude, approxDist } from './physics.mjs'
 
 // Blood's postures: [stand, swim, crouch], each { frontAccel, sideAccel, backAccel, pace, bobV, bobH, swayV, swayH,
@@ -153,10 +153,10 @@ export default class Player {
     s.ang = this.ang
     if (!(input.buttons & BUTTON.jump)) this.cantJump = false
     if (this.posture === SWIM) {
-      // Swimming: jump rises, crouch sinks (Blood's swim posture's jump is its stroke upwards)
+      // Swimming: jump rises, crouch sinks (Blood's swim posture's jump is its stroke upwards); the water's drag is
+      // the dude loop's (5376), nothing more here (BLOOD001's dive at tick 317)
       if (input.buttons & BUTTON.jump) s.zvel -= posture.normalJumpZ
       if (input.buttons & BUTTON.crouch) s.zvel += posture.normalJumpZ
-      s.zvel -= s.zvel >> 3
     } else if (this.posture === CROUCH) {
       if (!(input.buttons & BUTTON.crouch)) this.posture = STAND
     } else if (this.posture === STAND) {
@@ -176,10 +176,16 @@ export default class Player {
       this.horiz += this.horiz < 100 ? Math.min(4, 100 - this.horiz) : -Math.min(4, this.horiz - 100)
       if (this.horiz === 100) this.lookCenter = false
     }
-    this.stance()
-    // Then, as Blood's playerProcess: the eye and the weapon's height follow the body, and the weapon (after the
-    // turn: a shot goes where the player now faces, from where the weapon now is)
+    // As Blood's ProcessInput: the eye's and the weapon's heights follow the body, then isUnderwater (BLOOD.EXE
+    // 0x3fd93: swimming, unless its eye is still above the water it is in), then the stance's sequence
     this.view()
+    this.underwater = false
+    if (this.posture === SWIM) {
+      this.underwater = true
+      const low = level.lowerLink ? level.lowerLink[s.sectnum] : -1
+      if (low > 0 && (level.sprites[low].type === 14 || level.sprites[low].type === 10) && level.engine.getceilzofslope(s.sectnum, s.x, s.y) > this.zView) this.underwater = false
+    }
+    this.stance()
   }
 
   /**
@@ -267,14 +273,15 @@ export default class Player {
   view () {
     const s = this.sprite
     const posture = POSTURES[this.posture]
+    // (BLOOD.EXE 0x3e664: each speed first moves toward the body's z speed, then the spring pulls it to its height)
+    this.zViewVel += mulscale(s.zvel - this.zViewVel, 0x7000, 16)
     let dz = s.z - posture.eyeAboveZ - this.zView
     this.zViewVel += dz > 0 ? mulscale(dz << 8, 0xa000, 16) : mulscale(dz << 8, 0x1800, 16)
     this.zView += this.zViewVel >> 8
+    this.zWeaponVel += mulscale(s.zvel - this.zWeaponVel, 0x5000, 16)
     dz = s.z - posture.weaponAboveZ - this.zWeapon
     this.zWeaponVel += dz > 0 ? mulscale(dz << 8, 0x8000, 16) : mulscale(dz << 8, 0xc00, 16)
     this.zWeapon += this.zWeaponVel >> 8
-    this.zViewVel = this.zViewVel - mulscaler(this.zViewVel, 0x7000, 16)
-    this.zWeaponVel = this.zWeaponVel - mulscaler(this.zWeaponVel, 0x5000, 16)
   }
 
   /** Through a link to the sector above or below (Blood's playerResetInertia, and into or out of water) */
@@ -285,7 +292,40 @@ export default class Player {
     if (type === 10 || type === 14) { // out of water or goo
       this.posture = STAND
       if (!this.cantJump && (this.input.buttons & BUTTON.jump)) { this.sprite.zvel = -0x6aaaa; this.cantJump = true }
-    } else if (type === 9 || type === 13) this.posture = SWIM
+    } else if (type === 9 || type === 13) {
+      // into water (Blood's CheckLink, BLOOD.EXE 0x302cb): swimming, bubbles by how fast it fell in (|zvel| >> 12,
+      // Blood's bubbleTime) from now on, and the splash
+      this.posture = SWIM
+      this.bubbleTime = Math.abs(this.sprite.zvel) >> 12
+      if (this.game) {
+        this.game.triggers.post(this.sprite.index, 3, 0, 20, () => this.bubble())
+        this.game.sound(this.sprite, 720)
+      }
+    }
+  }
+
+  /**
+   * Blood's PlayerBubble callback (BLOOD.EXE 0x74640): while its bubbleTime lasts, bubbleTime >> 6 bubbles (effects
+   * 23-25) about its body with its speed, give or take, and again 4 clock ticks on
+   */
+  bubble () {
+    const s = this.sprite, game = this.game, R = game.random, level = this.level, trig = level.trig
+    if (!this.bubbleTime || s.statnum >= 1024) return
+    const { top, bottom } = level.extents(s)
+    const t = game.res.tiles[s.picnum] || { w: 0 }
+    for (let i = 0; i < (this.bubbleTime >> 6); i++) {
+      const nDist = (s.xrepeat * (t.w >> 1)) >> 2
+      const a = R.Random(2048)
+      const x = s.x + Math.floor(nDist * trig.Cos(a) / 2 ** 30), y = s.y + Math.floor(nDist * trig.Sin(a) / 2 ** 30)
+      const z = bottom - R.Random(bottom - top)
+      const f = game.fx.spawn(23 + R.Random(3), s.sectnum, x, y, z, 0)
+      if (f) {
+        f.xvel = s.xvel + R.Random2(0x1aaaa)
+        f.yvel = s.yvel + R.Random2(0x1aaaa)
+        f.zvel = s.zvel + R.Random2(0x1aaaa)
+      }
+    }
+    game.triggers.post(s.index, 3, 4, 20, () => this.bubble())
   }
 
   /** Moved by a teleporter: facing its way, still, the eye where the body is */

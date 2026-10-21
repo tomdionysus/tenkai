@@ -190,7 +190,9 @@ export function moveDude (level, d, P = PHYSICS) {
   let hit = 0
   // Blood's actAirDrag first, before the move and gravity: so the original's velocities match to the unit in
   // BLOOD000, on the ground and falling (fidelity/trace.mjs reads them)
-  airDrag(level, s, P.airDrag)
+  // (under water, Blood's dude loop drags it by 5376: BLOOD001's player in the lake at tick 317)
+  const xs0 = level.xs(s.sectnum)
+  airDrag(level, s, xs0 && xs0.underwater ? 5376 : P.airDrag)
   if (s.xvel || s.yvel) {
     const cstat = s.cstat
     s.cstat &= ~257
@@ -232,11 +234,12 @@ export function moveDude (level, d, P = PHYSICS) {
     if (depth) {
       if (underwater) {
         const cz = engine.getceilzofslope(s.sectnum, s.x, s.y)
-        if (cz > top) vc += Math.trunc(((bottom - cz) * -80099) / (bottom - top))
+        // (a 32-bit product, BLOOD.EXE 0x3001e: deep in the water it wraps)
+        if (cz > top) vc += Math.trunc(Math.imul(bottom - cz, -80099) / (bottom - top))
         else vc = 0
       } else {
         const fz = engine.getflorzofslope(s.sectnum, s.x, s.y)
-        if (fz < bottom) vc += Math.trunc(((bottom - fz) * -80099) / (bottom - top))
+        if (fz < bottom) vc += Math.trunc(Math.imul(bottom - fz, -80099) / (bottom - top))
       }
     } else if (underwater) vc = 0
     else if (bottom >= zr.florz) vc = 0

@@ -236,6 +236,8 @@ export default class Game {
     this.things.tick()
     this.missiles.tick()
     this.things.explosionsTick()
+    // (a player under water: its bubbles thin, Blood's dudes loop at 0x34575)
+    for (const p of this.players) if (p && p.underwater && p.bubbleTime) p.bubbleTime = Math.max(0, p.bubbleTime - 4)
     // (the dudes in their list's order, Blood's headspritestat: the map's monsters first, then the players, whose
     // sprites came after: a zombie meets the player where the last tick left it, BLOOD000 at tick 697)
     this.dudes.move()

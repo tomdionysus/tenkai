@@ -109,9 +109,10 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
 - [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
 - [x] F3b The drift of one draw in six ticks: Blood's CalcGameChecksum (found by logging rand()'s callers)
 - [ ] F3c The draws part: BLOOD000 (E1M1) matches the original whole: its random draws through the demo and the
-      player's place every tick (`npm test` replays it all). BLOOD001 matches its draws to the end of its log (300)
-      and its positions to 316; BLOOD002 its draws to 299 and positions to 399: longer logs of both to take, and the
-      gargoyles, bats, hand and eel to port (F2)
+      player's place every tick (`npm test` replays it all). BLOOD001 matches its draws to 429 and its positions
+      to 479 (its dive into the lake: the water's drag, the bubbles, the view's spring toward the body's speed);
+      BLOOD002 its draws to 398 and positions to 399 (a big gib event at 399): the gargoyles, bats, hand and eel to
+      port (F2)
 - [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed (`replay.mjs --steps` compares each tick's move).
       Done: the TNT bundle (lit on fire, thrown on letting go, lobbed if let go before the fuse catches, goes off on
       what it hits), Blood's explosion (fixed damage once, the concussion's damage) and actFireThing. Open: a slide
