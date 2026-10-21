@@ -103,18 +103,15 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
 
 - [x] F1 Thing physics and explosions matched to the original (BLOOD000 departs at tick 340 where its thrown TNT
       goes off): Blood's MoveThing, the explosion table, actRadiusDamage's knock
-- [ ] F2 The monsters from the original's own AI states and functions (server/game/ai.mjs): the zombies and the
-      cultists done (cultThinkChase, Goto, Search, the dodge, their throw, shot and tommy callbacks, RecoilDude's
-      part, aiActivateDude's); gargoyles and statues, rats, bats, hands, spiders, the bone eel to do
+- [ ] F2 The monsters from the original's own AI states and functions (server/game/ai.mjs): the zombies, the
+      cultists and the rats done (thinks, callbacks, activation, recoil, aiDamageSprite's and actKillDude's parts);
+      gargoyles and statues, bats, hands, spiders, the bone eel to do
 - [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
 - [x] F3b The drift of one draw in six ticks: Blood's CalcGameChecksum (found by logging rand()'s callers)
-- [ ] F3c The draws part: BLOOD000 at tick 725 (a cultist's chooseDirection: positions part at 700); BLOOD001 at
-      245 (a cultist's shot: its pellets' effects); BLOOD002 matches to the end of its log (299). Done: an explosion's
-      reach and kind (a TNT stick's small), locked things let be, a weak blast's kill a plain death, actKillDude's
-      order and the zombie's and cultists' cases (the head off and its spurt, its trail in flight), the weapon before
-      the push (ProcessInput), a dead dude's status and freed effects posted to the frame's end, gibs broken by their
-      health, slopes, Build's sprite clipping and hitscan width, Blood's VectorScan, sprites first in first out, the
-      event queue as the original's (fidelity/trace.mjs HEAP=1)
+- [ ] F3c The draws part: BLOOD000 (E1M1) matches the original whole: its random draws through the demo and the
+      player's place every tick (`npm test` replays it all). BLOOD001 matches its draws to the end of its log (300)
+      and its positions to 316; BLOOD002 its draws to 299 and positions to 399: longer logs of both to take, and the
+      gargoyles, bats, hand and eel to port (F2)
 - [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed (`replay.mjs --steps` compares each tick's move).
       Done: the TNT bundle (lit on fire, thrown on letting go, lobbed if let go before the fuse catches, goes off on
       what it hits), Blood's explosion (fixed damage once, the concussion's damage) and actFireThing. Open: a slide

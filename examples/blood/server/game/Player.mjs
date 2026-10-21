@@ -243,8 +243,7 @@ export default class Player {
 
   /** Dead: the body falls, the view sinks to the floor; a press of fire or open comes back (in a game of several) */
   deadTick (input) {
-    const s = this.sprite
-    s.xvel = 0; s.yvel = 0
+    // (its speed is its own still: Blood's dead player keeps what the blast gave it, BLOOD000 after tick 1162)
     if (this.game && this.game.frame - this.deadAt > 30 && (input.buttons & 4 || input.keys & KEY.action)) this.game.respawn(this)
   }
 
