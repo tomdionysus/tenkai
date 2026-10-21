@@ -44,8 +44,12 @@ export default class Effects {
     if (sectnum < 0 || nFx < 0 || nFx >= this.data.length) return null
     const sect = findSector(level, x, y, z, sectnum)
     if (sect < 0) return null
-    // At most 512: the newest makes way
-    if (this.list.length >= 512) this.remove(this.list[this.list.length - 1])
+    // At most 512 (Blood's gStatCount of its effects, those posted free among them): the oldest not already going
+    // makes way (BLOOD.EXE 0x72c62)
+    if (this.list.length + (this.pending || 0) >= 512) {
+      if (!this.list.length) return null
+      this.remove(this.list[0])
+    }
     const d = this.data[nFx]
     const s = level.spawn(sect, x, y, z, STAT.fx, { type: nFx, picnum: d.picnum, cstat: 128 | d.cstat, shade: d.shade, pal: d.pal, clipdist: 32, filler: d.detail, xrepeat: d.xrepeat || 64, yrepeat: d.yrepeat || 64 })
     if ((d.flags & 1) && R.rand() < 0x4000) s.cstat ^= 4
@@ -67,7 +71,8 @@ export default class Effects {
     if (i >= 0) this.list.splice(i, 1)
     this.game.seqs.kill(s)
     s.flags |= 32
-    this.game.postSprite(() => { this.game.triggers.kill(s.index, SPRITE); this.level.remove(s) })
+    this.pending = (this.pending || 0) + 1
+    this.game.postSprite(() => { this.pending--; this.game.triggers.kill(s.index, SPRITE); this.level.remove(s) })
   }
 
   /** Blood's CFX::fxProcess, each frame: drag, the move, the sector, the floor and ceiling, gravity */
