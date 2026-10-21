@@ -117,11 +117,15 @@ export default class Game {
       if (!x.state) { this.triggers.setSpriteState(s, x, 1); this.triggers.post(s.index, 3, 0, 21) }
       return true
     }
-    // A monster told to wake (on) or to die (off: Blood kills it)
-    if (s.statnum === STAT.dude && this.dudes && this.dudes.of(s)) {
-      const d = this.dudes.of(s)
-      if (event.cmd === 1 && (d.stateName === 'idle' || d.stateName === 'buried' || d.stateName === 'laying')) { d.activate(); return true }
-      if (event.cmd === 0 && d.x.health > 0) { d.damaged(null, 0, 1 << 15); return true }
+    // A dude (BLOOD.EXE 0x43a84): off, its state off (and so its events gone: a dying dude's bubbles); on (and 30,
+    // 33, or a proximity while it is off), its state on and woken (aiActivateDude)
+    if (s.statnum === STAT.dude && s.type >= 200 && s.type < 254) {
+      const d = this.dudes && this.dudes.of(s)
+      if (event.cmd === CMD.off) { this.triggers.setSpriteState(s, x, 0); return true }
+      if (event.cmd === CMD.on || event.cmd === 30 || event.cmd === 33 || (event.cmd === 35 && !x.state)) {
+        if (!x.state) this.triggers.setSpriteState(s, x, 1)
+        if (d) d.activate()
+      }
       return true
     }
     return false

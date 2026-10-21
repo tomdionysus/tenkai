@@ -110,8 +110,8 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
 - [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
 - [x] F3b The drift of one draw in six ticks: Blood's CalcGameChecksum (found by logging rand()'s callers)
 - [ ] F3c The draws part: BLOOD000 (E1M1) matches the original whole: its random draws through the demo and the
-      player's place every tick (`npm test` replays it all). BLOOD001 matches its draws to 1215 and its positions
-      to 1462 (its dive into the lake: the water's drag, the bubbles, the view's spring toward the body's speed, a
+      player's place every tick (`npm test` replays it all). BLOOD001 matches its draws to 1612 and its positions
+      to 1565 (its dive into the lake: the water's drag, the bubbles, the view's spring toward the body's speed, a
       cultist's fall into the water and its bubbles; the gargoyles, the bat and the eel ported from the exe;
       ProcessTouchObjects, Build's table ksqrt, the player's air and choking, every dude dragged and carried by a
       panning floor each frame, effects put in the sector they are given, clipmove's 32-bit products, sector lists
