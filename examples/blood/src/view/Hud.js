@@ -10,7 +10,7 @@ export default class Hud {
   constructor (game) {
     this.game = game
     this.messages = []
-    this.tiles = new Tiles(game.indexes.tiles, (name) => { const a = game.getAsset(name); return a && a.element })
+    this.tiles = new Tiles(game.indexes.tiles, (name) => game.getAsset(name))
     this.qavs = null
     fetch('data/qavs.json').then((r) => r.json()).then((q) => { this.qavs = q })
   }
@@ -103,13 +103,10 @@ export default class Hud {
     const ammoType = [-1, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9][you.weapon]
     if (ammoType >= 0) T.number(ctx, pad(ammoType === 6 ? you.ammo[ammoType] / 10 : you.ammo[ammoType]), 2240, 42, 183)
     T.draw(ctx, 2173, 284, 187)
+    // Blood's TileHGauge: as much of the gauge's tile from its left as the armour is of 200
     const gauge = (tile, y, value) => {
       if (!value) return
-      const s = T.size(tile)
-      ctx.save()
-      ctx.beginPath(); ctx.rect(250, y - s.h, s.w * Math.min(1, value / 200), s.h * 2); ctx.clip()
-      T.draw(ctx, tile, 250, y, { topLeft: true })
-      ctx.restore()
+      T.draw(ctx, tile, 250, y, { topLeft: true, width: Math.round(T.size(tile).w * Math.min(1, value / 200)) })
       T.number(ctx, pad(value), 2230, 255, y + 3, { scale: 0.5 })
     }
     gauge(2207, 175, you.armor[1])
