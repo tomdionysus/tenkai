@@ -82,15 +82,16 @@ export default class BloodClient extends GameEngine {
   }
 
   /**
-   * The mouse turns and looks while the game has it: once a click on the game takes the pointer (pointer lock), or,
-   * where the browser will not give it, from that click while the page has the focus. Leaving the page (or Escape)
-   * lets the mouse go; a click takes it again
+   * The mouse turns and looks while the game has it: from the start (the start screen's click or key gives it), the
+   * pointer taken (pointer lock) on the next click or key, or, where the browser will not give it, while the page has
+   * the focus. Leaving the page (or Escape) lets the mouse go; a click takes it again
    */
   pointerLook () {
     const canvases = () => [this.element, this.view && this.view.canvas].filter(Boolean)
     const shown = () => canvases().find((c) => c.style.visibility !== 'hidden' && c.style.display !== 'none') || this.element
     const locked = () => canvases().includes(document.pointerLockElement)
-    this.mouseHeld = false
+    // (starting the game, by a click or a key on the start screen, gives it the mouse)
+    this.mouseHeld = true
     const release = () => { this.mouseHeld = false; this.mouse.fire = this.mouse.alt = false }
     const lock = () => {
       const canvas = shown()
@@ -119,7 +120,11 @@ export default class BloodClient extends GameEngine {
     document.addEventListener('pointerlockchange', () => { if (!locked()) release() })
     window.addEventListener('blur', release)
     document.addEventListener('visibilitychange', () => { if (document.hidden) release() })
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') release() })
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { release(); return }
+      // (a key is a gesture the browser takes for the pointer, while the game has the mouse)
+      if (this.mouseHeld) lock()
+    })
   }
 
   update (dt) {
