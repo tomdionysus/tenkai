@@ -101,13 +101,16 @@ Playable: `node server/index.mjs` serves the client and the game at http://127.0
 `--map e1m1`, `--difficulty 0-4`, `--monsters on|off`, `--cheats` for the test warp). E1M1 to E1M8 load and run; the
 level's end leads to the next by BLOOD.INI. Open, in the order to take them:
 
-- [ ] F1 Thing physics and explosions matched to the original (BLOOD000 departs at tick 340 where its thrown TNT
+- [x] F1 Thing physics and explosions matched to the original (BLOOD000 departs at tick 340 where its thrown TNT
       goes off): Blood's MoveThing, the explosion table, actRadiusDamage's knock
-- [ ] F2 The monsters traced from the original's memory (their sprites by index) and matched state by state:
+- [x] F2 (first pass: zombies, TNT, gibs) The monsters traced from the original's memory (their sprites by index) and matched state by state:
       cultists, zombies, gargoyles, rats, bats, hands, spiders, eels
 - [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
 - [ ] F3b The drift of one draw in six ticks: find its source (BLOOD.EXE's rand() callers, by disassembly)
-- [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed
+- [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed (`replay.mjs --steps` compares each tick's move).
+      Done: the TNT bundle (lit on fire, thrown on letting go, lobbed if let go before the fuse catches, goes off on
+      what it hits), Blood's explosion (fixed damage once, the concussion's damage) and actFireThing. Open: a slide
+      along a wall moves one unit a tick more than the original's; BLOOD001's falls and steps at ticks 124 and 223
 - [ ] F5 The view against the original's screenshots at the same eye, for every map's start
 - [ ] G1 Sector damage (618: lava, fire), water (swimming, the water links), the hand's choke
 - [ ] G2 Powerups' effects (crystal ball, beast vision, cloak, death mask, jump boots), the pack's use keys

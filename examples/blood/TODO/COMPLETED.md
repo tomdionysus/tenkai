@@ -113,3 +113,14 @@
   slow drift), so where the gibs land and how monsters choose differ after a few seconds.
 - Views compared: the original's screen at a demo tick beside the remake's from the server's own state at that
   tick (`fidelity/views.mjs`): the mausoleum, the graveyard, its fence and sky agree.
+- BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed (the replay now seeded with the original's random state
+  at the demo's start, and allowing for samples taken mid-tick). BLOOD002's player died in the remake to its own
+  TNT and lived in the original: the bundle (BUNFUSE, QAV 21) is lit when fire is pressed and thrown (BUNTHRO, 23)
+  when it is let go, harder the longer it was held (Blood's throwPower, hold over 240 clocks); let go before the
+  fuse catches (about 24 clocks) it is lobbed at the least strength (BLOOD000's throw: its rise and fall match only
+  so). A thrown bundle goes off on whatever it hits (the floor in BLOOD002, the zombie in BLOOD000); held to
+  BUNFUSE's end it goes off in the hand; alt drops it lit. Blood's explosion: the fixed damage (dmg +
+  Random(dmgRng)) once, to the first dude reached; every frame the concussion pushes and hurts by force over
+  0x40000 + distance squared (CheckProximity: >> 4 in x and y, >> 8 in z, in sight of middle, top or bottom).
+  actFireThing starts a thing a clipdist ahead of its thrower with half the thrower's velocity. BLOOD002's three
+  bundles now match the original's in time and height.

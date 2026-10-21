@@ -61,14 +61,30 @@ export default class Things {
 
   /** Blood's actFireThing: a thing of a type thrown from a sprite along its angle at `speed`, with a slope */
   fire (from, type, zOffset, slope, speed, o = {}) {
-    const info = this.info[type], level = this.level, trig = level.trig
-    const s = level.spawn(from.sectnum, from.x, from.y, from.z + zOffset, STAT.thing, {
+    const info = this.info[type], level = this.level, trig = level.trig, engine = level.engine
+    // Blood's actFireThing: a clipdist ahead of the thrower, or back from a wall in the way
+    const cd = from.clipdist || 0, cos = trig.Cos(from.ang || 0), sin = trig.Sin(from.ang || 0)
+    let x = from.x + mulscale(cd, cos, 28), y = from.y + mulscale(cd, sin, 28)
+    const z = from.z + zOffset
+    if (cd) {
+      const hit = engine.hitscan(from.x, from.y, z, from.sectnum, x - from.x, y - from.y, 0, CLIPMASK0)
+      if (hit.sect >= 0 && Math.hypot(hit.x - from.x, hit.y - from.y) <= cd << 2) {
+        x = hit.x - mulscale(cd << 1, cos, 28)
+        y = hit.y - mulscale(cd << 1, sin, 28)
+      }
+    }
+    let sectnum = engine.updatesector(x, y, from.sectnum)
+    if (sectnum < 0) { sectnum = from.sectnum; x = from.x; y = from.y }
+    const s = level.spawn(sectnum, x, y, z, STAT.thing, {
       picnum: info.picnum, xrepeat: info.xrepeat || 32, yrepeat: info.yrepeat || 32, shade: info.shade, pal: info.pal, clipdist: info.clipdist,
       cstat: info.cstat, ang: from.ang, owner: from.index, type, flags: info.flags
     })
     s.xvel = mulscale(speed, trig.Cos(from.ang), 30)
     s.yvel = mulscale(speed, trig.Sin(from.ang), 30)
     s.zvel = mulscale(speed, slope, 14)
+    s.xvel += Math.trunc((from.xvel || 0) / 2)
+    s.yvel += Math.trunc((from.yvel || 0) / 2)
+    s.zvel += Math.trunc((from.zvel || 0) / 2)
     this.moving.set(s.index, Object.assign({ owner: from.index, health: info.startHealth << 4 }, o))
     return s
   }
@@ -100,10 +116,8 @@ export default class Things {
       if (m.fuse !== undefined && --m.fuse <= 0) { this.explode(s, EXPLOSION.tnt, this.level.sprites[m.owner]); continue }
       if (!(s.xvel || s.yvel || s.zvel || (s.flags & 4) || (s.flags & 2))) continue
       const hit = this.move(s)
-      if (hit && m.impact && (hit & 0xc000) === 0xc000) {
-        const other = this.level.sprites[hit & 0x3fff]
-        if (other && other.statnum === STAT.dude && other.index !== m.owner) { this.explode(s, EXPLOSION.tnt, this.level.sprites[m.owner]); continue }
-      }
+      // Blood's Impact: whatever it hits (floor, ceiling, wall, a sprite other than its thrower) sets it off
+      if (hit && m.impact && ((hit & 0xc000) !== 0xc000 || (hit & 0x3fff) !== m.owner)) { this.explode(s, EXPLOSION.tnt, this.level.sprites[m.owner]); continue }
       if (hit && (s.type === THING.dripWater || s.type === THING.dripBlood) && (hit & 0xc000) === 0x4000) {
         this.game.missiles.effect(s, 6)
         this.remove(s)
@@ -201,42 +215,55 @@ export default class Things {
     if (e.quake) game.shakeNear({ x, y }, e.quake << 4)
   }
 
-  /** One frame of an explosion: what is within its radius and in its sight hurt (less with distance) and pushed */
+  /**
+   * One frame of an explosion (Blood's actProcessSprites, its explosions): while its time lasts, each dude and thing
+   * within its radius and in sight (CheckProximity) is concussed, hurt by the concussion and set burning; the first
+   * dude reached also takes the explosion's fixed damage (dmg + Random(dmgRng), once for the whole explosion)
+   */
   blast (ex) {
     const { x, y, z, sectnum, e, owner } = ex
     const game = this.game, level = this.level, engine = level.engine
-    const radius = e.radius << 4
-    for (const sn of this.affectedSectors(sectnum, x, y, radius)) {
-      for (const i of engine.spritesIn(sn).slice()) {
-        const d = level.sprites[i]
-        if (d.statnum !== STAT.dude && d.statnum !== STAT.thing) continue
-        const dx = Math.abs(x - d.x), dy = Math.abs(y - d.y), dz = Math.abs(z - d.z) >> 4
-        const dist = ksqrt(dx * dx + dy * dy + dz * dz)
-        if (dist > radius) continue
-        if (!engine.cansee(x, y, z, sectnum, d.x, d.y, d.z, d.sectnum)) continue
-        const dmg = e.dmg + Math.trunc((radius - dist) * e.dmgRng / Math.max(1, radius))
-        if (dmg > 0) game.combat.damage(owner, d, DAMAGE.explode, dmg << 4)
-        this.concuss(d, x, y, z, e.force)
-        if (e.burnTime) game.burn(d, owner, e.burnTime * 4)
+    const sectors = this.affectedSectors(sectnum, x, y, e.radius << 4)
+    const near = (statnum) => level.sprites.filter((d) => d.statnum === statnum && sectors.has(d.sectnum) && this.proximity(d, x, y, z, sectnum, e.radius))
+    for (const d of near(STAT.dude)) {
+      if (e.dmg && !ex.target) {
+        ex.target = 1
+        game.combat.damage(owner, d, DAMAGE.fall, (e.dmg + game.random.Random(e.dmgRng)) << 4)
       }
+      if (e.force) this.concuss(d, x, y, z, e.force, owner)
+      if (e.burnTime) game.burn(d, owner, e.burnTime << 2)
+    }
+    for (const d of near(STAT.thing)) {
+      if (e.force) this.concuss(d, x, y, z, e.force, owner)
+      if (e.burnTime) game.burn(d, owner, e.burnTime << 2)
     }
   }
 
-  /** Blood's ConcussSprite: pushed away from the blast by its force, its size and its mass */
-  concuss (d, x, y, z, force) {
+  /** Blood's CheckProximity: within `dist` (>> 4 in x and y, >> 8 in z) and in sight of its middle, top or bottom */
+  proximity (d, x, y, z, sectnum, dist) {
+    const oX = Math.abs(x - d.x) >> 4, oY = Math.abs(y - d.y) >> 4, oZ = Math.abs(z - d.z) >> 8
+    if (oX >= dist || oY >= dist || oZ >= dist || approxDist(oX, oY) >= dist) return false
+    const { top, bottom } = this.level.extents(d)
+    const engine = this.level.engine
+    return engine.cansee(d.x, d.y, d.z, d.sectnum, x, y, z, sectnum) || engine.cansee(d.x, d.y, top, d.sectnum, x, y, z, sectnum) || engine.cansee(d.x, d.y, bottom, d.sectnum, x, y, z, sectnum)
+  }
+
+  /** Blood's ConcussSprite: pushed away from the blast by its force, its size and its mass, and hurt by it */
+  concuss (d, x, y, z, force, owner = d) {
     const level = this.level
     const dx = d.x - x, dy = d.y - y, dz = (d.z - z) >> 4
-    const dist2 = Math.max(dx * dx + dy * dy + dz * dz, 32 << 4)
-    const f = scale(0x40000, force, dist2)
+    const f = scale(0x40000, force, 0x40000 + dx * dx + dy * dy + dz * dz)
     const mass = d.statnum === STAT.dude ? (this.game.res.tables.dudeInfo[d.type] || {}).mass : this.mass(d)
-    if (!mass) return
-    const t = level.res.tiles[d.picnum] || { w: 0, h: 0 }
-    const size = (t.w * d.xrepeat * t.h * d.yrepeat) >> 1
-    const k = scale(f, size, mass)
-    d.xvel += mulscale(k, dx, 16)
-    d.yvel += mulscale(k, dy, 16)
-    d.zvel += mulscale(k, dz, 16)
-    if (d.statnum === STAT.thing && !this.moving.has(d.index) && this.info[d.type]) this.moving.set(d.index, { health: this.info[d.type].startHealth << 4 })
+    if (mass) {
+      const t = level.res.tiles[d.picnum] || { w: 0, h: 0 }
+      const size = (t.w * d.xrepeat * t.h * d.yrepeat) >> 1
+      const k = scale(f, size, mass)
+      d.xvel += mulscale(k, dx, 16)
+      d.yvel += mulscale(k, dy, 16)
+      d.zvel += mulscale(k, dz, 16)
+      if (d.statnum === STAT.thing && !this.moving.has(d.index) && this.info[d.type]) this.moving.set(d.index, { health: this.info[d.type].startHealth << 4 })
+    }
+    this.game.combat.damage(owner, d, DAMAGE.explode, f)
   }
 
   /** The sectors a blast reaches through openings within its radius */
