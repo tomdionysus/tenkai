@@ -365,6 +365,11 @@ class Dude {
     const id = this.dudes.library.get(this.info.seqStartID + seq) ? this.info.seqStartID + seq : this.info.seqStartID + 1
     this.dudes.seqs.spawn(s, id)
     s.cstat &= ~257
+    // Blown apart: the body's pieces fly (Blood's GibSprite; the human's run of gibs, a zombie's head too)
+    if (kind === DAMAGE.explode) {
+      const g = this.game.res.tables.gibThings
+      this.game.things.gib(s, g.slice(0, 7).concat(KIND_OF[s.type] === 'zombie' ? [g[22]] : []))
+    }
     // The body is a thing now: it keeps what knocked it, flies, falls and lands (Blood's actKillDude to kStatThing)
     s.statnum = STAT.thing
     s.flags |= 2

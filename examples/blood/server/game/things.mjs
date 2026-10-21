@@ -24,6 +24,34 @@ export default class Things {
 
   mass (s) { const t = this.info[s.type] || (this.bodies.get(s.index)); return t ? t.mass : 0 }
 
+  /**
+   * Blood's GibThing for each of a list of gib records: a piece of a body (or a head) from a random place on its
+   * edge, flying at random within the record's speeds (across, up), a thing that bounces and blocks
+   */
+  gib (s, records) {
+    const level = this.level, trig = level.trig, R = this.game.random
+    const { top, bottom } = level.extents(s)
+    for (const g of records) {
+      if (!R.Chance(g.chance)) continue
+      const a = R.Random(2048)
+      const x = s.x + mulscale(s.clipdist << 2, trig.Cos(a), 30), y = s.y + mulscale(s.clipdist << 2, trig.Sin(a), 30)
+      const z = bottom - R.Random(Math.max(1, bottom - top))
+      const sect = level.engine.updatesector(x, y, s.sectnum)
+      if (sect < 0) continue
+      const info = this.info[g.type]
+      const gib = level.spawn(sect, x, y, z, STAT.thing, { picnum: g.picnum > -1 ? g.picnum : info.picnum, xrepeat: 48, yrepeat: 48, clipdist: info.clipdist, cstat: info.cstat, type: g.type, flags: info.flags })
+      gib.xvel = R.Random2(Math.trunc((g.across << 18) / 120))
+      gib.yvel = R.Random2(Math.trunc((g.across << 18) / 120))
+      const cz = level.engine.getceilzofslope(sect, x, y), fz = level.engine.getflorzofslope(sect, x, y)
+      const dz1 = fz - z, dz2 = z - cz
+      const up = Math.trunc((Math.abs(g.up) << 18) / 120)
+      if (dz2 < dz1 && dz2 < 0x4000) gib.zvel = 0
+      else if (dz2 > dz1 && dz1 < 0x4000) gib.zvel = -R.Random(up)
+      else gib.zvel = R.Random2(up)
+      this.moving.set(gib.index, { health: info.startHealth << 4 })
+    }
+  }
+
   /** A dead dude's body, moved as a thing with its own mass (no bounce) */
   body (s, mass) {
     if (!this.bodies) this.bodies = new Map()

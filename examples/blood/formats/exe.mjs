@@ -101,6 +101,20 @@ export default class BloodExe {
     return out
   }
 
+  /** Blood's gib things (GIBTHING, 20 bytes each): i32 type, picnum, chance, speed across, speed up; the run that starts with the human body's */
+  gibThings () {
+    const at = this.find([0xa9, 0x01, 0, 0, 0xae, 0x05, 0, 0, 0, 0, 0x0e, 0])
+    if (at < 0) throw new Error('gibThings not found')
+    const out = []
+    for (let k = 0; k < 64; k++) {
+      const o = at + k * 20, b = this.b
+      const type = b.readInt32LE(o), picnum = b.readInt32LE(o + 4)
+      if (type < 400 || type >= 440 || picnum < -1 || picnum >= 4096) break
+      out.push({ type, picnum, chance: b.readInt32LE(o + 8), across: b.readInt32LE(o + 12), up: b.readInt32LE(o + 16) })
+    }
+    return out
+  }
+
   dudeInfo () {
     const at = this.find([0x00, 0x10, 0x28, 0x00, 0x46, 0x00, 0xb0, 0x04, 0x00, 0x00, 0x30])
     if (at < 0) throw new Error('dudeInfo not found')
