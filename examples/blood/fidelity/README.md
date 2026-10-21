@@ -9,7 +9,7 @@ npm), and its memory is read while it plays: the remake's server replays the sam
 |---|---|
 | `emu.mjs` | Starts the original: the shareware's files, a BLOOD.CFG with its keys bound, keys in, screenshots out |
 | `mem.mjs` | Reads the original's RAM inside the emulator's WebAssembly heap: the player's sprite, Blood's sector, wall and sprite arrays (found from the map) |
-| `trace.mjs` | Lets attract mode play a demo (its own, or one given in place of BLOOD000.DEM) and samples the player and its velocity, the demo's tick count, the random state (and with `DUDES=1` every monster and every sprite made) |
+| `trace.mjs` | Lets attract mode play a demo (its own, or one given in place of BLOOD000.DEM) and samples the player and its velocity, the demo's tick count, the random state (`STEP=1`: every frame, at its start; `DUDES=1`: each dude's place, velocity and AI state too) (and with `DUDES=1` every monster and every sprite made) |
 | `lockstep.mjs` | Steps the original a frame at a time (a wait patched in where its frame begins), for readers that must see every frame |
 | `randlog.mjs` | Patches the original's rand() in memory to log each caller and the tick it was in (`../tools/randcalls.py --json` names the callers' source files) |
 | `findvel.mjs` | Finds Blood's velocity arrays in the original's memory (the words that follow the player's step), for the trace |
@@ -19,6 +19,8 @@ npm), and its memory is read while it plays: the remake's server replays the sam
 | `views.mjs` | The original's screen at chosen ticks beside the remake's view from the server's state at those ticks |
 | `montecarlo.mjs` | Writes demos of random input, has the original play each, traces, replays and scores (`--score dir` re-scores stored runs) |
 | `soak.mjs` | Every map run by the server with a random player, for anything that throws, and how long a tick takes |
+| `../tools/disasm.mjs` | Disassembles BLOOD.EXE at an address (`--fn`: the whole function), naming fixups' targets (`../tools/x86.mjs` decodes) |
+| `../tools/aistates.mjs` | Lists Blood's AI states (28-byte AISTATEs: sequence, callback, ticks, enter, move, think, next) from the exe |
 | `../tools/randcalls.py` | Where BLOOD.EXE calls `rand()`, placed by source file through its LE fixups to the asserts' file names |
 
 ## Running

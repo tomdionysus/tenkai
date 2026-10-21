@@ -9,19 +9,22 @@ const RAND_LIN = 0xa4d3e
 const RAND_BYTES = [0x52, 0xe8, 0xf4, 0xff, 0xff, 0xff, 0x85, 0xc0, 0x74, 0x18, 0x69, 0x10]
 const CODE_LIN = 0x10000, CODE_VSIZE = 0xe4ca0
 
+/** Where the emulated memory starts in the heap, and how far the loader moved the code (by rand()'s bytes) */
+export function locate (mem, seedHeap) {
+  const heap = mem.heap
+  let H = -1
+  for (let i = 0; i < heap.length - 16; i++) if (heap[i] === 0x52 && RAND_BYTES.every((b, k) => heap[i + k] === b)) { H = i; break }
+  if (H < 0) throw new Error('rand() not found in memory')
+  const base = seedHeap - mem.u32(H - 5) // from the seed's place
+  return { base, delta: H - base - RAND_LIN, dataLin: mem.u32(H - 5) - 0x1cb18 }
+}
+
 export default class Lockstep {
   /** Finds where the loader put the code (by rand()'s bytes) and patches the frame's start */
   static install (mem, seedHeap, offset = 0x200, known = null) {
     const heap = mem.heap
     let base, delta
-    if (known) ({ base, delta } = known) // (given by fidelity/randlog.mjs, which has patched rand() already)
-    else {
-      let H = -1
-      for (let i = 0; i < heap.length - 16; i++) if (heap[i] === 0x52 && RAND_BYTES.every((b, k) => heap[i + k] === b)) { H = i; break }
-      if (H < 0) throw new Error('rand() not found in memory')
-      base = seedHeap - mem.u32(H - 5) // the emulated memory's start in the heap (from the seed's place)
-      delta = H - base - RAND_LIN // how far the loader moved the code
-    }
+    ({ base, delta } = known || locate(mem, seedHeap)) // (known: from fidelity/randlog.mjs, which patched rand())
     const hook = HOOK_LIN + delta
     if (!HOOK_BYTES.every((b, k) => heap[base + hook + k] === b)) throw new Error('the frame start is not where expected')
     const original = Array.from(heap.slice(base + hook, base + hook + 5))

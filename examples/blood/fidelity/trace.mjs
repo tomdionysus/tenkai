@@ -6,6 +6,7 @@ import fs from 'fs'
 import Emu from './emu.mjs'
 import Mem from './mem.mjs'
 import Demo from '../formats/dem.mjs'
+import Lockstep, { locate } from './lockstep.mjs'
 
 // -playback is in BLOOD.EXE's switches but plays nothing given a file here; attract mode plays the demos in turn
 // after the title, so the trace waits for the player of one of their maps to appear
@@ -43,6 +44,10 @@ console.log('found the player of', file, 'after', (Date.now() - t0) / 1000, 's')
 const C = [-934408, -934404]
 // Blood's random number state (Watcom's rand(): seed = seed * 1103515245 + 12345), found by rng search
 const RNG = -2146176
+// Each dude's AI state: its xsprite (56 bytes each in memory) holds a pointer to its AISTATE (tools/aistates.mjs
+// lists them), found by fidelity's search at the data object's 0x52d08 + 56 * the xsprite's index; the data object's
+// start is the seed's place less its offset there, 0x1cb18
+const XSTATE = RNG - 0x1cb18 + 0x52d08
 // Blood's velocity arrays (int xvel[4096], yvel[4096], zvel[4096]), found by fidelity/findvel.mjs, from the
 // sprite array's start
 const VEL = -1736580
@@ -60,10 +65,14 @@ if (arrays.sprites !== null) for (let i = 0; i < 4096; i++) if (mem.i16(arrays.s
 console.log('dudes (with players) at the start', dudesAtStart)
 const watch = (process.env.WATCH || '').split(',').filter(Boolean).map(Number)
 const watchWalls = (process.env.WATCHWALLS || '').split(',').filter(Boolean).map(Number)
+const where = arrays.sprites !== null ? locate(mem, GLOBAL + RNG) : null
+// STEP=1: one sample a frame, each at the frame's start (fidelity/lockstep.mjs)
+const step = process.env.STEP && where ? Lockstep.install(mem, GLOBAL + RNG, 0x200, where) : null
 const samples = []
 const tStart = performance.now()
 await new Promise((resolve) => {
   const h = setInterval(() => {
+    if (step && !step.waiting()) return
     const s = mem.sprite(P)
     const sample = { t: Math.round(performance.now() - tStart), c: C.map((c) => mem.i32(GLOBAL + c)), r: mem.u32(GLOBAL + RNG), x: s.x, y: s.y, z: s.z, ang: s.ang, sect: s.sectnum, pic: s.picnum }
     if (arrays.sprites !== null) {
@@ -83,7 +92,9 @@ await new Promise((resolve) => {
         if (stat >= 1024 || (stat !== 6 && !dudeIndex.has(i) && i < map.sprites.length)) continue
         // (then its velocity, from Blood's xvel, yvel and zvel arrays, and its cstat)
         const v = arrays.sprites + VEL + 4 * i
-        d[i] = [mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i16(o + 28) & 2047, mem.i16(o + 14), stat, mem.i16(o + 38), mem.i32(v), mem.i32(v + 16384), mem.i32(v + 32768), mem.u16(o + 12)]
+        const extra = mem.i16(o + 42)
+        const ai = extra > 0 && stat === 6 && where ? mem.u32(GLOBAL + XSTATE + 56 * extra) - where.dataLin : 0
+        d[i] = [mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i16(o + 28) & 2047, mem.i16(o + 14), stat, mem.i16(o + 38), mem.i32(v), mem.i32(v + 16384), mem.i32(v + 32768), mem.u16(o + 12), ai]
       }
       sample.dudes = d
     }
@@ -100,6 +111,7 @@ await new Promise((resolve) => {
       sample.near = n
     }
     samples.push(sample)
+    if (step) step.release()
     if (performance.now() - tStart > Number(seconds) * 1000) { clearInterval(h); resolve() }
   }, 1)
 })
