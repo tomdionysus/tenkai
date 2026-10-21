@@ -94,7 +94,17 @@ export default class Things {
 
   /** A dead dude's body (Blood's kThingBloodChunks, moved by its thingInfo; it does not die again) */
   body (s) {
-    this.moving.set(s.index, { health: 1 << 30, body: true })
+    const m = { health: 1 << 30, body: true }
+    if (s.deathGib) Object.assign(m, s.deathGib)
+    this.moving.set(s.index, m)
+  }
+
+  /** Blood's DudeToGibCallback1/2: a body made a gib object (gib type data1, sound 319, unlocked), its health 30 */
+  bodyToGib (s, data1) {
+    const g = { body: false, health: (this.info[THING.bloodChunks] || { startHealth: 30 }).startHealth, gibObject: { data1, data2: 0, data3: 0, data4: 319, unlock: this.game.clock } }
+    const m = this.moving.get(s.index)
+    if (m && s.type === THING.bloodChunks) Object.assign(m, g)
+    else s.deathGib = g
   }
 
   /** Blood's actFireThing: a thing of a type thrown from a sprite along its angle at `speed`, with a slope */

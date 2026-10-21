@@ -460,11 +460,15 @@ class Dude {
       if ([201, 202, 230, 239, 240, 245, 246, 247, 248, 249, 250, 252].includes(s.type)) game.sound(s, 717)
     } else if (kind === DAMAGE.burn) { game.sound(s, 351); nSeq = 3 } else if (kind === DAMAGE.spirit) nSeq = s.type === 204 ? 11 : s.type === 203 || s.type === 205 ? 14 : 1
     const lib = this.dudes.library, seqs = this.dudes.seqs, base = info.seqStartID
-    const play = (n) => { if (lib.get(base + n)) seqs.spawn(s, base + n) }
+    // The death sequence's callback (Blood's DudeToGibCallback1, or 2 for a burnt death, BLOOD.EXE 0x38528): at its
+    // trigger frame the body becomes a gib object, unlocked, of the body's own little health (30): a hard landing
+    // breaks it (BLOOD000's body 232 at tick 820)
+    const toGib = (data1) => () => game.things.bodyToGib(s, data1)
+    const play = (n, cb = toGib(8)) => { if (lib.get(base + n)) seqs.spawn(s, base + n, cb) }
     if (!lib.get(base + nSeq)) play(1)
     else if (s.type === 201 || s.type === 202 || s.type === 247 || s.type === 248) {
       game.sound(s, 1018 + R.Random(2))
-      play(nSeq)
+      play(nSeq, nSeq === 3 ? toGib(3) : toGib(8))
     } else if (s.type === 203) {
       game.sound(s, 1107 + R.Random(2))
       const head = (vz) => {
@@ -478,11 +482,12 @@ class Dude {
         game.sound(s, 362)
         x.data1 = 35; x.data2 = 5
         head(-0x111111)
-      } else if (nSeq === 14) play(14)
-      else if (nSeq === 3) play(13)
+      } else if (nSeq === 14) play(14, null)
+      else if (nSeq === 3) play(13, toGib(3))
       else play(nSeq)
     } else {
-      play(nSeq)
+      // (the other types' deaths have no callback in Blood's table: their bodies stay whole)
+      play(nSeq, null)
       if (kind !== DAMAGE.explode) game.sound(s, ({ zombie: 1105, gargoyle: 1405, rat: 2102, bat: 2002, spider: 1803, hand: 1903, eel: 1703 }[KIND_OF[s.type]] || 1018))
     }
     // Blown apart: its gib types' pieces fly (GibSprite), and four spurts of blood
