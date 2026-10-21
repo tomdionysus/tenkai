@@ -103,15 +103,19 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
 
 - [x] F1 Thing physics and explosions matched to the original (BLOOD000 departs at tick 340 where its thrown TNT
       goes off): Blood's MoveThing, the explosion table, actRadiusDamage's knock
-- [ ] F2 The monsters from the original's own AI states and functions (server/game/ai.mjs, the zombies done):
-      cultists, gargoyles and statues, rats, bats, hands, spiders, the bone eel; then aiDamageSprite's per-type part
+- [ ] F2 The monsters from the original's own AI states and functions (server/game/ai.mjs): the zombies and the
+      cultists done (cultThinkChase, Goto, Search, the dodge, their throw, shot and tommy callbacks, RecoilDude's
+      part, aiActivateDude's); gargoyles and statues, rats, bats, hands, spiders, the bone eel to do
 - [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
 - [x] F3b The drift of one draw in six ticks: Blood's CalcGameChecksum (found by logging rand()'s callers)
-- [ ] F3c The draws part: BLOOD000 at tick 569 (a cultist's think, aicult.cpp: F2); BLOOD001 at 196 and BLOOD002
-      at 240 (the other monsters' thinks: the eel, bats, gargoyles, cultists: F2). Done for BLOOD000 to 568 (its
-      positions to 569): an explosion's reach (GetClosestSpriteSectors, CheckProximityWall), locked things let be, a
-      dead dude's status posted to the frame's end (actPostSprite), the gibs broken only on the floor, a landing on
-      a slope (actFloorBounceVector), Build's wall-sprite clipping (its line's ends, x-flip, box test, side blockers)
+- [ ] F3c The draws part: BLOOD000 at tick 647 (an explosion's fixed damage, actor.cpp 0x33a37); BLOOD001 at 245
+      and BLOOD002 at 240 (the other monsters: F2). Done for BLOOD000 to 646 (positions to 699): an explosion's reach
+      (GetClosestSpriteSectors, CheckProximityWall), locked things let be, a dead dude's status and a freed effect
+      posted to the frame's end (actPostSprite, actPostProcess's evKill), gibs broken on the floor, slopes
+      (actFloorBounceVector), Build's wall-sprite and face-sprite clipping (the lines' facing), Build's hitscan width,
+      Blood's VectorScan (see-through pixels, masked walls, links), the vector's effects in their order, sprites
+      taken first in first out (Blood's free list), splashes and explosions on their own sprites; the event queue
+      matches the original's to tick 470 (fidelity/trace.mjs HEAP=1)
 - [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed (`replay.mjs --steps` compares each tick's move).
       Done: the TNT bundle (lit on fire, thrown on letting go, lobbed if let go before the fuse catches, goes off on
       what it hits), Blood's explosion (fixed damage once, the concussion's damage) and actFireThing. Open: a slide

@@ -217,7 +217,7 @@ export default class Game {
 
   /** One frame of the game (Blood's ProcessFrame), with each player's input for it */
   /** Blood's actPostSprite: `f` changes a sprite's status at the frame's end, so the frame's lists keep it */
-  postSprite (f) { this.posted.push(f) }
+  postSprite (f) { (this.posted ||= []).push(f) }
 
   tick () {
     if (!this.posted) this.posted = []

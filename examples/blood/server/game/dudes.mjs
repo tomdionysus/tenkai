@@ -443,6 +443,8 @@ class Dude {
     const id = this.dudes.library.get(this.info.seqStartID + seq) ? this.info.seqStartID + seq : this.info.seqStartID + 1
     // (its cstat as the sequence's frames leave it: a body still blocks, as Blood's, and a gib can ride it)
     this.dudes.seqs.spawn(s, id)
+    // What it carried first (Blood's actKillDude drops before the gibs: the original's sprite order in BLOOD000)
+    if (this.x.dropMsg) this.game.drop(s, this.x.dropMsg)
     // Blown apart (Blood's actKillDude): its gib types' pieces fly (GibSprite), and four spurts of blood
     if (kind === DAMAGE.explode) {
       for (const g of this.info.gibType) if (g >= 0) this.game.fx.gibSprite(s, g)
@@ -451,8 +453,7 @@ class Dude {
     // The body is a thing now, Blood's kThingBloodChunks (426) with that thing's mass and bounce: it keeps what
     // knocked it, flies, falls and lands (actKillDude to kStatThing)
     this.game.sound(s, kind === DAMAGE.explode ? 717 : ({ cultist: 1018, zombie: 1105, gargoyle: 1405, rat: 2102, bat: 2002, spider: 1803, hand: 1903, eel: 1703 }[KIND_OF[s.type]] || 1018))
-    // What it carried, and its own trigger (Blood's actKillDude: trTriggerSprite with off, while still a dude)
-    if (this.x.dropMsg) this.game.drop(s, this.x.dropMsg)
+    // Its own trigger (Blood's actKillDude: trTriggerSprite with off, while still a dude)
     this.game.triggers.triggerSprite(s.index, CMD.off)
     this.dudeType = s.type
     s.type = 426

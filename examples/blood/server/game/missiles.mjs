@@ -68,7 +68,13 @@ export default class Missiles {
       }
       this.fly(m)
     }
-    for (const f of this.fx.slice()) if (--f.life <= 0) { this.level.remove(f.sprite); this.fx.splice(this.fx.indexOf(f), 1) }
+    for (const f of this.fx.slice()) {
+      if (--f.life > 0) continue
+      this.fx.splice(this.fx.indexOf(f), 1)
+      // a sprite of its own sequence's (Blood's kSeqRemove at its end: its events killed, then it goes)
+      if (f.own) { this.game.triggers.kill(f.sprite.index, 3); if (this.game.things) this.game.things.moving.delete(f.sprite.index); this.game.seqs.kill(f.sprite) }
+      this.level.remove(f.sprite)
+    }
   }
 
   fly (m) {
@@ -142,6 +148,17 @@ export default class Missiles {
   }
 
   /** A short-lived effect where a sprite is (a puff, blood, an explosion), as a sprite with its sequence */
+  /**
+   * A sequence played on a sprite there already (Blood's seqSpawn on it: a drip's splash, an explosion on what blew
+   * up), the sprite gone at its end (the sequence's remove flag), as Blood's: no new sprite taken
+   */
+  play (s, seq) {
+    const inst = this.game.seqs.spawn(s, seq)
+    if (this.fx.some((f) => f.sprite === s)) return
+    const life = inst ? Math.ceil(inst.seq.frames.length * inst.seq.ticksPerFrame / 4) + 1 : 10
+    this.fx.push({ sprite: s, life, own: true })
+  }
+
   effect (at, seq, z = at.z) {
     const level = this.level
     if (at.sectnum < 0) return

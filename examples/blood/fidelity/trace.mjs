@@ -82,6 +82,20 @@ await new Promise((resolve) => {
     }
     if (arrays.sectors !== null) for (const w of watch) sample['s' + w] = mem.sector(arrays.sectors, w)
     if (arrays.walls !== null) for (const w of watchWalls) sample['w' + w] = mem.wall(arrays.walls, w)
+    // PEEK=f3956,f3934: bytes of the data object at those offsets (d:, as tools/disasm.mjs names them)
+    if (process.env.PEEK) sample.peek = process.env.PEEK.split(',').map((h) => mem.u8(GLOBAL + RNG - 0x1cb18 + parseInt(h, 16)))
+    // HEAP=1: Blood's event queue (d:0x11194c: time and event pairs, the count at +0x2008), as [time, index, type, cmd]
+    if (process.env.HEAP) {
+      const q = GLOBAL + RNG - 0x1cb18 + 0x11194c, n = mem.i32(q + 0x2008), h = []
+      for (let i = 1; i <= n && i < 0x400; i++) { const d = mem.u32(q + i * 8 + 4); h.push([mem.i32(q + i * 8), d & 0x1fff, (d >> 13) & 7, (d >> 16) & 0xff]) }
+      sample.heap = h
+    }
+    // SPRITES=540-600: every sprite in that index range: [index, status, type, tile, x, y]
+    if (process.env.SPRITES && arrays.sprites !== null) {
+      const [lo, hi] = process.env.SPRITES.split('-').map(Number), out = []
+      for (let i = lo; i <= hi; i++) { const o = arrays.sprites + i * 44; out.push([i, mem.i16(o + 26), mem.i16(o + 38), mem.i16(o + 14), mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i32(arrays.sprites + VEL + 4 * i + 32768)]) }
+      sample.sprites = out
+    }
     // WATCHSPRITES=194,228: those sprites' place, status, tile and cstat, then xsprite and velocity
     // (and its xsprite's health, the low 12 bits at 0x1c, and its first word, where the state bit is)
     if (arrays.sprites !== null) for (const i of watchSprites) {

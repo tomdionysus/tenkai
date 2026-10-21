@@ -18,7 +18,8 @@ export class Resources {
     this.blood = RFF.load(path.join(dir, 'BLOOD.RFF'))
     const art = new Art(fs.readFileSync(path.join(dir, 'SHARE000.ART')))
     this.tiles = {}
-    for (const t of art.tiles) this.tiles[t.number] = { w: t.width, h: t.height, xo: t.xoffset, yo: t.yoffset, view: t.view, frames: t.frames, anim: t.animType, speed: t.speed }
+    // (with its pixels, column by column: Blood's VectorScan lets a shot through a see-through pixel)
+    for (const t of art.tiles) this.tiles[t.number] = { w: t.width, h: t.height, xo: t.xoffset, yo: t.yoffset, view: t.view, frames: t.frames, anim: t.animType, speed: t.speed, pixels: t.pixels }
     this.surface = fs.readFileSync(path.join(dir, 'SURFACE.DAT'))
     this.trig = new Trig(this.blood.read('COSINE.DAT'), fs.readFileSync(path.join(dir, 'TABLES.DAT')))
     this.ini = parseIni(fs.readFileSync(path.join(dir, 'BLOOD.INI'), 'latin1'))
@@ -104,13 +105,26 @@ export default class Level {
   /** A new sprite in a sector, of a status, returned (Blood's actSpawnSprite, without the extra) */
   spawn (sectnum, x, y, z, statnum, fields = {}) {
     const s = Object.assign({ x, y, z, cstat: 0, picnum: 0, shade: 0, pal: 0, clipdist: 0, filler: 0, xrepeat: 64, yrepeat: 64, xoffset: 0, yoffset: 0, sectnum, statnum, ang: 0, owner: -1, xvel: 0, yvel: 0, zvel: 0, lotag: 0, hitag: 0, extra: -1, type: 0, flags: 0 }, fields)
-    let i = this.sprites.findIndex((p) => p.statnum === 1024)
-    if (i < 0) { i = this.sprites.length; this.sprites.push(s) } else this.sprites[i] = s
+    // Blood's free list is first in, first out: the never-used sprites in order (after the map's), then the freed
+    // ones in the order they were freed; so a new sprite takes the next index (as the original's 799, 800, ... in
+    // BLOOD000), and an index freed is not taken again soon (its stale events, Blood's, keep to it)
+    if (this.nextFree === undefined) { this.nextFree = this.sprites.length; this.freed = [] }
+    let i
+    if (this.nextFree < 4096) i = this.nextFree++
+    else if (this.freed.length) i = this.freed.shift()
+    else i = this.sprites.length
+    this.sprites[i] = s
     s.index = i
     this.touched()
     return s
   }
 
-  /** Frees a sprite (Blood's actPostSprite to kStatFree) */
-  remove (s) { s.statnum = 1024; s.sectnum = -1; this.touched() }
+  /** Frees a sprite (Blood's actPostSprite to kStatFree): to the free list's end */
+  remove (s) {
+    if (s.statnum !== 1024) {
+      if (this.nextFree === undefined) { this.nextFree = this.sprites.length; this.freed = [] }
+      if (this.sprites[s.index] === s) this.freed.push(s.index)
+    }
+    s.statnum = 1024; s.sectnum = -1; this.touched()
+  }
 }

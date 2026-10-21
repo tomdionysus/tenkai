@@ -191,16 +191,30 @@ export default class Things {
       if ((hit & 0xc000) === 0x4000 && m.gibObject && this.game.clock >= m.gibObject.unlock) { this.activateGibObject(s, m.gibObject); continue }
       // Blood's Impact: whatever it hits (floor, ceiling, wall, a sprite other than its thrower) sets it off
       if (hit && m.impact && ((hit & 0xc000) !== 0xc000 || (hit & 0x3fff) !== m.owner)) { this.explode(s, EXPLOSION.tnt, this.level.sprites[m.owner]); continue }
-      if (hit && (s.type === THING.dripWater || s.type === THING.dripBlood) && (hit & 0xc000) === 0x4000) {
-        this.game.missiles.effect(s, 6)
-        this.remove(s)
-      }
+      // Blood's MakeSplash: a drip that hits anything splashes where it is (its own sprite plays the splash)
+      if (hit && (s.type === THING.dripWater || s.type === THING.dripBlood) && !m.splashed) this.makeSplash(s, m)
     }
+  }
+
+  /** Blood's MakeSplash: no more falling, up 4 << 8, and the splash by the surface below (water's own) and its sound */
+  makeSplash (s, m) {
+    m.splashed = true
+    s.flags &= ~2
+    s.z -= 4 << 8
+    const level = this.level, h = m.floorHit || 0, surfType = this.game.res.surfType
+    const pic = (h & 0xc000) === 0x4000 ? level.sectors[h & 0x3fff].floorpicnum : (h & 0xc000) === 0xc000 && level.sprites[h & 0x3fff] ? level.sprites[h & 0x3fff].picnum : -1
+    const surf = pic >= 0 && surfType ? surfType[pic] : 0
+    let seq = 7, sound = 354
+    if (s.type === THING.dripBlood) seq = 8
+    else if (surf === 5) { seq = 6; sound = 356 }
+    this.game.missiles.play(s, seq)
+    this.game.sound(s, sound)
   }
 
   /** Blood's MoveThing; returns what it hit (a sector's floor 0x4000, a wall 0x8000, a sprite 0xc000) */
   move (s) {
     const level = this.level, engine = level.engine, info = this.info[s.type] || this.bodies.get(s.index) || { elastic: 0, dmgResist: 0 }
+    const m0 = this.moving.get(s.index) || {}
     let { top, bottom } = level.extents(s)
     let hit = 0
     if (s.xvel || s.yvel) {
@@ -224,6 +238,7 @@ export default class Things {
     if ((s.flags & 2) && bottom < zr.florz) { s.z += 455; s.zvel += 58254 }
     if (checkLink(level, s)) zr = getZRange(level, s, s.clipdist << 2, 0)
     ;({ top, bottom } = level.extents(s))
+    m0.floorHit = bottom >= zr.florz ? zr.florhit : 0
     if (bottom >= zr.florz) {
       s.z += zr.florz - bottom
       const v = s.zvel - level.velFloor[s.sectnum]
@@ -281,12 +296,23 @@ export default class Things {
     const owner = source || s
     const x = s.x, y = s.y, z = s.z, sectnum = s.sectnum
     const m = this.moving.get(s.index)
-    // On the floor the explosion's sequence is 3, in the air 4; sparks (GIBTYPE_5) or, from a barrel, its staves
-    game.missiles.effect({ x, y, z, sectnum }, o.seq || (m && m.florhit ? 3 : 4))
+    // Blood's actExplodeSprite: its events go first (evKill: a lit bundle's smoke, BLOOD000 at tick 300)
+    game.triggers.kill(s.index, SPRITE)
+    // On the floor the explosion's sequence is 3, in the air 4; sparks (GIBTYPE_5) or, from a barrel, its staves.
+    // The sprite that blew up is the explosion (Blood's: it goes to the explosions, at the explosion's size, and
+    // plays its sequence to its end): no new sprite
+    // (in Blood's order, BLOOD.EXE 0x31933: the sequence first, so the sparks rise from its first frame's tile, then
+    // the sound and the sparks; then still, an explosion, at its size)
+    this.moving.delete(s.index)
+    game.seqs.kill(s)
+    game.missiles.play(s, o.seq || (m && m.florhit ? 3 : 4))
     game.sound({ x, y, z, sectnum, index: -1 }, o.sound || (kind === EXPLOSION.small ? 303 : kind === EXPLOSION.large ? 305 : 304))
     if (o.gib !== false) game.fx.gibSprite(s, s.type === THING.tntBarrel ? 14 : 5)
-    if (s.statnum === STAT.thing) this.remove(s)
-    else { this.game.seqs.kill(s); this.level.remove(s) }
+    s.xvel = s.yvel = s.zvel = 0
+    s.statnum = STAT.explosion
+    s.xrepeat = s.yrepeat = e.repeat || 64
+    s.flags &= ~3
+    this.level.touched()
     this.explosions.push({ x, y, z, sectnum, e, owner, time: e.ticks, frame: game.frame })
     if (e.quake) game.shakeNear({ x, y }, e.quake << 4)
   }

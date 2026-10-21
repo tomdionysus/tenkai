@@ -57,14 +57,17 @@ export default class Effects {
     return s
   }
 
-  /** Blood's CFX::remove (with its events and sequence) */
+  /**
+   * Blood's CFX::fxFree: the effect's sequence goes now, the effect posted free (actPostSprite): at the frame's end
+   * its events are killed and it goes (actPostProcess), after what the frame posted (BLOOD000's queue at tick 324)
+   */
   remove (s) {
-    if (s.statnum !== STAT.fx) return
+    if (s.statnum !== STAT.fx || (s.flags & 32)) return
     const i = this.list.indexOf(s)
     if (i >= 0) this.list.splice(i, 1)
     this.game.seqs.kill(s)
-    this.game.triggers.kill(s.index, SPRITE)
-    this.level.remove(s)
+    s.flags |= 32
+    this.game.postSprite(() => { this.game.triggers.kill(s.index, SPRITE); this.level.remove(s) })
   }
 
   /** Blood's CFX::fxProcess, each frame: drag, the move, the sector, the floor and ceiling, gravity */

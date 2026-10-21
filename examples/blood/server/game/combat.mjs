@@ -72,6 +72,101 @@ export default class Combat {
     return -1
   }
 
+  /**
+   * Blood's VectorScan (BLOOD.EXE 0x2231c): a hitscan from the shooter (offset sideways and in z), the shooter let
+   * through, that goes on through what it should not stop at: a face sprite where its tile's pixel is see-through,
+   * a masked wall the same, a floor or ceiling with a link to the sector beyond (up to 256 times). Returns { kind,
+   * hit }: kind 3 a sprite, 0 a wall, 4 a masked wall, 1 a ceiling, 2 a floor (or a sky past a wall), -1 nothing
+   * (or past `range`)
+   */
+  vectorScan (s, offset, zOffset, dx, dy, dz, range, ac) {
+    const level = this.level, engine = level.engine, trig = level.trig, tiles = this.game.res.tiles
+    let x1 = s.x + mulscale(offset, trig.Cos((s.ang + 512) & 2047), 30)
+    let y1 = s.y + mulscale(offset, trig.Sin((s.ang + 512) & 2047), 30)
+    let z1 = s.z + zOffset
+    const through = (obj, mask, sectnum, extra) => {
+      const c = obj.cstat
+      obj.cstat &= ~mask
+      const c2 = extra ? extra.cstat : 0
+      if (extra) extra.cstat &= ~mask
+      const h = engine.hitscan(x1, y1, z1, sectnum, dx, dy, dz << 4, CLIPMASK1)
+      obj.cstat = c
+      if (extra) extra.cstat = c2
+      return h
+    }
+    let hit = through(s, 256, s.sectnum)
+    const pow2 = (n) => { let j = 15; while (j > 1 && (1 << j) > n) j--; return (1 << j) === n ? j : -1 }
+    for (let n = 255; n >= 0; n--) {
+      if (range && approxDist(hit.x - s.x, hit.y - s.y) > range) return { kind: -1, hit }
+      if (hit.sprite >= 0) {
+        const o = level.sprites[hit.sprite]
+        if ((o.flags & 8) && !(ac & 1)) return { kind: 3, hit }
+        if (o.cstat & 0x30) return { kind: 3, hit }
+        const t = tiles[o.picnum]
+        if (!t || !t.w || !t.h) return { kind: 3, hit }
+        const height = (t.h * o.yrepeat) << 2
+        let oz = o.z
+        if (o.cstat & 0x80) oz += Math.trunc(height / 2)
+        if (t.yo) oz -= (t.yo * o.yrepeat) << 2
+        let h2 = Math.trunc((oz - hit.z) * t.h / height)
+        if (!(o.cstat & 8)) h2 = t.h - h2
+        if (h2 >= 0 && h2 < t.h) {
+          const width = Math.trunc((((t.w * o.xrepeat) >> 2) * 3) / 4)
+          const check1 = Math.trunc(((Math.imul(y1 - o.y, dx) - Math.imul(x1 - o.x, dy)) | 0) / ksqrt((dx * dx + dy * dy) | 0))
+          const w2 = Math.trunc(check1 * t.w / width) + t.xo + Math.trunc(t.w / 2)
+          if (w2 >= 0 && w2 < t.w && t.pixels && t.pixels[w2 * t.h + h2] !== 255) return { kind: 3, hit }
+        }
+        // a see-through pixel: on from where it hit, in that sprite's sector
+        x1 = hit.x; y1 = hit.y; z1 = hit.z
+        hit = through(o, 256, o.sectnum)
+        continue
+      }
+      if (hit.wall >= 0) {
+        const w = level.walls[hit.wall]
+        if (w.nextsector < 0) return { kind: 0, hit }
+        const cz = engine.getceilzofslope(w.nextsector, hit.x, hit.y), fz = engine.getflorzofslope(w.nextsector, hit.x, hit.y)
+        if (hit.z <= cz) return { kind: 0, hit }
+        if (hit.z >= fz) {
+          const here = level.sectors[hit.sect], next = level.sectors[w.nextsector]
+          return { kind: (here.floorstat & 1) && (next.floorstat & 1) ? 2 : 0, hit }
+        }
+        if (!(w.cstat & 0x30)) return { kind: 0, hit }
+        // a masked wall: the pixel of its overpicnum where the shot meets it (BLOOD.EXE 0x22908)
+        const here = level.sectors[hit.sect], next = level.sectors[w.nextsector]
+        const base = w.cstat & 4 ? Math.min(here.floorz, next.floorz) : Math.max(here.ceilingz, next.ceilingz)
+        let v = (hit.z - base) >> 8
+        if (w.cstat & 0x100) v = -v
+        const t = tiles[w.overpicnum]
+        if (!t || !t.w || !t.h) return { kind: 0, hit }
+        const xp = pow2(t.w), yp = pow2(t.h)
+        v = Math.trunc((v * w.yrepeat) / 8) + Math.trunc((w.ypanning * t.h) / 256)
+        const w2 = level.walls[w.point2]
+        const len = approxDist(w.x - w2.x, w.y - w2.y)
+        const d = w.cstat & 8 ? approxDist(hit.x - w2.x, hit.y - w2.y) : approxDist(hit.x - w.x, hit.y - w.y)
+        let u = Math.trunc((w.xrepeat * d * 8) / len) + w.xpanning
+        u = xp >= 0 ? u & (t.w - 1) : u % t.w
+        v = yp >= 0 ? v & (t.h - 1) : v % t.h
+        const idx = yp >= 0 ? (u << yp) + v : v + t.h * u
+        if (!t.pixels || t.pixels[idx] !== 255) return { kind: 4, hit }
+        x1 = hit.x; y1 = hit.y; z1 = hit.z
+        hit = through(w, 64, w.nextsector, w.nextwall >= 0 ? level.walls[w.nextwall] : null)
+        continue
+      }
+      if (hit.sect >= 0) {
+        // a floor (going down) or a ceiling, unless a link goes on to the sector beyond
+        const link = dz > 0 ? (level.lowerLink ? level.lowerLink[hit.sect] : -1) : (level.upperLink ? level.upperLink[hit.sect] : -1)
+        if (link < 0) return { kind: dz > 0 ? 2 : 1, hit }
+        const a = level.sprites[link], b = level.sprites[a.owner & 0xfff]
+        if (!b) return { kind: dz > 0 ? 2 : 1, hit }
+        x1 = hit.x + b.x - a.x; y1 = hit.y + b.y - a.y; z1 = hit.z + b.z - a.z
+        hit = engine.hitscan(x1, y1, z1, b.sectnum, dx, dy, dz << 4, CLIPMASK1)
+        continue
+      }
+      return { kind: -1, hit }
+    }
+    return { kind: -1, hit }
+  }
+
   /** Blood's actCanSplatWall: a wall that can take a splat (not a moving or special one, nor into a special sector) */
   canSplatWall (nWall) {
     const level = this.level, w = level.walls[nWall]
@@ -101,11 +196,7 @@ export default class Combat {
     const sx = shooter.x + mulscale(offset, trig.Cos((shooter.ang + 512) & 2047), 30)
     const sy = shooter.y + mulscale(offset, trig.Sin((shooter.ang + 512) & 2047), 30)
     const sz = shooter.z + zOffset
-    const cstat = shooter.cstat
-    shooter.cstat &= ~256
-    const hit = engine.hitscan(sx, sy, sz, shooter.sectnum, dx, dy, dz << 4, CLIPMASK1)
-    shooter.cstat = cstat
-    const kind = this.hitType(hit, sz)
+    const { kind, hit } = this.vectorScan(shooter, offset, zOffset, dx, dy, dz, v.maxDist, 1)
     // A player with the reflective shots: the shot comes back at the shooter
     if (kind === 3) {
       const p = game.playerOf(level.sprites[hit.sprite])
@@ -124,9 +215,10 @@ export default class Combat {
         case 0: {
           surf = surfType[level.walls[hit.wall].picnum]
           if (this.canSplatWall(hit.wall)) {
-            const fx2 = (v.surfaces[surf] || { fx: [-1, -1, -1] }).fx[1]
-            if (fx2 >= 0) {
-              const f = game.fx.spawn(fx2, sect, x, y, z, 0)
+            // (the surface's first effect: a wall's mark, BLOOD.EXE 0x37a93; its others are the hit's, below)
+            const fxw = (v.surfaces[surf] || { fx: [-1, -1, -1] }).fx[0]
+            if (fxw >= 0) {
+              const f = game.fx.spawn(fxw, sect, x, y, z, 0)
               if (f) { f.ang = (this.wallAngle(hit.wall) + 512) & 2047; f.cstat |= 16 }
             }
           }
@@ -178,9 +270,12 @@ export default class Combat {
         }
       }
     }
+    // The hit's effects, the surface's second and third (BLOOD.EXE 0x37883: a sprite hit in BLOOD000 at tick 569
+    // leaves the stone's 5), and its sound
     const sh = v.surfaces[surf] || { fx: [-1, -1, -1], sound: -1 }
-    if (sh.fx[0] >= 0) game.fx.spawn(sh.fx[0], sect, x, y, z, 0)
-    if (sh.sound > 0) game.sound({ x, y, z, sectnum: sect, index: -1 }, sh.sound)
+    if (sh.fx[1] >= 0) game.fx.spawn(sh.fx[1], sect, x, y, z, 0)
+    if (sh.fx[2] >= 0) game.fx.spawn(sh.fx[2], sect, x, y, z, 0)
+    if (sh.sound >= 0) game.sound({ x, y, z, sectnum: sect, index: -1 }, sh.sound)
     return out
   }
 

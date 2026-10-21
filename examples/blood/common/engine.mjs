@@ -238,11 +238,12 @@ export class Engine {
               let daz = spr.cstat & 128 ? spr.z + (k >> 1) : spr.z
               if (t.yo) daz -= (t.yo * spr.yrepeat) << 2
               if (pos.z < daz + ceildist && pos.z > daz - k - flordist) {
-                const bsz = spr.clipdist << 2
-                const r = bsz + walldist
-                const dx = gx < 0 ? -r : r, dy = gy < 0 ? -r : r
-                addclipline(x1 - dx, y1 - r, x1 - dx, y1 + r, j + 49152)
-                addclipline(x1 - r, y1 - dy, x1 + r, y1 - dy, j + 49152)
+                // (Build's: each line faces the mover, its ends by the same signed size, so raytrace sees its front)
+                const r = (spr.clipdist << 2) + walldist
+                let bsz = gx < 0 ? -r : r
+                addclipline(x1 - bsz, y1 - bsz, x1 - bsz, y1 + bsz, j + 49152)
+                bsz = gy < 0 ? -r : r
+                addclipline(x1 + bsz, y1 - bsz, x1 - bsz, y1 - bsz, j + 49152)
               }
             }
           } else if (kind === 16) {
@@ -720,8 +721,9 @@ export class Engine {
             const topu = vx * (y1 - y) - vy * (x1 - x)
             const offx = scale(vx, topu, bot), offy = scale(vy, topu, bot)
             const dist = offx * offx + offy * offy
-            const w = (t.w * spr.xrepeat) >> 2
-            if (dist > (w * w) >> 2) continue
+            // (Build's: the square of tilesizx * xrepeat, in 32 bits, >> 7)
+            const w = t.w * spr.xrepeat
+            if (dist > (Math.imul(w, w) >> 7)) continue
             const intx = x + scale(vx, topt, bot), inty = y + scale(vy, topt, bot)
             if (Math.abs(intx - x) + Math.abs(inty - y) > Math.abs(hit.x - x) + Math.abs(hit.y - y)) continue
             Object.assign(hit, { sect: dasector, wall: -1, sprite: z1, x: intx, y: inty, z: intz })
