@@ -193,6 +193,15 @@ export default class Things {
       const s = this.level.sprites[index]
       if (!s || s.statnum !== STAT.thing) { this.moving.delete(index); continue }
       if (m.fuse !== undefined && --m.fuse <= 0) { this.explode(s, this.kindOf(s), this.level.sprites[m.owner]); continue }
+      // Blood's thing loop (BLOOD.EXE 0x32b30): on a panning floor a thing takes its type's move and fall flags; one
+      // with neither is never moved, pushed or not (the map's gib objects, 466 in BLOOD000 at tick 1123)
+      const xs = this.level.xs(s.sectnum)
+      if (xs && xs.panVel && (xs.panAlways || xs.state || xs.busy)) {
+        const info = this.info[s.type]
+        if (info && (info.flags & 1)) s.flags |= 1
+        if (info && (info.flags & 2)) s.flags |= 4
+      }
+      if (!(s.flags & 3)) continue
       if (!(s.xvel || s.yvel || s.zvel || (s.flags & 4) || (s.flags & 2))) continue
       // Blood's actAirDrag on a moving thing, as on a dude (the thrown TNT slows so in BLOOD000)
       airDrag(this.level, s, 128)
