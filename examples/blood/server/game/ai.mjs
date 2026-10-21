@@ -31,7 +31,11 @@ export const FN = {
   // --- the cultists (aicult.cpp) ---
   0x670e8: (d) => d.cultThinkChase(), // cultThinkChase
   0x66f80: (d) => d.cultThinkGoto(), // cultThinkGoto
-  0x66f5c: (d) => { d.aiChooseDirection(d.goalAng); d.aiLookForTarget() } // cultThinkSearch
+  0x66f5c: (d) => { d.aiChooseDirection(d.goalAng); d.aiLookForTarget() }, // cultThinkSearch
+  // --- the rat (airat.cpp) ---
+  0x6f4ac: (d) => { d.aiChooseDirection(d.goalAng); d.aiThinkTarget() }, // ratThinkSearch
+  0x6f4d0: (d) => d.ratThinkGoto(),
+  0x6f5b4: (d) => d.ratThinkChase()
 }
 
 /** The zombie's states by name (offsets of BLOOD.EXE's AISTATEs, tools/aistates.mjs) */
@@ -51,8 +55,11 @@ export const CULTIST = {
   tsSwimFire: 0x19bb8, swimRecoil: 0x19bd4
 }
 
+/** The rat's states */
+export const RAT = { idle: 0x1a67c, search: 0x1a698, chase: 0x1a6b4, dodge: 0x1a6d0, recoil: 0x1a6ec, goto: 0x1a708, bite: 0x1a724 }
+
 /** Every state's name, for the dude's stateName */
-const NAMES = new Map([...Object.entries(ZOMBIE), ...Object.entries(CULTIST)].map(([k, v]) => [v, k]))
+const NAMES = new Map([...Object.entries(ZOMBIE), ...Object.entries(CULTIST), ...Object.entries(RAT)].map(([k, v]) => [v, k]))
 
 /** The sequence callbacks of states (Blood registers them at start; matched here by the state that plays them) */
 export const CALLBACK = {
@@ -61,11 +68,12 @@ export const CALLBACK = {
   // the cultists' (Blood's nThrowClient, nShotClient, nTommyClient)
   [CULTIST.tThrow]: (d) => d.cultThrow(), [CULTIST.sThrow]: (d) => d.cultThrow(), [CULTIST.dThrow]: (d) => d.cultThrow(),
   [CULTIST.sFire]: (d) => d.cultShot(), [CULTIST.sProneFire]: (d) => d.cultShot(), [CULTIST.sSwimFire]: (d) => d.cultShot(),
-  [CULTIST.tFire]: (d) => d.cultTommy(), [CULTIST.tProneFire]: (d) => d.cultTommy(), [CULTIST.tSwimFire]: (d) => d.cultTommy()
+  [CULTIST.tFire]: (d) => d.cultTommy(), [CULTIST.tProneFire]: (d) => d.cultTommy(), [CULTIST.tSwimFire]: (d) => d.cultTommy(),
+  [RAT.bite]: (d) => d.ratBite()
 }
 
 /** Each type's first state (Blood's aiInitSprite) */
-export const START = { 201: CULTIST.idle, 202: CULTIST.idle, 203: ZOMBIE.idle, 205: ZOMBIE.buried, 244: ZOMBIE.laying }
+export const START = { 201: CULTIST.idle, 202: CULTIST.idle, 203: ZOMBIE.idle, 205: ZOMBIE.buried, 220: RAT.idle, 244: ZOMBIE.laying }
 
 /** Mixed into a dude whose type runs by the exe's states */
 export const BloodAI = {
@@ -124,6 +132,7 @@ export const BloodAI = {
     const v = this.game.random.Chance(0x8000)
     if (this.sprite.statnum !== 6) return
     if (this.sprite.type === 201 || this.sprite.type === 202) { this.cultRecoil(v); return }
+    if (this.sprite.type === 220) { this.game.sound(this.sprite, 2102); this.aiNewState(RAT.recoil); this.teslaRecoil = false; return }
     const third = Math.trunc(this.info.startHealth / 3)
     this.game.sound(this.sprite, 1106)
     if (this.teslaRecoil && this.data3 > third) this.aiNewState(ZOMBIE.teslaRecoil)
@@ -169,6 +178,10 @@ export const BloodAI = {
         else if (medium <= 2) this.aiNewState(CULTIST.swimChase)
         return
       }
+      case 220:
+        if (this.target === -1) this.aiNewState(RAT.search)
+        else { this.game.sound(s, 2100); this.aiNewState(RAT.chase) }
+        return
       case 205: if (this.aiState === ZOMBIE.buried) this.aiNewState(ZOMBIE.rise); return
       case 244: if (this.aiState === ZOMBIE.laying) this.aiNewState(0x1ab04); return
     }
@@ -521,5 +534,49 @@ export const BloodAI = {
     const thing = game.things.fire(s, type, 0, Math.trunc(dz / 128) - 14500, Math.trunc((v << 23) / 120), impact ? { impact: true } : {})
     // (else Blood's evPost of an "on" to it, one or two seconds on: it goes off when the queue gets there)
     if (!impact) game.things.fuseEvent(thing, 120 * (1 + R.Random(2)))
+  }
+  ,
+
+  /** ratThinkGoto (0x6f4d0): toward the place; near (512) and facing it, search; and look */
+  ratThinkGoto () {
+    const s = this.sprite
+    const dx = this.tx - s.x, dy = this.ty - s.y
+    const ang = getangle(this, dx, dy)
+    const dist = approxDist(dx, dy)
+    this.aiChooseDirection(ang)
+    if (dist < 512 && Math.abs(s.ang - ang) < this.info.periphery) this.aiNewState(RAT.search)
+    this.aiThinkTarget()
+  },
+
+  /** ratThinkChase (0x6f5b4): after its target; dead or cloaked, search; in sight and view: a bite when close */
+  ratThinkChase () {
+    const s = this.sprite, info = this.info, engine = this.level.engine, game = this.game
+    if (this.target === -1) { this.aiNewState(RAT.goto); return }
+    const t = this.level.sprites[this.target]
+    const dx = t.x - s.x, dy = t.y - s.y
+    this.aiChooseDirection(getangle(this, dx, dy))
+    const tp = game.playerOf(t), tx = this.level.x(t)
+    const health = tp ? tp.health : tx ? tx.health : 0
+    if (!(health > 0)) { this.aiNewState(RAT.search); return }
+    if (tp && tp.powerups && tp.powerups[13] > 0) { this.aiNewState(RAT.search); return }
+    const dist = approxDist(dx, dy)
+    if (dist <= info.seeDist) {
+      const delta = ((getangle(this, dx, dy) + 1024 - s.ang) & 2047) - 1024
+      const eye = s.z - ((info.eyeHeight * s.yrepeat) << 2)
+      if (engine.cansee(t.x, t.y, t.z, t.sectnum, s.x, s.y, eye, s.sectnum) && dist < info.seeDist && Math.abs(delta) <= info.periphery) {
+        this.aiSetTargetSprite(this.target)
+        if (dist < 0x399 && Math.abs(delta) < 85) this.aiNewState(RAT.bite)
+        return
+      }
+    }
+    this.aiNewState(RAT.goto)
+    this.target = -1
+  },
+
+  /** RatBiteSeqCallback: a bite (vector 16) at a player it hunts, along its facing */
+  ratBite () {
+    const s = this.sprite, trig = this.level.trig, t = this.level.sprites[this.target]
+    if (!t || !this.game.playerOf(t)) return
+    this.game.combat.fireVector(s, 0, 0, trig.Cos(s.ang) >> 16, trig.Sin(s.ang) >> 16, t.z - s.z, 16)
   }
 }
