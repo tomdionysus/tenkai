@@ -4,12 +4,12 @@
 // original makes it, in its order (fidelity/randlog.mjs logs the original's), so the two stay in step.
 import { mulscale } from '../../common/engine.mjs'
 import { STAT, CMD, SPRITE } from './triggers.mjs'
-import { airDrag, getZRange } from './physics.mjs'
+import { airDrag, getZRange, floorBounce } from './physics.mjs'
 
 /** gFXData's effects by what they are (Blood's FX_ numbers) */
 export const FX = { puff: 7, bloodChunk: 13, fireSpark: 14, blood: 27, bloodSplat: 36, bloodDrop: 48 }
 /** Blood's CALLBACK_IDs that effects use */
-export const CALLBACK = { remove: 1, bloodSpurt: 6, dynPuff: 8, bloodBits: 14 }
+export const CALLBACK = { remove: 1, bloodSpurt: 6, dynPuff: 8, bloodBits: 14, sleeve: 16 }
 
 /** Blood's FindSector: the sector holding a point, its own first, then its neighbours, then any */
 export function findSector (level, x, y, z, sectnum) {
@@ -128,7 +128,36 @@ export default class Effects {
   /** An effect reaching the floor: its callback, or gone */
   floor (s, d) {
     if (d.callback === CALLBACK.bloodBits) this.bloodBits(s)
+    else if (d.callback === CALLBACK.sleeve) this.bouncingSleeve(s)
     else this.remove(s)
+  }
+
+  /**
+   * Blood's fxBouncingSleeve (BLOOD.EXE 0x74e58): a spent shell or casing at the floor is put on it and bounces
+   * (0x9000 of its fall kept) with a clink (the tommy gun's brass a draw more first), till it is too slow and lies
+   * still (sleeveStopBouncing: effect 51, the lying tile, at a tenth of its size)
+   */
+  bouncingSleeve (s) {
+    const level = this.level, R = this.random, game = this.game
+    const zr = getZRange(level, s, s.clipdist)
+    const { bottom } = level.extents(s)
+    s.z += zr.florz - bottom
+    const vf = level.velFloor ? level.velFloor[s.sectnum] || 0 : 0
+    const v = { x: s.xvel, y: s.yvel, z: s.zvel - vf }
+    if (v.z <= 0) { if (s.zvel === 0) this.sleeveStop(s); return }
+    floorBounce(level, v, s.sectnum, 0x9000)
+    s.xvel = v.x; s.yvel = v.y; s.zvel = v.z
+    if (vf === 0 && Math.abs(s.zvel) < 0x20000) { this.sleeveStop(s); return }
+    if (s.type >= 37 && s.type <= 39) { R.Random(3); game.sound(s, 608 + R.Random(2)) } else game.sound(s, [610, 612][R.Random(2)])
+  }
+
+  sleeveStop (s) {
+    s.xvel = s.yvel = s.zvel = 0
+    this.game.seqs.kill(s)
+    if (s.type >= 37 && s.type <= 39) s.picnum = 2465
+    else if (s.type >= 40 && s.type <= 42) s.picnum = 2464
+    s.type = 51
+    s.xrepeat = s.yrepeat = 10
   }
 
   /** Blood's fxBloodBits: a drop of blood landing, a splash and maybe a stain on the floor */
