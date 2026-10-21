@@ -65,6 +65,7 @@ if (arrays.sprites !== null) for (let i = 0; i < 4096; i++) if (mem.i16(arrays.s
 console.log('dudes (with players) at the start', dudesAtStart)
 const watch = (process.env.WATCH || '').split(',').filter(Boolean).map(Number)
 const watchWalls = (process.env.WATCHWALLS || '').split(',').filter(Boolean).map(Number)
+const watchSprites = (process.env.WATCHSPRITES || '').split(',').filter(Boolean).map(Number)
 const where = arrays.sprites !== null ? locate(mem, GLOBAL + RNG) : null
 // STEP=1: one sample a frame, each at the frame's start (fidelity/lockstep.mjs)
 const step = process.env.STEP && where ? Lockstep.install(mem, GLOBAL + RNG, 0x200, where) : null
@@ -81,6 +82,14 @@ await new Promise((resolve) => {
     }
     if (arrays.sectors !== null) for (const w of watch) sample['s' + w] = mem.sector(arrays.sectors, w)
     if (arrays.walls !== null) for (const w of watchWalls) sample['w' + w] = mem.wall(arrays.walls, w)
+    // WATCHSPRITES=194,228: those sprites' place, status, tile and cstat
+    // (and its xsprite's health, the low 12 bits at 0x1c, and its first word, where the state bit is)
+    if (arrays.sprites !== null) for (const i of watchSprites) {
+      const o = arrays.sprites + i * 44, extra = mem.i16(o + 42)
+      const xs = extra > 0 ? GLOBAL + XSTATE - 0x34 + 56 * extra : 0
+      sample['p' + i] = [mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i16(o + 26), mem.i16(o + 14), mem.u16(o + 12), xs ? mem.u16(xs + 0x1c) & 0xfff : -1, xs ? mem.u32(xs) : -1]
+      if (xs && process.env.XDUMP) sample['x' + i] = Array.from({ length: 14 }, (_, k) => mem.u32(xs + 4 * k).toString(16))
+    }
     // The monsters (DUDES=1): every sprite in the dudes' status, its place, angle and tile
     if (process.env.DUDES && arrays.sprites !== null) {
       const d = {}

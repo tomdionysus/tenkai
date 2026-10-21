@@ -93,6 +93,13 @@ export default class Game {
   operateSprite (s, x, event) {
     // Gib objects (Blood's OperateSprite: the map's objects that break, the bits, the bodies, the head): off, on or
     // a toggle breaks them (actActivateGibObject), if their state changes
+    // The exploder (Blood's kTrapExploder): on, its state (and so a wait later, off); anything else: it shows and
+    // goes off (actExplodeSprite: a standard explosion, sequence 4, sound 304)
+    if (s.type === 459) {
+      if (event.cmd === CMD.on) this.triggers.setSpriteState(s, x, 1)
+      else { s.cstat &= ~32768; this.things.explode(s, 1, s, { seq: 4, sound: 304, gib: false }) }
+      return true
+    }
     if (s.type === 416 || s.type === 417 || s.type === 425 || s.type === 426 || s.type === 427) {
       const state = event.cmd === CMD.off ? 0 : event.cmd === CMD.on ? 1 : x.state ^ 1
       if (this.triggers.setSpriteState(s, x, state)) this.things.activateGibObject(s, x)
@@ -139,7 +146,12 @@ export default class Game {
     for (const s of this.level.sprites) {
       if (s.statnum === STAT.marker || s.statnum === STAT.pathMarker || (s.type >= 1 && s.type <= 15)) s.cstat |= 32768
       // The exploder trap (459) is unseen until it goes off (Blood's actInit)
-      if (s.type === 459) { s.cstat |= 32768; s.cstat &= ~1 }
+      // (Blood's actInit: its wait at least one, its state off: switched on, it goes off a wait later)
+      if (s.type === 459) {
+        s.cstat |= 32768; s.cstat &= ~1
+        const x = this.level.x(s)
+        if (x) { if (x.waitTime <= 0) x.waitTime = 1; x.state = 0 }
+      }
     }
   }
 

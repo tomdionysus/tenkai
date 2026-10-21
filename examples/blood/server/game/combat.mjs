@@ -55,12 +55,49 @@ export default class Combat {
   }
 
   /**
-   * Blood's actFireVector: a hitscan of a type from a shooter, offset sideways and in z, along (dx, dy, dz); what it
-   * hits is damaged and knocked; returns the hit
+   * Blood's HitScan's answer, from the engine's hit: 3 a sprite, 0 a solid wall (or a wall to another sector hit
+   * above or below its opening), 4 such a wall within its opening (a masked wall), 1 a ceiling, 2 a floor, -1
+   * nothing
+   */
+  hitType (hit, z) {
+    const level = this.level, engine = level.engine
+    if (hit.sprite >= 0) return 3
+    if (hit.wall >= 0) {
+      const w = level.walls[hit.wall]
+      if (w.nextsector < 0) return 0
+      const cz = engine.getceilzofslope(w.nextsector, hit.x, hit.y), fz = engine.getflorzofslope(w.nextsector, hit.x, hit.y)
+      return hit.z > cz && hit.z < fz ? 4 : 0
+    }
+    if (hit.sect >= 0) return z < hit.z ? 2 : 1
+    return -1
+  }
+
+  /** Blood's actCanSplatWall: a wall that can take a splat (not a moving or special one, nor into a special sector) */
+  canSplatWall (nWall) {
+    const level = this.level, w = level.walls[nWall]
+    if (w.cstat & 16384 || w.cstat & 32768) return false
+    if (w.lotag >= 500 && w.lotag < 512) return false
+    if (w.nextsector >= 0) { const t = level.sectors[w.nextsector].lotag; if (t >= 600 && t < 620) return false }
+    return true
+  }
+
+  /** A wall's angle (Blood's GetWallAngle) */
+  wallAngle (nWall) {
+    const w = this.level.walls[nWall], w2 = this.level.walls[w.point2]
+    return this.level.trig.getangle(w2.x - w.x, w2.y - w.y)
+  }
+
+  /**
+   * Blood's actFireVector (BLOOD.EXE 0x37680): a hitscan of a type from a shooter (offset sideways, and in z) along
+   * (dx, dy, dz). Within its reach: a ceiling or floor, a wall (a mark of its surface on it, fx2, if it can take
+   * one), a masked wall (its trigger), a sprite: hurt, triggered, knocked by the impulse over its mass, burnt; a
+   * dude bleeds: a chance of a splat on a wall behind it (vector 19's), and its splats, each a chance (spurts).
+   * Then the hit's own effect (fx1) and its sound, by the surface hit. Returns { hit, type, inRange }
    */
   fireVector (shooter, offset, zOffset, dx, dy, dz, type) {
     const v = this.tables.vectorData[type]
-    const level = this.level, engine = level.engine, trig = level.trig
+    const level = this.level, engine = level.engine, trig = level.trig, game = this.game, R = game.random
+    const surfType = this.game.res.surfType
     const sx = shooter.x + mulscale(offset, trig.Cos((shooter.ang + 512) & 2047), 30)
     const sy = shooter.y + mulscale(offset, trig.Sin((shooter.ang + 512) & 2047), 30)
     const sz = shooter.z + zOffset
@@ -68,30 +105,82 @@ export default class Combat {
     shooter.cstat &= ~256
     const hit = engine.hitscan(sx, sy, sz, shooter.sectnum, dx, dy, dz << 4, CLIPMASK1)
     shooter.cstat = cstat
+    const kind = this.hitType(hit, sz)
+    // A player with the reflective shots: the shot comes back at the shooter
+    if (kind === 3) {
+      const p = game.playerOf(level.sprites[hit.sprite])
+      if (p && p.powerups && p.powerups[24]) { hit.sprite = shooter.index; hit.x = shooter.x; hit.y = shooter.y; hit.z = shooter.z }
+    }
+    let x = hit.x - mulscale(dx, 16, 14), y = hit.y - mulscale(dy, 16, 14), z = hit.z - mulscale(dz, 256, 14)
+    const sect = hit.sect
+    let surf = 0
     const range = v.maxDist
     const inRange = !range || approxDist(hit.x - shooter.x, hit.y - shooter.y) < range
-    const out = { hit, inRange, type }
-    if (!inRange) return out
-    if (hit.sprite >= 0) {
-      const s = level.sprites[hit.sprite]
-      const shift = type === VECTOR.tine && !this.game.playerOf(s) ? 3 : 4
-      this.damage(shooter, s, v.dmgType, v.dmg << shift)
-      const xs = level.x(s)
-      if (xs && xs.vector) this.game.triggers.triggerSprite(hit.sprite, 40 - 9) // kCmdSpriteImpact
-      const mass = s.statnum === STAT.dude ? (this.tables.dudeInfo[s.type] || {}).mass : s.statnum === STAT.thing ? (this.game.things ? this.game.things.mass(s) : 0) : 0
-      if (mass > 0 && v.impulse) {
-        const t = divscale(v.impulse, mass, 8)
-        s.xvel += mulscale(dx, t, 16)
-        s.yvel += mulscale(dy, t, 16)
-        s.zvel += mulscale(dz, t, 16)
+    const out = { hit, inRange, type, kind }
+    if (inRange) {
+      switch (kind) {
+        case 1: surf = level.sectors[sect].ceilingstat & 1 ? 0 : surfType[level.sectors[sect].ceilingpicnum]; break
+        case 2: surf = level.sectors[sect].floorstat & 1 ? 0 : surfType[level.sectors[sect].floorpicnum]; break
+        case 0: {
+          surf = surfType[level.walls[hit.wall].picnum]
+          if (this.canSplatWall(hit.wall)) {
+            const fx2 = (v.surfaces[surf] || { fx: [-1, -1, -1] }).fx[1]
+            if (fx2 >= 0) {
+              const f = game.fx.spawn(fx2, sect, x, y, z, 0)
+              if (f) { f.ang = (this.wallAngle(hit.wall) + 512) & 2047; f.cstat |= 16 }
+            }
+          }
+          break
+        }
+        case 4: {
+          surf = surfType[level.walls[hit.wall].overpicnum]
+          const xw = level.xw(hit.wall)
+          if (xw && xw.vector) game.triggers.triggerWall(hit.wall, 51) // kCmdWallImpact
+          break
+        }
+        case 3: {
+          const s = level.sprites[hit.sprite]
+          surf = surfType[s.picnum]
+          x -= mulscale(dx, 112, 14); y -= mulscale(dy, 112, 14); z -= mulscale(dz, 112 << 4, 14)
+          const shift = type === VECTOR.tine && !game.playerOf(s) ? 3 : 4
+          this.damage(shooter, s, v.dmgType, v.dmg << shift)
+          const xs = level.x(s)
+          if (xs && xs.vector) game.triggers.triggerSprite(hit.sprite, 40 - 9) // kCmdSpriteImpact
+          const mass = s.statnum === STAT.dude ? (this.tables.dudeInfo[s.type] || {}).mass : s.statnum === STAT.thing ? (game.things ? game.things.mass(s) : 0) : 0
+          if ((s.statnum === STAT.dude || s.statnum === STAT.thing) && mass > 0 && v.impulse) {
+            const t = divscale(v.impulse, mass, 8)
+            s.xvel += mulscale(dx, t, 16)
+            s.yvel += mulscale(dy, t, 16)
+            s.zvel += mulscale(dz, t, 16)
+          }
+          if ((s.statnum === STAT.dude || s.statnum === STAT.thing) && v.burnTime) game.burn(s, level.sprites[shooter.owner] || shooter, v.burnTime)
+          if (s.statnum === STAT.dude) {
+            out.blood = true
+            if (R.Chance(v.fxChance)) {
+              const b = this.tables.vectorData[19]
+              let ax = dx + R.Random3(4000), ay = dy + R.Random3(4000), az = dz + R.Random3(4000)
+              const sc = s.cstat; s.cstat &= ~256
+              const h2 = engine.hitscan(s.x, s.y, hit.z, s.sectnum, ax, ay, az << 4, CLIPMASK1)
+              s.cstat = sc
+              if (this.hitType(h2, hit.z) === 0 && approxDist(h2.x - s.x, h2.y - s.y) <= b.maxDist && this.canSplatWall(h2.wall)) {
+                const wx = h2.x - mulscale(ax, 16, 14), wy = h2.y - mulscale(ay, 16, 14), wz = h2.z - mulscale(az, 16 << 4, 14)
+                const bs = b.surfaces[surfType[level.walls[h2.wall].picnum]] || { fx: [-1, -1, -1] }
+                const t2 = bs.fx[1], t3 = bs.fx[2]
+                let f = null
+                if (t2 > -1 && (t3 === -1 || R.Chance(0x4000))) f = game.fx.spawn(t2, h2.sect, wx, wy, wz, 0)
+                else if (t3 > -1) f = game.fx.spawn(t3, h2.sect, wx, wy, wz, 0)
+                if (f) { f.zvel = 0x2222; f.ang = (this.wallAngle(h2.wall) + 512) & 2047; f.cstat |= 16 }
+              }
+            }
+            for (let i = 0; i < v.bloodSplats; i++) if (R.Chance(v.splatChance)) game.fx.spawnBlood(s)
+          }
+          break
+        }
       }
-      out.blood = s.statnum === STAT.dude
-    } else if (hit.wall >= 0) {
-      const xw = level.xw(hit.wall)
-      if (xw && xw.vector) this.game.triggers.triggerWall(hit.wall, 51) // kCmdWallImpact
     }
-    // What the shot hit is shown: a puff, sparks or blood, and its sound (the surface's)
-    this.game.effect({ type: out.blood ? 'blood' : 'puff', x: hit.x, y: hit.y, z: hit.z, sectnum: hit.sect })
+    const sh = v.surfaces[surf] || { fx: [-1, -1, -1], sound: -1 }
+    if (sh.fx[0] >= 0) game.fx.spawn(sh.fx[0], sect, x, y, z, 0)
+    if (sh.sound > 0) game.sound({ x, y, z, sectnum: sect, index: -1 }, sh.sound)
     return out
   }
 

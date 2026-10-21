@@ -27,6 +27,9 @@ export default class Things {
       s.clipdist = this.info[s.type].clipdist
       s.flags = this.info[s.type].flags
       s.xvel = s.yvel = s.zvel = 0
+      // (and its state on, but for the proximity bomb and the machine gun: told off, it breaks or goes off)
+      const x = this.level.x(s)
+      if (x && s.type !== 401 && s.type !== 454) { x.state = 1; x.busy = 65536 }
     }
   }
 
@@ -133,6 +136,11 @@ export default class Things {
   damaged (source, s, kind, damage) {
     const info = this.info[s.type]
     if (!info) return 0
+    // Blood's actDamageSprite: nothing done to what is already at nothing (a body), nor to what is locked (new gibs)
+    const m0 = this.moving.get(s.index)
+    if (m0 && (m0.body || (m0.gibObject && this.game.clock < m0.gibObject.unlock) || m0.done)) return 0
+    const x0 = this.level.x(s)
+    if (x0 && x0.locked) return 0
     const factor = info.dmgControl[kind] ?? 256
     if (!factor) return 0
     damage = mulscale(damage, factor, 8)
@@ -140,6 +148,17 @@ export default class Things {
     m.health = (m.health ?? info.startHealth << 4) - damage
     this.moving.set(s.index, m)
     if (m.health <= 0 && (s.type === THING.tntBarrel || s.type === THING.tntBundle || s.type === THING.tntStick || s.type === THING.proxBomb || s.type === THING.remoteBomb)) this.explode(s, s.type === THING.tntBarrel ? EXPLOSION.large : EXPLOSION.tnt, source)
+    else if (m.health <= 0 && !m.done && !m.body) {
+      // Blood's actDamageSprite: at nothing a thing is told off (trTriggerSprite): a breakable breaks; a player who
+      // blew it up may remark on it
+      m.done = true
+      const p = source && this.game.playerOf(source)
+      if (kind === DAMAGE.explode && p && (s.type === 416 || s.type === 417 || (s.type >= 425 && s.type <= 427)) && this.game.clock > (p.remarkAt || 0) && this.game.random.Chance(0x4000)) {
+        this.game.random.Random(10)
+        p.remarkAt = this.game.clock + 3600
+      }
+      this.game.triggers.triggerSprite(s.index, CMD.off)
+    }
     return damage
   }
 
@@ -254,17 +273,18 @@ export default class Things {
    * Blood's actExplodeSprite and its explosion: radius damage (falling off from dmg + dmgRng to dmg at the edge),
    * the concussion's push, the explosion's sequence, its sound and the shake
    */
-  explode (s, kind, source) {
+  explode (s, kind, source, o = {}) {
     const e = this.explodeInfo[kind] || this.explodeInfo[EXPLOSION.large]
     const game = this.game
     const owner = source || s
     const x = s.x, y = s.y, z = s.z, sectnum = s.sectnum
     const m = this.moving.get(s.index)
     // On the floor the explosion's sequence is 3, in the air 4; sparks (GIBTYPE_5) or, from a barrel, its staves
-    game.missiles.effect({ x, y, z, sectnum }, m && m.florhit ? 3 : 4)
-    game.sound({ x, y, z, sectnum, index: -1 }, kind === EXPLOSION.small ? 303 : kind === EXPLOSION.large ? 305 : 304)
-    game.fx.gibSprite(s, s.type === THING.tntBarrel ? 14 : 5)
-    this.remove(s)
+    game.missiles.effect({ x, y, z, sectnum }, o.seq || (m && m.florhit ? 3 : 4))
+    game.sound({ x, y, z, sectnum, index: -1 }, o.sound || (kind === EXPLOSION.small ? 303 : kind === EXPLOSION.large ? 305 : 304))
+    if (o.gib !== false) game.fx.gibSprite(s, s.type === THING.tntBarrel ? 14 : 5)
+    if (s.statnum === STAT.thing) this.remove(s)
+    else { this.game.seqs.kill(s); this.level.remove(s) }
     this.explosions.push({ x, y, z, sectnum, e, owner, time: e.ticks, frame: game.frame })
     if (e.quake) game.shakeNear({ x, y }, e.quake << 4)
   }
@@ -277,7 +297,7 @@ export default class Things {
   blast (ex) {
     const { x, y, z, sectnum, e, owner } = ex
     const game = this.game, level = this.level, engine = level.engine
-    const sectors = this.affectedSectors(sectnum, x, y, e.radius << 4)
+    const sectors = this.affectedSectors(sectnum, x, y, e.radius)
     const near = (statnum) => level.sprites.filter((d) => d.statnum === statnum && sectors.has(d.sectnum) && this.proximity(d, x, y, z, sectnum, e.radius))
     for (const d of near(STAT.dude)) {
       if (e.dmg && !ex.target) {
@@ -288,7 +308,10 @@ export default class Things {
       if (e.burnTime) game.burn(d, owner, e.burnTime << 2)
     }
     for (const d of near(STAT.thing)) {
-      // (a locked thing is let be: the gibs, their first 180 clock ticks)
+      // (a locked thing is let be: its xsprite's locked bit, BLOOD.EXE 0x33c0d, as the map sets it, and the gibs
+      // their first 180 clock ticks)
+      const xd = level.x(d)
+      if (xd && xd.locked) continue
       const m = this.moving.get(d.index)
       if (m && m.gibObject && this.game.clock < m.gibObject.unlock) continue
       if (e.force) this.concuss(d, x, y, z, e.force, owner)
@@ -311,7 +334,8 @@ export default class Things {
     const dx = d.x - x, dy = d.y - y, dz = (d.z - z) >> 4
     const f = scale(0x40000, force, 0x40000 + dx * dx + dy * dy + dz * dz)
     const mass = d.statnum === STAT.dude ? (this.game.res.tables.dudeInfo[d.type] || {}).mass : this.mass(d)
-    if (mass) {
+    // (only what can move is pushed: Blood's kPhysMove; the map's breakables stand)
+    if (mass && (d.flags & 1)) {
       const t = level.res.tiles[d.picnum] || { w: 0, h: 0 }
       const size = (t.w * d.xrepeat * t.h * d.yrepeat) >> 1
       const k = scale(f, size, mass)
@@ -323,21 +347,68 @@ export default class Things {
     this.game.combat.damage(owner, d, DAMAGE.explode, f)
   }
 
-  /** The sectors a blast reaches through openings within its radius */
+  /**
+   * Blood's GetClosestSpriteSectors (BLOOD.EXE 0x23b90): from the blast's sector out through its openings, a sector
+   * reached when CheckProximityWall passes. As the original, it tests the wall after the opening (its point2) and a
+   * sector looked at once is not looked at again, reached or not
+   */
   affectedSectors (sectnum, x, y, radius) {
-    const level = this.level, seen = new Set([sectnum]), queue = [sectnum]
-    while (queue.length) {
-      const sec = level.sectors[queue.shift()]
+    const level = this.level, looked = new Set([sectnum]), reached = new Set([sectnum]), list = [sectnum]
+    for (let i = 0; i < list.length; i++) {
+      const sec = level.sectors[list[i]]
       for (let w = sec.wallptr; w < sec.wallptr + sec.wallnum; w++) {
-        const wall = level.walls[w]
-        if (wall.nextsector < 0 || seen.has(wall.nextsector)) continue
-        const w2 = level.walls[wall.point2]
-        const ddx = w2.x - wall.x, ddy = w2.y - wall.y, l = ddx * ddx + ddy * ddy
-        const t = l ? Math.max(0, Math.min(1, ((x - wall.x) * ddx + (y - wall.y) * ddy) / l)) : 0
-        if (Math.hypot(x - wall.x - t * ddx, y - wall.y - t * ddy) < radius) { seen.add(wall.nextsector); queue.push(wall.nextsector) }
+        const next = level.walls[w].nextsector
+        if (next < 0 || looked.has(next)) continue
+        looked.add(next)
+        if (this.proximityWall(level.walls[w].point2, x, y, radius)) { reached.add(next); list.push(next) }
       }
     }
-    return seen
+    return reached
+  }
+
+  /** Blood's CheckProximityWall (BLOOD.EXE 0x21ba4): within `dist` << 4 of the wall, in 32-bit products */
+  proximityWall (nWall, x, y, dist) {
+    const walls = this.level.walls, w1 = walls[nWall], w2 = walls[w1.point2]
+    const x1 = w1.x, y1 = w1.y, x2 = w2.x, y2 = w2.y, d = dist << 4, dd = Math.imul(d, d)
+    const sq = (a, b) => (Math.imul(a, a) + Math.imul(b, b)) | 0
+    const dist1 = sq(x - x1, y - y1), dist2 = sq(x - x2, y - y2)
+    if (x1 < x2) {
+      if (x <= x1 - d || x >= x2 + d) return false
+    } else {
+      if (x <= x2 - d || x >= x1 + d) return false
+      if (x1 === x2) {
+        if (y1 < y2) {
+          if (y <= y1 - d || y >= y2 + d) return false
+          if (y < y1) return dist1 < dd
+          if (y > y2) return dist2 < dd
+        } else {
+          if (y <= y2 - d || y >= y1 + d) return false
+          if (y < y2) return dist2 < dd
+          if (y > y1) return dist1 < dd
+        }
+        return true
+      }
+    }
+    if (y1 < y2) {
+      if (y <= y1 - d || y >= y2 + d) return false
+    } else {
+      if (y <= y2 - d || y >= y1 + d) return false
+      if (y1 === y2) {
+        if (x1 < x2) {
+          if (x < x1) return dist1 < dd
+          if (x > x2) return dist2 < dd
+        } else {
+          if (x < x2) return dist2 < dd
+          if (x > x1) return dist1 < dd
+        }
+      }
+    }
+    const dx = x2 - x1, dy = y2 - y1
+    if (((Math.imul(x - x2, dx) + Math.imul(dy, y - y2)) | 0) >= 0) return dist2 < dd
+    const px = x - x1, py = y - y1
+    if (((Math.imul(px, dx) + Math.imul(dy, py)) | 0) <= 0) return dist1 < dd
+    const c = (Math.imul(px, dy) - Math.imul(dx, py)) | 0
+    return Math.imul(c, c) < Math.imul(sq(dx, dy), dd)
   }
 
   remove (s) {
