@@ -1,7 +1,7 @@
 // Blood remade on Tenkai: the client. It shows Tenkai's start screen, finds the game's server (ServerFinder), joins
 // it (GameClient), and draws what the server says through a WebGL scene (BuildView). Its only own state is where the
 // player looks (sent with the keys held); everything else, every step of the game, is the server's.
-import { GameEngine, GameClient, ServerFinder, ServerConfig } from '../../../index.js'
+import { GameEngine, GameClient, ServerFinder, ServerConfig, MouseLook } from '../../../index.js'
 import BuildView from './view/BuildView.js'
 import World from './net/World.js'
 import Hud from './view/Hud.js'
@@ -29,7 +29,6 @@ export default class BloodClient extends GameEngine {
     addImages(this, indexes.tiles.pages.length)
     for (let k = 0; k < indexes.tiles.pages.length; k++) this.addAsset('tiles-' + k, 'data/tiles-' + k + '.png')
     this.look = { ang: 0, horiz: 100 }
-    this.mouse = { dx: 0, dy: 0 }
     this.worlds = {}
   }
 
@@ -39,7 +38,9 @@ export default class BloodClient extends GameEngine {
     this.hud = new Hud(this)
     this.sounds = new Sounds(this, this.indexes.sounds)
     this.sounds.manager.base = ''
-    this.pointerLook()
+    // The mouse turns and looks: the game's from the start (the start screen's click gave it), on the view's canvas
+    // (the frame all WebGL) or the engine's
+    this.mouse = new MouseLook({ elements: [this.element, this.view.canvas], held: true })
     const finder = new ServerFinder({ key: 'blood-server', config: new ServerConfig({ document, title: 'Blood server' }) })
     this.client = new GameClient({ name: localStorage.getItem('blood-name') || 'Caleb', tickTime: 1 / 30 })
     this.client.onWelcome = (c) => this.welcome(c)
@@ -81,52 +82,6 @@ export default class BloodClient extends GameEngine {
     else if (e.type === 'sound' && this.sounds) this.sounds.event(e, this.view.eye)
   }
 
-  /**
-   * The mouse turns and looks while the game has it: from the start (the start screen's click or key gives it), the
-   * pointer taken (pointer lock) on the next click or key, or, where the browser will not give it, while the page has
-   * the focus. Leaving the page (or Escape) lets the mouse go; a click takes it again
-   */
-  pointerLook () {
-    const canvases = () => [this.element, this.view && this.view.canvas].filter(Boolean)
-    const shown = () => canvases().find((c) => c.style.visibility !== 'hidden' && c.style.display !== 'none') || this.element
-    const locked = () => canvases().includes(document.pointerLockElement)
-    // (starting the game, by a click or a key on the start screen, gives it the mouse)
-    this.mouseHeld = true
-    const release = () => { this.mouseHeld = false; this.mouse.fire = this.mouse.alt = false }
-    const lock = () => {
-      const canvas = shown()
-      if (locked() || !canvas.requestPointerLock) return
-      try {
-        const r = canvas.requestPointerLock()
-        if (r && r.catch) r.catch(() => {})
-      } catch (e) {}
-    }
-    document.addEventListener('mousedown', (e) => {
-      if (!canvases().includes(e.target)) return
-      // (the click that takes the mouse only takes it; the next ones fire)
-      const had = this.mouseHeld || locked()
-      this.mouseHeld = true
-      lock()
-      if (had) this.mouse[e.button === 2 ? 'alt' : 'fire'] = true
-    })
-    document.addEventListener('mousemove', (e) => {
-      if (!locked() && !(this.mouseHeld && document.hasFocus() && canvases().includes(e.target))) return
-      this.mouse.dx += e.movementX || 0
-      this.mouse.dy += e.movementY || 0
-    })
-    document.addEventListener('mouseup', (e) => { this.mouse[e.button === 2 ? 'alt' : 'fire'] = false })
-    document.addEventListener('contextmenu', (e) => { if (canvases().includes(e.target)) e.preventDefault() })
-    // The pointer let go (Escape), the page left or hidden: the mouse is the player's again
-    document.addEventListener('pointerlockchange', () => { if (!locked()) release() })
-    window.addEventListener('blur', release)
-    document.addEventListener('visibilitychange', () => { if (document.hidden) release() })
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { release(); return }
-      // (a key is a gesture the browser takes for the pointer, while the game has the mouse)
-      if (this.mouseHeld) lock()
-    })
-  }
-
   update (dt) {
     if (!this.client || !this.client.player || !this.world) return
     const i = this.input
@@ -136,8 +91,8 @@ export default class BloodClient extends GameEngine {
     let buttons = 0, keys = 0, newWeapon = 0
     if (i.down('jump')) buttons |= BUTTON.jump
     if (i.down('crouch')) buttons |= BUTTON.crouch
-    if (i.down('fire') || this.mouse.fire) buttons |= BUTTON.fire
-    if (i.down('altFire') || this.mouse.alt) buttons |= BUTTON.altFire
+    if (i.down('fire') || this.mouse.buttons.left) buttons |= BUTTON.fire
+    if (i.down('altFire') || this.mouse.buttons.right) buttons |= BUTTON.altFire
     if (i.down('open')) keys |= KEY.action
     if (i.down('prevItem')) keys |= KEY.prevItem
     if (i.down('nextItem')) keys |= KEY.nextItem
@@ -172,10 +127,9 @@ export default class BloodClient extends GameEngine {
     const now = performance.now()
     const dt = Math.min(0.1, ((now - (this.turnedAt || now)) / 1000))
     this.turnedAt = now
-    const i = this.input
-    this.look.ang = (this.look.ang + this.mouse.dx * 2 + i.axis('left', 'right') * 1024 * dt + 2048 * 4) % 2048
-    this.look.horiz = Math.max(0, Math.min(200, this.look.horiz - this.mouse.dy * 0.6 + i.axis('lookDown', 'lookUp') * 120 * dt))
-    this.mouse.dx = this.mouse.dy = 0
+    const i = this.input, m = this.mouse.read()
+    this.look.ang = (this.look.ang + m.dx * 2 + i.axis('left', 'right') * 1024 * dt + 2048 * 4) % 2048
+    this.look.horiz = Math.max(0, Math.min(200, this.look.horiz - m.dy * 0.6 + i.axis('lookDown', 'lookUp') * 120 * dt))
   }
 
   /**

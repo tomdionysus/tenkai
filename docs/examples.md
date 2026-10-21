@@ -170,12 +170,17 @@ Node server runs the game (no Tenkai in it) and the browser draws it. See its [R
 the shareware's data is not in the repository.
 
 **The view.** `BuildView` extends [WebGLScene](api/WebGLScene.md): the map's sectors and walls as triangles, the
-tiles as palette numbers in a texture array, each pixel through its pal's shade table and the palette in the
-shader, as the original drew in 256 colours. Room over room is drawn through the stencil.
+tiles as palette numbers in a texture array, each pixel through its pal's shade table and the palette in one
+lookup (a [ShadeTable](api/ShadeTable.md) turned to colours), as the original drew in 256 colours. Room over
+room is drawn through the stencil. The whole frame is WebGL, presented straight to the page (`present`); the
+status bar, the weapon in hand and the messages are tiles and glyphs gathered by a [QuadBatch](api/QuadBatch.md)
+and drawn over the world in the same shader, in the original's 320 by 200 screen placed by
+[ScreenFit](api/ScreenFit.md).
 
-**The client.** The engine's `startScreen`, then `ServerFinder` and `GameClient` find and join the server; the
-state comes as `StateDiff` patches each tick and is drawn between the last two. The status bar and the weapon in
-hand are tiles drawn through [PictureAtlas](api/PictureAtlas.md); sounds and the music through `SoundManager`.
+**The client.** The engine's `startScreen` (with the box's cover), then `ServerFinder` and `GameClient` find and
+join the server; the state comes as `StateDiff` patches each tick and is drawn between the last two. The mouse
+turns and looks through [MouseLook](api/MouseLook.md); sounds come from their places through
+`SoundManager.positional`, and the music through `SoundManager`.
 
 **Fidelity.** The original runs headless in js-dos's emulator; its memory is read as it plays its own demos and
 demos of random input, and the server replays the same inputs to be compared tick by tick.

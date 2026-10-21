@@ -46,8 +46,10 @@ C or Ctrl crouches; E or Enter opens and uses; the left button or F fires, the r
   motions, sliding and turning sectors), sequences, weapons, pickups, combat, missiles, monsters; `net/` the
   snapshots and their patches; `index.mjs` the WebSocket server at `/game` and the page.
 - `src/`: the client on Tenkai: `StartScreen` (the engine's `startScreen`), `ServerFinder` and `GameClient` for the
-  server, `BuildView` (a `WebGLScene`, added to Tenkai for this game) drawing the map in palette numbers through
-  Blood's shade tables, the status bar and weapon through `PictureAtlas`, sounds and music through `SoundManager`.
+  server, `BuildView` (a `WebGLScene`) drawing the map in palette numbers through Blood's shade tables
+  (`ShadeTable`), the whole frame presented straight to the page; the status bar, the weapon and the messages
+  gathered by a `QuadBatch` into the same shader in the original's screen placed by `ScreenFit`; the mouse through
+  `MouseLook`; sounds from their places (`SoundManager.positional`) and the music through `SoundManager`.
 - `fidelity/`: the original under js-dos's emulator in Node: `trace.mjs` reads its memory as it plays a demo,
   `replay.mjs` plays the same inputs through the server and compares, `random.mjs` compares the random draws,
   `montecarlo.mjs` writes demos of random input for the original to play and scores both.

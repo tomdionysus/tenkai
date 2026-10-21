@@ -6,7 +6,7 @@
 // The view is given the map (Build's sectors, walls and sprites, as formats/map.mjs reads them) and the tiles'
 // index (data/tiles.json), loads the atlas pages, palettes and shade tables from data/, and draws from an eye:
 // { x, y, z, ang, horiz } in Build's units. Sprites are given each frame as a list in Build's sprite fields.
-import { WebGLScene } from '../../../../index.js'
+import { WebGLScene, ShadeTable } from '../../../../index.js'
 import { mapGeometry, FLOATS, MASKED, TRANSLUCENT, TRANSLUCENT_MORE, SKY, ONE_SIDED, PORTAL } from './geometry.js'
 import { mapLinks } from '../../common/links.mjs'
 import { ANGLES, TAU } from '../../common/build.mjs'
@@ -404,27 +404,14 @@ export default class BuildView extends WebGLScene {
   colors (gl) {
     if (this.colorsFor === this.palette) return
     this.colorsFor = this.palette
-    if (!this.shadePixels) {
-      const read = (img) => {
-        const c = document.createElement('canvas')
-        c.width = img.width; c.height = img.height
-        const x = c.getContext('2d')
-        x.drawImage(img, 0, 0)
-        return x.getImageData(0, 0, img.width, img.height).data
-      }
-      const shades = this.image('shades')
-      this.shadePixels = { data: read(shades), width: shades.width, height: shades.height }
-      this.palettePixels = read(this.image('palettes'))
+    if (!this.shadeTable) {
+      this.shadeTable = ShadeTable.fromImage(this.image('shades'))
+      this.palettes = ShadeTable.palettesFromImage(this.image('palettes'))
     }
-    const { data, width, height } = this.shadePixels, pal = this.palettePixels, row = this.palette * 256
-    const out = new Uint8Array(width * height * 4)
-    for (let k = 0, o = 0; k < width * height; k++, o += 4) {
-      const c = (row + data[k * 4]) * 4
-      out[o] = pal[c]; out[o + 1] = pal[c + 1]; out[o + 2] = pal[c + 2]; out[o + 3] = 255
-    }
+    const t = this.shadeTable
     gl.activeTexture(gl.TEXTURE4)
     gl.bindTexture(gl.TEXTURE_2D, this.colorsTexture)
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, out)
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, t.entries, t.rows, 0, gl.RGBA, gl.UNSIGNED_BYTE, t.colors(this.palettes[this.palette] || this.palettes[0]))
   }
 
   /** The same uniforms set in the programs that share the fragment shader (`set(uniforms)`); the masked one left in use */
@@ -727,7 +714,7 @@ export default class BuildView extends WebGLScene {
       gl.uniform1i(this.hudUniforms.uDebug, 0)
       gl.bindVertexArray(this.hudVAO)
       gl.bindBuffer(gl.ARRAY_BUFFER, this.hudBuffer)
-      gl.bufferData(gl.ARRAY_BUFFER, hud.vertices.subarray(0, hud.count * FLOATS), gl.STREAM_DRAW)
+      gl.bufferData(gl.ARRAY_BUFFER, hud.vertices, gl.STREAM_DRAW)
       gl.drawArrays(gl.TRIANGLES, 0, hud.count)
     }
     rects(true)

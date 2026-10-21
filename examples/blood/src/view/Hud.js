@@ -2,6 +2,7 @@
 // ammo box with their numbers, the armour gauges, the keys, the pack, the messages; and the weapon's QAV animation,
 // as the server says which plays and from when. All in Blood's 320x200 screen, scaled to the window as the original
 // was to a 4:3 monitor, gathered each frame for the 3D view to draw in WebGL over the world (view/Overlay.js).
+import { ScreenFit } from '../../../../index.js'
 import Overlay from './Overlay.js'
 
 // The pack's icons: the doctor's bag, the diving suit, the crystal ball, beast vision, the jumping boots (gPackIcons)
@@ -23,11 +24,10 @@ export default class Hud {
     if (this.messages.length > 4) this.messages.shift()
   }
 
-  /** The 320x200 screen inside the window: as wide as 4:3 allows, centred, at the bottom */
+  /** Blood's 320x200 screen inside the window, its pixels 1.2 times as tall as wide (a 4:3 monitor), at the bottom */
   frame () {
-    const W = this.game.width, H = this.game.height
-    const scale = Math.min(W / 320, H / 240)
-    return { scale, sx: scale, sy: scale * 1.2, x: (W - 320 * scale) / 2, y: H - 200 * scale * 1.2 }
+    const f = ScreenFit.fit({ width: 320, height: 200 }, { width: this.game.width, height: this.game.height }, { pixelAspect: 1.2, align: 'bottom' })
+    return { scale: f.scale, sx: f.scaleX, sy: f.scaleY, x: f.x, y: f.y }
   }
 
   /** The frame's HUD, for the view: { vertices, count, rects } */

@@ -2,6 +2,7 @@
 // as Build's rotatesprite places them, in Blood's 320x200 screen mapped onto the window, text in Blood's fonts
 // (tiles from 4096: data/tiles.json's fonts), and plain rectangles. Each tile is drawn through the palette and its
 // shade, as the original drew its status bar and the weapon in hand.
+import { QuadBatch } from '../../../../index.js'
 import { FLOATS, MASKED, TRANSLUCENT, TRANSLUCENT_MORE } from './geometry.js'
 
 export default class Overlay {
@@ -9,21 +10,21 @@ export default class Overlay {
   constructor (index) {
     this.tiles = index.tiles
     this.fonts = index.fonts || []
-    this.vertices = new Float32Array(FLOATS * 6 * 512)
-    this.count = 0
+    // (a vertex as the view's: x, y, z, u, v, then the tile, shade, pal, flags and visibility the quad shares)
+    this.batch = new QuadBatch({ floats: FLOATS, capacity: 512 })
     this.rects = []
     this.frame = { x: 0, y: 0, sx: 1, sy: 1 }
   }
 
   /** A new frame's HUD, drawn in a 320x200 screen placed at (x, y) with these scales */
   begin (frame) {
-    this.count = 0
+    this.batch.begin()
     this.rects = []
     this.frame = frame
   }
 
   /** What the view draws: { vertices, count, rects } */
-  get hud () { return { vertices: this.vertices, count: this.count, rects: this.rects } }
+  get hud () { return { vertices: this.batch.vertices, count: this.batch.count, rects: this.rects } }
 
   size (picnum) { const t = this.tiles[picnum]; return t ? { w: t.w, h: t.h } : { w: 0, h: 0 } }
 
@@ -52,19 +53,7 @@ export default class Overlay {
   }
 
   quad (X0, Y0, X1, Y1, u0, v0, u1, v1, pic, shade, pal, flags) {
-    if ((this.count + 6) * FLOATS > this.vertices.length) {
-      const more = new Float32Array(this.vertices.length * 2)
-      more.set(this.vertices)
-      this.vertices = more
-    }
-    const c = [[X0, Y0, u0, v0], [X1, Y0, u1, v0], [X1, Y1, u1, v1], [X0, Y1, u0, v1]]
-    let at = this.count * FLOATS
-    for (const k of [0, 1, 2, 0, 2, 3]) {
-      const p = c[k]
-      this.vertices.set([p[0], p[1], 0, p[2], p[3], pic, shade, pal, flags, 0], at)
-      at += FLOATS
-    }
-    this.count += 6
+    this.batch.quad([[X0, Y0, 0, u0, v0], [X1, Y0, 0, u1, v0], [X1, Y1, 0, u1, v1], [X0, Y1, 0, u0, v1]], [pic, shade, pal, flags, 0])
   }
 
   /** Blood's DrawStatNumber: digits from tile `base` (0) up, each placed by its centre */
