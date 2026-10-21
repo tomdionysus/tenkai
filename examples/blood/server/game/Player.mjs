@@ -14,6 +14,11 @@ export const POSTURES = [
 export const STAND = 0, SWIM = 1, CROUCH = 2
 
 export const BUTTON = { jump: 1, crouch: 2, fire: 4, altFire: 8, lookUp: 16, lookDown: 32 }
+// The pack's slots' powerups (the diving suit, the crystal ball, beast vision, the jumping boots), a full store's
+// time in ticks, and how long the pack's bar shows after a change of item
+const PACK_POWERUP = [-1, 118, 121, 125, 115]
+const PACK_TIME = 30 * 30
+const PACK_SHOW = 60
 export const KEY = { action: 1, jab: 2, prevItem: 4, nextItem: 8, useItem: 16, prevWeapon: 32, nextWeapon: 64, holster: 128, lookCenter: 256, lookLeft: 512, lookRight: 1024, spin180: 2048, pause: 4096, quit: 8192, restart: 16384 }
 
 /** An input that does nothing */
@@ -54,6 +59,12 @@ export default class Player {
     this.weapons = { 1: true, want: 0 }
     this.weapon = 1
     this.pack = [0, 0, 0, 0, 0]
+    // Blood's packSlots and packItemId: the item chosen (-1 none), which are in use, and how long the bar shows
+    this.packItem = -1
+    this.packActive = [false, false, false, false, false]
+    this.packItemTime = 0
+    this.lastKeys = 0
+    this.lastUse = 0
     this.powerups = {}
     this.kills = 0
     this.deaths = 0
@@ -194,7 +205,7 @@ export default class Player {
     if (!this.underwater) {
       this.underwaterTime = 1200
       this.chokeEffect = 0
-      if (this.powerups[118]) delete this.powerups[118]
+      if (this.packActive[1]) this.packUse(1)
     }
     this.stance()
   }
@@ -237,14 +248,80 @@ export default class Player {
    * fire, acid), and the pack's use keys (the doctor's bag heals from its store, up to 100)
    */
   environment (input) {
-    const s = this.sprite, level = this.level, game = this.game
     // (swimming: by the water links, Blood's CheckLink; the air and drowning: dudeLoop; a floor that hurts: Blood's
     // ProcessTouchObjects, server/game/touch.mjs)
-    if ((input.use & 8) && this.pack[0] > 0 && (this.health >> 4) < 100) {
-      const heal = Math.min(this.pack[0], 100 - (this.health >> 4))
+    // The pack's keys, each on its press: the previous and next item, the chosen one used, and each item's own
+    const keys = input.keys || 0, use = input.use || 0
+    const pressedKey = keys & ~this.lastKeys, pressedUse = use & ~this.lastUse
+    this.lastKeys = keys
+    this.lastUse = use
+    if (pressedKey & KEY.prevItem) this.packNext(-1)
+    if (pressedKey & KEY.nextItem) this.packNext(1)
+    if ((pressedKey & KEY.useItem) && this.packItem >= 0) this.packUse(this.packItem)
+    if (pressedUse & 1) this.packUse(3)
+    if (pressedUse & 2) this.packUse(2)
+    if (pressedUse & 4) this.packUse(4)
+    if (pressedUse & 8) this.packUse(0)
+    this.packProcess()
+  }
+
+  /**
+   * Blood's packAddItem: a pack item picked up is full (100), and chosen when nothing (or an empty one) is
+   * @returns {boolean} Whether it was taken (not when already full)
+   */
+  packAdd (slot) {
+    if (this.pack[slot] >= 100) return false
+    this.pack[slot] = 100
+    if (this.packItem < 0 || !this.pack[this.packItem]) this.packItem = slot
+    return true
+  }
+
+  /**
+   * Blood's packUseItem: the doctor's bag heals from its store, up to 100; the others are switched on or off, and
+   * while on their powerup lasts as long as their store (a full one PACK_TIME ticks)
+   */
+  packUse (slot) {
+    if (!(this.pack[slot] > 0)) return
+    const game = this.game
+    if (slot === 0) {
+      const hp = this.health >> 4
+      if (hp >= 100) return
+      const heal = Math.min(this.pack[0], 100 - hp)
       this.health += heal << 4
       this.pack[0] -= heal
-      if (game) game.sound(s, 776)
+      if (game) game.sound(this.sprite, 776)
+    } else {
+      const powerup = PACK_POWERUP[slot]
+      this.packActive[slot] = !this.packActive[slot]
+      if (this.packActive[slot]) this.powerups[powerup] = Math.ceil(this.pack[slot] * PACK_TIME / 100)
+      else delete this.powerups[powerup]
+      if (game) game.sound(this.sprite, 777)
+    }
+    if (!this.pack[slot]) this.packNext(1)
+  }
+
+  /** Blood's packPrevItem and packNextItem: the next item held, round the pack; the bar shows a while */
+  packNext (dir) {
+    this.packItemTime = PACK_SHOW
+    const from = this.packItem < 0 ? (dir > 0 ? -1 : 0) : this.packItem
+    for (let k = 1; k <= 5; k++) {
+      const n = (from + dir * k + 10) % 5
+      if (this.pack[n] > 0) { this.packItem = n; return }
+    }
+    this.packItem = -1
+  }
+
+  /** Each tick: the items in use spend their store with their powerup's time; one run out is off */
+  packProcess () {
+    if (this.packItemTime > 0) this.packItemTime--
+    for (let slot = 1; slot < 5; slot++) {
+      if (!this.packActive[slot]) continue
+      const left = this.powerups[PACK_POWERUP[slot]] || 0
+      this.pack[slot] = Math.ceil(left * 100 / PACK_TIME)
+      if (!left) {
+        this.packActive[slot] = false
+        if (this.packItem === slot) this.packNext(1)
+      }
     }
   }
 
@@ -261,7 +338,7 @@ export default class Player {
       const suit = !!this.powerups[118]
       if (suit || this.godMode) this.underwaterTime = 1200
       else this.underwaterTime = Math.max((this.underwaterTime ?? 1200) - 4, 0)
-      if (this.underwaterTime < 1080 && this.pack[1] > 0 && !suit) this.powerups[118] = this.pack[1]
+      if (this.underwaterTime < 1080 && this.pack[1] > 0 && !suit) this.packUse(1)
       if (this.underwaterTime === 0) {
         this.chokeEffect = (this.chokeEffect || 0) + 4
         if (R.Chance(this.chokeEffect)) game.combat.damage(s, s, 4, 48)
@@ -363,7 +440,7 @@ export default class Player {
     return {
       number: this.number, sprite: s.index, x: s.x, y: s.y, z: this.zView, ang: this.ang, horiz: this.horiz, sectnum: s.sectnum,
       health: this.health >> 4, armor: this.armor.slice(), weapon: this.weapon, ammo: this.ammo.slice(), keys: this.keys.map((k) => k ? 1 : 0),
-      weapons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((n) => this.weapons[n]), pack: this.pack.slice(), powerups: Object.keys(this.powerups).map(Number),
+      weapons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((n) => this.weapons[n]), pack: this.pack.slice(), packItem: this.packItem, packActive: this.packActive.map((a) => a ? 1 : 0), packTime: this.packItemTime, powerups: Object.keys(this.powerups).map(Number),
       qav: this.weaponState ? this.weaponState.status() : null, zWeapon: this.zWeapon - this.zView, hurt: this.hurt, flash: Math.round(this.flash * 10),
       shake: this.shakeAmount, dead: this.health <= 0 ? 1 : 0, kills: this.kills, frags: this.frags || 0, deaths: this.deaths
     }

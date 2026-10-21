@@ -109,8 +109,8 @@ export default class Pickups {
       return p.armor.join() !== before
     }
     const info = this.tables.items[type]
-    if (type === 107) { if (p.pack[0] >= 100) return false; p.pack[0] = 100; return true }
-    if (info && info.packSlot >= 0) { if (p.pack[info.packSlot] >= 100) return false; p.pack[info.packSlot] = 100; return true }
+    if (type === 107) return p.packAdd(0)
+    if (info && info.packSlot >= 0) return p.packAdd(info.packSlot)
     // The powerups: held for a time (Blood counts them down)
     p.powerups[type] = (p.powerups[type] || 0) + 30 * 30
     return true

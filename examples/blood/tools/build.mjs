@@ -8,6 +8,7 @@ import BloodMap from '../formats/map.mjs'
 import seq from '../formats/seq.mjs'
 import qav from '../formats/qav.mjs'
 import kvx from '../formats/kvx.mjs'
+import qfn from '../formats/qfn.mjs'
 import sfx, { rate, wav } from '../formats/sfx.mjs'
 import { palette, shadeTable } from '../formats/tables.mjs'
 import { png } from './png.mjs'
@@ -20,6 +21,8 @@ fs.mkdirSync(DATA, { recursive: true })
 const blood = RFF.load(path.join(ORIGINAL, 'BLOOD.RFF'))
 const write = (name, data) => { fs.writeFileSync(path.join(DATA, name), data); console.log('  ' + name + ' ' + data.length + ' bytes') }
 const PAGE = 2048, TRANSPARENT = 255
+// Blood's fonts, as BLOOD.EXE numbers them (0 the small one of the messages, 1 the big red one), and their first tile
+const FONTS = ['FONTSMAL', 'FONTBLOD', 'KFONT7', 'KFONT6', 'PFONT2O'], FONT_TILE = 4096
 
 if (want('palettes')) {
   console.log('palettes')
@@ -45,8 +48,22 @@ if (want('tiles')) {
   const art = new Art(fs.readFileSync(path.join(ORIGINAL, 'SHARE000.ART')))
   const pal = palette(blood.read('BLOOD.PAL'))
   const surface = fs.readFileSync(path.join(ORIGINAL, 'SURFACE.DAT')), voxel = fs.readFileSync(path.join(ORIGINAL, 'VOXEL.DAT'))
+  // Blood's fonts as tiles after the ART's, 96 to a font (characters 32 to 127) from FONT_TILE: so text is drawn as
+  // the tiles are, through the palette and its shades
+  const fonts = [], glyphTiles = []
+  FONTS.forEach((name, k) => {
+    const f = qfn(blood.read(name + '.QFN'))
+    const font = { name, tile: FONT_TILE + k * 96, spacing: f.spacing, height: f.height, glyphs: {} }
+    for (const g of f.glyphs) {
+      if (g.code < 32 || g.code > 127) continue
+      const number = font.tile + g.code - 32
+      font.glyphs[g.code] = [g.advance, g.top]
+      if (g.width && g.height) glyphTiles.push({ number, width: g.width, height: g.height, pixels: true, rows: g.pixels, xoffset: 0, yoffset: 0, animType: 0, frames: 0, speed: 0, view: 0 })
+    }
+    fonts.push(font)
+  })
   // Shelf packing into pages PAGE wide, tallest first; a tile wider than a page is cut down (none is)
-  const tiles = art.tiles.filter((t) => t.pixels).sort((a, b) => b.height - a.height || b.width - a.width)
+  const tiles = art.tiles.concat(glyphTiles).filter((t) => t.pixels).sort((a, b) => b.height - a.height || b.width - a.width)
   const pages = []
   let page = null
   const open = () => { page = { shelves: [], height: 0, index: pages.length }; pages.push(page); return page }
@@ -68,19 +85,20 @@ if (want('tiles')) {
     const grey = new Uint8Array(PAGE * p.height).fill(TRANSPARENT), rgba = new Uint8Array(PAGE * p.height * 4)
     for (const t of tiles) {
       if (t.page !== p.index) continue
-      const rows = art.rows(t)
+      const rows = t.rows || art.rows(t)
       for (let y = 0; y < t.height; y++) grey.set(rows.subarray(y * t.width, (y + 1) * t.width), (t.y + y) * PAGE + t.x)
     }
     for (let i = 0; i < grey.length; i++) { const c = grey[i]; if (c !== TRANSPARENT) rgba.set([pal[c * 3], pal[c * 3 + 1], pal[c * 3 + 2], 255], i * 4) }
     write('tiles-' + p.index + '-index.png', png({ width: PAGE, height: p.height, pixels: grey, type: 'grey' }))
     write('tiles-' + p.index + '.png', png({ width: PAGE, height: p.height, pixels: rgba, type: 'rgba' }))
   }
-  for (const t of art.tiles) {
-    const e = { w: t.width, h: t.height, xo: t.xoffset, yo: t.yoffset, anim: t.animType, frames: t.frames, speed: t.speed, view: t.view, surface: surface[t.number], voxel: voxel.readInt16LE(t.number * 2) }
+  for (const t of art.tiles.concat(glyphTiles)) {
+    const own = t.number < 4096
+    const e = { w: t.width, h: t.height, xo: t.xoffset, yo: t.yoffset, anim: t.animType, frames: t.frames, speed: t.speed, view: t.view, surface: own ? surface[t.number] : 0, voxel: own ? voxel.readInt16LE(t.number * 2) : -1 }
     if (t.pixels) { e.page = t.page; e.x = t.x; e.y = t.y }
     index[t.number] = e
   }
-  write('tiles.json', JSON.stringify({ page: PAGE, pages: pages.map((p) => ({ width: PAGE, height: p.height })), tiles: index }))
+  write('tiles.json', JSON.stringify({ page: PAGE, pages: pages.map((p) => ({ width: PAGE, height: p.height })), tiles: index, fonts }))
 }
 
 if (want('maps')) {

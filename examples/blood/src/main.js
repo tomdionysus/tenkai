@@ -11,11 +11,12 @@ import { json, addImages, image } from './data.js'
 const KEYS = {
   forward: ['KeyW', 'ArrowUp'], back: ['KeyS', 'ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'],
   strafeLeft: ['KeyA', 'Comma'], strafeRight: ['KeyD', 'Period'], jump: ['Space'], crouch: ['KeyC', 'ControlLeft'],
-  open: ['KeyE', 'Enter'], fire: ['KeyF'], scores: ['Tab'], medkit: ['KeyM'], altFire: ['KeyX'], walk: ['ShiftLeft', 'ShiftRight'], lookUp: ['PageUp'], lookDown: ['PageDown'], lookCenter: ['End'],
+  open: ['KeyE'], fire: ['KeyF'], scores: ['Tab'], medkit: ['KeyM'], beastVision: ['KeyB'], crystalBall: ['KeyK'], jumpBoots: ['KeyJ'],
+  prevItem: ['BracketLeft'], nextItem: ['BracketRight'], useItem: ['Enter'], altFire: ['KeyX'], walk: ['ShiftLeft', 'ShiftRight'], lookUp: ['PageUp'], lookDown: ['PageDown'], lookCenter: ['End'],
   ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n, i) => ['weapon' + (i + 1), ['Digit' + n]]))
 }
 const BUTTON = { jump: 1, crouch: 2, fire: 4, altFire: 8, lookUp: 16, lookDown: 32 }
-const KEY = { action: 1, lookCenter: 256 }
+const KEY = { action: 1, prevItem: 4, nextItem: 8, useItem: 16, lookCenter: 256 }
 
 export default class BloodClient extends GameEngine {
   constructor (indexes, options = {}) {
@@ -79,29 +80,42 @@ export default class BloodClient extends GameEngine {
     else if (e.type === 'sound' && this.sounds) this.sounds.event(e, this.view.eye)
   }
 
-  /** The mouse turns and looks once the canvas has the pointer (a click takes it) */
+  /**
+   * The mouse turns and looks. A click or a key asks for the pointer (pointer lock) on the canvas the game is drawn
+   * in (the view's own while playing); where the browser will not give it, the mouse still turns and looks while it
+   * moves over the game, and its buttons still fire
+   */
   pointerLook () {
-    const canvas = this.element
-    canvas.addEventListener('click', () => { if (document.pointerLockElement !== canvas && canvas.requestPointerLock) canvas.requestPointerLock() })
-    document.addEventListener('mousemove', (e) => {
-      if (document.pointerLockElement !== canvas) return
-      this.mouse.dx += e.movementX
-      this.mouse.dy += e.movementY
+    const canvases = () => [this.element, this.view && this.view.canvas].filter(Boolean)
+    const shown = () => canvases().find((c) => c.style.visibility !== 'hidden' && c.style.display !== 'none') || this.element
+    const locked = () => canvases().includes(document.pointerLockElement)
+    const lock = () => {
+      const canvas = shown()
+      if (locked() || !canvas.requestPointerLock) return
+      try {
+        const r = canvas.requestPointerLock()
+        if (r && r.catch) r.catch(() => {})
+      } catch (e) {}
+    }
+    document.addEventListener('mousedown', (e) => {
+      if (!canvases().includes(e.target)) return
+      lock()
+      this.mouse[e.button === 2 ? 'alt' : 'fire'] = true
     })
-    canvas.addEventListener('mousedown', (e) => { if (document.pointerLockElement === canvas) this.mouse[e.button === 2 ? 'alt' : 'fire'] = true })
-    canvas.addEventListener('mouseup', (e) => { this.mouse[e.button === 2 ? 'alt' : 'fire'] = false })
-    canvas.addEventListener('contextmenu', (e) => e.preventDefault())
+    document.addEventListener('keydown', lock)
+    document.addEventListener('mousemove', (e) => {
+      if (!locked() && !canvases().includes(e.target)) return
+      this.mouse.dx += e.movementX || 0
+      this.mouse.dy += e.movementY || 0
+    })
+    document.addEventListener('mouseup', (e) => { this.mouse[e.button === 2 ? 'alt' : 'fire'] = false })
+    document.addEventListener('contextmenu', (e) => { if (canvases().includes(e.target)) e.preventDefault() })
   }
 
   update (dt) {
     if (!this.client || !this.client.player || !this.world) return
     const i = this.input
-    // The view angles: the mouse and the turning keys, here (sent to the server, which moves the player by them)
-    const turnKeys = i.axis('left', 'right')
-    this.look.ang = (this.look.ang + this.mouse.dx * 2 + turnKeys * 1024 * dt + 2048 * 4) % 2048
-    this.look.horiz = Math.max(0, Math.min(200, this.look.horiz - this.mouse.dy * 0.6 + i.axis('lookDown', 'lookUp') * 120 * dt))
     if (i.pressed('lookCenter')) this.look.horiz = 100
-    this.mouse.dx = this.mouse.dy = 0
     const run = !i.down('walk')
     const move = run ? 2048 : 1024
     let buttons = 0, keys = 0, newWeapon = 0
@@ -110,8 +124,15 @@ export default class BloodClient extends GameEngine {
     if (i.down('fire') || this.mouse.fire) buttons |= BUTTON.fire
     if (i.down('altFire') || this.mouse.alt) buttons |= BUTTON.altFire
     if (i.down('open')) keys |= KEY.action
+    if (i.down('prevItem')) keys |= KEY.prevItem
+    if (i.down('nextItem')) keys |= KEY.nextItem
+    if (i.down('useItem')) keys |= KEY.useItem
     for (let n = 1; n <= 10; n++) if (i.pressed('weapon' + n)) newWeapon = n
+    // Blood's use keys: beast vision, the crystal ball, the jumping boots, the doctor's bag (the server acts on a press)
     let use = 0
+    if (i.down('beastVision')) use |= 1
+    if (i.down('crystalBall')) use |= 2
+    if (i.down('jumpBoots')) use |= 4
     if (i.down('medkit')) use |= 8
     const held = {
       run: run ? 1 : 0, forward: i.axis('back', 'forward') * move, strafe: i.axis('strafeRight', 'strafeLeft') * move,
@@ -127,8 +148,35 @@ export default class BloodClient extends GameEngine {
     this.view.clock += dt * 120
   }
 
+  /**
+   * The view angles, once a drawn frame by the time since the last (not by the game's fixed steps, which a frame
+   * holds none, one or two of): the mouse and the turning keys. The steps send them on to the server, which turns
+   * the player by them
+   */
+  turn () {
+    const now = performance.now()
+    const dt = Math.min(0.1, ((now - (this.turnedAt || now)) / 1000))
+    this.turnedAt = now
+    const i = this.input
+    this.look.ang = (this.look.ang + this.mouse.dx * 2 + i.axis('left', 'right') * 1024 * dt + 2048 * 4) % 2048
+    this.look.horiz = Math.max(0, Math.min(200, this.look.horiz - this.mouse.dy * 0.6 + i.axis('lookDown', 'lookUp') * 120 * dt))
+    this.mouse.dx = this.mouse.dy = 0
+  }
+
+  /**
+   * Playing, the frame is all WebGL: the world and the HUD drawn by the view straight to the page, the engine's 2D
+   * canvas hidden and not drawn; otherwise (the start screen) the engine draws as usual
+   */
   draw (context) {
-    if (this.client && this.client.state && this.world) this.drawWorld()
+    const playing = this.client && this.client.state && this.world && this.view && this.view.gl && !this.screenStack.some((s) => s.visible)
+    if (playing) {
+      this.turn()
+      this.drawWorld()
+      this.view.hud = this.hud.build()
+      this.view.present(this.element)
+      return
+    }
+    if (this.view) this.view.withdraw(this.element)
     super.draw(context)
   }
 
@@ -141,7 +189,7 @@ export default class BloodClient extends GameEngine {
     const lerp = (a, b) => a + (b - a) * t
     // The view shakes after a shot or a blast, by the server's amount
     const shake = you.shake ? (Math.random() * 2 - 1) * you.shake / 4 : 0
-    this.view.eye = { x: lerp(was.x, you.x), y: lerp(was.y, you.y), z: lerp(was.z, you.z) + shake, ang: this.look.ang, horiz: you.dead ? 100 : this.look.horiz }
+    this.view.eye = { x: lerp(was.x, you.x), y: lerp(was.y, you.y), z: lerp(was.z, you.z) + shake, ang: this.look.ang, horiz: you.dead ? 100 : this.look.horiz, sectnum: you.sectnum }
     // The weapon sways as the player moves (Blood's bob), and takes the light of where the player stands
     const speed = Math.hypot(you.x - was.x, you.y - was.y)
     this.bobPhase = (this.bobPhase || 0) + speed / 40
@@ -153,9 +201,10 @@ export default class BloodClient extends GameEngine {
     const xs = sec && sec.extra >= 0 ? this.world.map.xsectors[sec.extra] : null
     this.view.palette = xs && xs.underwater ? 1 : 0
     this.view.sprites = this.world.sprites(previous, state, t, you.sprite)
+    // Hurt, the screen reddens; picking up, it flashes gold (Blood's palette fades)
+    const hurt = Math.min(0.5, (you.hurt || 0) / 64), flash = Math.min(0.5, (you.flash || 0) / 40)
+    this.view.tint = hurt >= flash ? [0.63, 0, 0, hurt] : [1, 0.86, 0.47, flash]
   }
-
-  drawOver (context) { if (this.hud) this.hud.draw(context) }
 }
 
 Promise.all([json('data/tiles.json'), json('data/palettes.json'), json('data/sounds.json')]).then(([tiles, palettes, sounds]) => new BloodClient({ tiles, palettes, sounds }).start())
