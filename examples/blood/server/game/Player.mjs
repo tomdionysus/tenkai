@@ -12,8 +12,6 @@ export const POSTURES = [
   { frontAccel: 0x2000, sideAccel: 0x2000, backAccel: 0x2000, pace: [22, 28], bobV: 24, bobH: 16, swayV: 16, swayH: 40, eyeAboveZ: 0x800, weaponAboveZ: 0x600, xOffset: -0x600, zOffset: 0xb0, normalJumpZ: 0, pwupJumpZ: 0 }
 ]
 export const STAND = 0, SWIM = 1, CROUCH = 2
-/** The original moves 2032 for a demo's forward of 8 (2048): its acceleration fitted to its trace (fidelity/replay.mjs) */
-export const INPUT_SCALE = 0xfe00
 
 export const BUTTON = { jump: 1, crouch: 2, fire: 4, altFire: 8, lookUp: 16, lookDown: 32 }
 export const KEY = { action: 1, jab: 2, prevItem: 4, nextItem: 8, useItem: 16, prevWeapon: 32, nextWeapon: 64, holster: 128, lookCenter: 256, lookLeft: 512, lookRight: 1024, spin180: 2048, pause: 4096, quit: 8192, restart: 16384 }
@@ -121,14 +119,12 @@ export default class Player {
       if (input.forward) {
         let forward = input.forward
         forward = forward > 0 ? mulscale(posture.frontAccel, forward, 8) : mulscale(posture.backAccel, forward, 8)
-        forward = mulscale(forward, INPUT_SCALE, 16)
         if (speed !== 0x10000) forward = mulscale(forward, speed, 16)
         s.xvel += mulscale(forward, x, 30)
         s.yvel += mulscale(forward, y, 30)
       }
       if (input.strafe) {
         let strafe = mulscale(posture.sideAccel, input.strafe, 8)
-        strafe = mulscale(strafe, INPUT_SCALE, 16)
         if (speed !== 0x10000) strafe = mulscale(strafe, speed, 16)
         s.xvel += mulscale(strafe, y, 30)
         s.yvel -= mulscale(strafe, x, 30)

@@ -56,8 +56,8 @@
 - Demos: a 411-byte header, then 22-byte inputs (sync flags, forward and strafe as signed bytes of 256, turn as
   int16 with the angle moving turn >> 2, buttons, keys, use, weapon).
 - `fidelity/replay.mjs` plays a demo through the server's game and compares. Found and matched on the way:
-  - acceleration: mulscale8(0x4000, forward) scaled by 0xfe00 (the original runs 2032 for a demo's 2048); drag
-    0x2a00 per tick with mulscale16r, applied after the move; position += xvel >> 12;
+  - acceleration: mulscale8(0x4000, forward) (an input scale of 0xfe00 fitted at first stood in for the air drag,
+    below); drag 0x2a00 per tick with mulscale16r, applied after the move; position += xvel >> 12;
   - Blood's sector types are two above the reconstructed source's: 612 path, 613 step rotate, 614 slide marked
     walls, 615 rotate marked, 616 slide all, 617 rotate all, 618 damage, 619 counter; sliding and rotating sectors
     are put at their rest state at load (translate by -65536, rebase, translate to busy);
@@ -124,3 +124,9 @@
   0x40000 + distance squared (CheckProximity: >> 4 in x and y, >> 8 in z, in sight of middle, top or bottom).
   actFireThing starts a thing a clipdist ahead of its thrower with half the thrower's velocity. BLOOD002's three
   bundles now match the original's in time and height.
+- The original's velocities read from its memory: Blood's xvel, yvel and zvel arrays (4096 ints each, one after
+  another) found by fidelity/findvel.mjs 1736580 bytes before the sprite array, and traced with every sample. They
+  showed Blood's actAirDrag(sprite, 128) on every dude each tick, before the move and gravity (each axis loses
+  128/65536, x and y drawn toward the sector's wind), and no input scale. With both, BLOOD000's player matches the
+  original's velocity to the unit on every tick up to 350 (where gibs placed by the drifting random draws differ),
+  and its position to the unit past tick 330 (it parted at 91 before).

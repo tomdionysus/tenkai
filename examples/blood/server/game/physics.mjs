@@ -118,6 +118,8 @@ export const PHYSICS = {
   gravity: 58254,
   /** Below this speed (approxDist of xvel, yvel) a dude on the ground stops */
   stopSpeed: 0x1000,
+  /** Blood's actAirDrag on a dude each tick (16.16) */
+  airDrag: 128,
   /** Heights above the floor at which drag fades (>> 8: Blood's xsprite height) */
   airborne: 0x100
 }
@@ -159,6 +161,9 @@ export function moveDude (level, d, P = PHYSICS) {
   const bz = Math.trunc((bottom - s.z) / 4), tz = Math.trunc((s.z - top) / 4)
   let wd = s.clipdist << 2
   let hit = 0
+  // Blood's actAirDrag first, before the move and gravity: so the original's velocities match to the unit in
+  // BLOOD000, on the ground and falling (fidelity/trace.mjs reads them)
+  airDrag(level, s, P.airDrag)
   if (s.xvel || s.yvel) {
     const cstat = s.cstat
     s.cstat &= ~257
@@ -244,8 +249,7 @@ export function moveDude (level, d, P = PHYSICS) {
   d.height = Math.max(zr.florz - bottom, 0) >> 8
   d.floorZ = zr.florz
   d.ceilZ = zr.ceilz
-  if (s.xvel || s.yvel) {
-    if (d.height >= P.airborne) return hit
+  if ((s.xvel || s.yvel) && d.height < P.airborne) {
     let drag = P.dudeDrag
     if (d.height > 0) drag -= scale(P.dudeDrag, d.height, 0x100)
     s.xvel -= mulscaler(s.xvel, drag, 16)
@@ -253,4 +257,22 @@ export function moveDude (level, d, P = PHYSICS) {
     if (approxDist(s.xvel, s.yvel) < P.stopSpeed) s.xvel = s.yvel = 0
   }
   return hit
+}
+
+/**
+ * Blood's actAirDrag: every tick a moving sprite loses `a` (16.16) of its speed in each axis, and in x and y is drawn
+ * toward its sector's wind (an xsector's windVel along windAng, always or while it is busy)
+ */
+export function airDrag (level, s, a) {
+  let wx = 0, wy = 0
+  const xs = level.xs(s.sectnum)
+  if (xs && xs.windVel && (xs.windAlways || xs.busy)) {
+    let v = xs.windVel << 12
+    if (!xs.windAlways && xs.busy) v = mulscale(v, xs.busy, 16)
+    wx = mulscale(v, level.trig.Cos(xs.windAng), 30)
+    wy = mulscale(v, level.trig.Sin(xs.windAng), 30)
+  }
+  s.xvel += mulscale(wx - s.xvel, a, 16)
+  s.yvel += mulscale(wy - s.yvel, a, 16)
+  s.zvel -= mulscale(s.zvel, a, 16)
 }

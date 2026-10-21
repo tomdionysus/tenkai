@@ -1,4 +1,4 @@
-// Traces the original playing a demo: the player's sprite (position, angle, sector) sampled as often as the
+// Traces the original playing a demo: the player's sprite (position, angle, sector, velocity) sampled as often as the
 // emulator lets Node in (every 1 to 4 game ticks), with the counters beside it, saved as JSON for comparing with
 // the remake playing the same demo.
 //   node fidelity/trace.mjs BLOOD000.DEM out.json [seconds]
@@ -43,6 +43,9 @@ console.log('found the player of', file, 'after', (Date.now() - t0) / 1000, 's')
 const C = [-934408, -934404]
 // Blood's random number state (Watcom's rand(): seed = seed * 1103515245 + 12345), found by rng search
 const RNG = -2146176
+// Blood's velocity arrays (int xvel[4096], yvel[4096], zvel[4096]), found by fidelity/findvel.mjs, from the
+// sprite array's start
+const VEL = -1736580
 // The sectors and walls to watch (WATCH=30,29 / WATCHWALLS=229,230), read each sample from Blood's arrays
 const { default: BloodMap2 } = await import('../formats/map.mjs')
 const map = new BloodMap2(rff.read(Demo.load(new URL('../original/' + file, import.meta.url).pathname).options.levelName.toUpperCase() + '.MAP'))
@@ -63,6 +66,10 @@ await new Promise((resolve) => {
   const h = setInterval(() => {
     const s = mem.sprite(P)
     const sample = { t: Math.round(performance.now() - tStart), c: C.map((c) => mem.i32(GLOBAL + c)), r: mem.u32(GLOBAL + RNG), x: s.x, y: s.y, z: s.z, ang: s.ang, sect: s.sectnum, pic: s.picnum }
+    if (arrays.sprites !== null) {
+      const i = (P - arrays.sprites) / 44, v = arrays.sprites + VEL + 4 * i
+      sample.v = [mem.i32(v), mem.i32(v + 16384), mem.i32(v + 32768)]
+    }
     if (arrays.sectors !== null) for (const w of watch) sample['s' + w] = mem.sector(arrays.sectors, w)
     if (arrays.walls !== null) for (const w of watchWalls) sample['w' + w] = mem.wall(arrays.walls, w)
     // The monsters (DUDES=1): every sprite in the dudes' status, its place, angle and tile
