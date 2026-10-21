@@ -92,11 +92,14 @@ class Dude {
     this.stateTimer = 0
     this.height = 0
     this.slope = 0
+    // where it started (Blood's baseSprite: the gargoyle goes back there)
+    this.base = { x: sprite.x, y: sprite.y, z: sprite.z }
+    const mapFlags = sprite.flags
     this.gravity = !this.kind.flies
     sprite.flags |= this.kind.flies ? 0 : 2
     this.x.health = this.info.startHealth << 4
     // The types ported from the original's own states and functions (server/game/ai.mjs)
-    if (AI_START[sprite.type] !== undefined) { Object.assign(this, BloodAI); this.bloodAI = true; this.initAI(); return }
+    if (AI_START[sprite.type] !== undefined) { Object.assign(this, BloodAI); this.bloodAI = true; this.initAI(mapFlags); return }
     const start = sprite.type === 205 || sprite.type === 244 ? 'buried' : sprite.type === 230 || sprite.type === 246 ? 'proneIdle' : 'idle'
     this.setState(start)
   }
@@ -138,7 +141,7 @@ class Dude {
     // Blood's actProcessSprites moves a dude only when it falls (kPhysFalling: in the air, or a frame of its sequence
     // changed its height) or anything moves it, its own speed or its floor's or ceiling's
     if ((s.flags & 4) || s.xvel || s.yvel || s.zvel || this.level.velFloor[s.sectnum] || this.level.velCeil[s.sectnum]) moveDude(this.level, this)
-    if (this.kind.flies) { s.xvel -= mulscale(s.xvel, 0x2000, 16); s.yvel -= mulscale(s.yvel, 0x2000, 16); s.zvel -= mulscale(s.zvel, 0x2000, 16) }
+    if (this.kind.flies && !this.bloodAI) { s.xvel -= mulscale(s.xvel, 0x2000, 16); s.yvel -= mulscale(s.yvel, 0x2000, 16); s.zvel -= mulscale(s.zvel, 0x2000, 16) }
   }
 
   // --- moving ---

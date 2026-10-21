@@ -229,7 +229,9 @@ export function moveDude (level, d, P = PHYSICS) {
   if (s.zvel) s.z += s.zvel >> 8
   let zr = getZRange(level, s, wd)
   ;({ top, bottom } = level.extents(s))
-  if (d.gravity !== false) {
+  // (gravity: kPhysGravity in its flags, BLOOD.EXE 0x2ffdd; the remake's own monsters say so themselves)
+  const gravity = d.gravity === undefined ? (s.flags & 2) !== 0 : d.gravity
+  if (gravity) {
     let vc = P.gravity
     if (depth) {
       if (underwater) {
@@ -272,7 +274,7 @@ export function moveDude (level, d, P = PHYSICS) {
     } else if (s.zvel === 0) { d.falling = false; s.flags &= ~4 }
   } else {
     d.floorHit = 0
-    if (d.gravity !== false) d.falling = true
+    if (gravity) d.falling = true
     // Blood's kPhysFalling: in the air (with gravity), it is moved every frame until it lands
     if (s.flags & 2) s.flags |= 4
   }

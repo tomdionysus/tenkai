@@ -105,13 +105,14 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
       goes off): Blood's MoveThing, the explosion table, actRadiusDamage's knock
 - [ ] F2 The monsters from the original's own AI states and functions (server/game/ai.mjs): the zombies, the
       cultists and the rats done (thinks, callbacks, activation, recoil, aiDamageSprite's and actKillDude's parts);
-      gargoyles and statues, bats, hands, spiders, the bone eel to do
+      gargoyles and statues (server/game/aigarg.mjs: the stone one's blast callback still to port), the bat
+      (aibat.mjs) and the bone eel (aieel.mjs) ported; the hand and the spiders to do
 - [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
 - [x] F3b The drift of one draw in six ticks: Blood's CalcGameChecksum (found by logging rand()'s callers)
 - [ ] F3c The draws part: BLOOD000 (E1M1) matches the original whole: its random draws through the demo and the
-      player's place every tick (`npm test` replays it all). BLOOD001 matches its draws to 468 and its positions
+      player's place every tick (`npm test` replays it all). BLOOD001 matches its draws to 615 and its positions
       to 634 (its dive into the lake: the water's drag, the bubbles, the view's spring toward the body's speed, a
-      cultist's fall into the water and its bubbles; at 469 the stand-ins for the gargoyle, bat and eel part);
+      cultist's fall into the water and its bubbles; the gargoyles, the bat and the eel ported from the exe);
       BLOOD002 its draws to 398 and positions to 399 (a big gib event at 399): the gargoyles, bats, hand and eel to
       port (F2)
 - [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed (`replay.mjs --steps` compares each tick's move).

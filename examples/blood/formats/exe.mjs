@@ -211,13 +211,17 @@ export default class BloodExe {
     const i32 = (o) => b.readInt32LE(DATA.file + o)
     const codeAt = (o) => { const f = df.get(o); if (f && f.obj === 1) return CODE.base + f.off; return i32(o) === 0 ? 0 : -1 }
     const dataAt = (o) => { const f = df.get(o); if (f && f.obj === 4) return f.off; return i32(o) === 0 ? 0 : -1 }
+    // (a state with no functions and no next, as the statues' idle, is taken only where the code names it)
+    const named = new Set()
+    for (const f of (fix.get(1) || new Map()).values()) if (f.obj === 4) named.add(f.off)
     const out = new Map()
     for (let o = 0; o + 28 <= loaded; o += 4) {
       const seq = i32(o), func = i32(o + 4), ticks = i32(o + 8)
       if (seq < -1 || seq > 64 || func < -1 || func > 64 || ticks < 0 || ticks > 10000) continue
       if (df.get(o) || df.get(o + 4) || df.get(o + 8)) continue
       const enter = codeAt(o + 12), move = codeAt(o + 16), think = codeAt(o + 20), next = dataAt(o + 24)
-      if (enter < 0 || move < 0 || think < 0 || next < 0 || !(enter || move || think || next)) continue
+      if (enter < 0 || move < 0 || think < 0 || next < 0) continue
+      if (!(enter || move || think || next) && !named.has(o)) continue
       out.set(o, { at: o, seq, func, ticks, enter, move, think, next })
     }
     return out

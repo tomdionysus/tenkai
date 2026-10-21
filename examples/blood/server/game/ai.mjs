@@ -4,6 +4,9 @@
 // these; aiNewState, aiProcessDudes' step, aiActivateDude, aiSetTarget, RecoilDude as Blood's.
 import { mulscale, divscale, CLIPMASK1 } from '../../common/engine.mjs'
 import { approxDist } from './physics.mjs'
+import { GARG, GARG_FN, GARG_CALLBACK, GargAI } from './aigarg.mjs'
+import { BAT, BAT_FN, BAT_CALLBACK, BatAI } from './aibat.mjs'
+import { EEL, EEL_FN, EEL_CALLBACK, EelAI } from './aieel.mjs'
 
 const getangle = (dude, dx, dy) => dude.level.trig.getangle(dx, dy)
 
@@ -35,7 +38,13 @@ export const FN = {
   // --- the rat (airat.cpp) ---
   0x6f4ac: (d) => { d.aiChooseDirection(d.goalAng); d.aiThinkTarget() }, // ratThinkSearch
   0x6f4d0: (d) => d.ratThinkGoto(),
-  0x6f5b4: (d) => d.ratThinkChase()
+  0x6f5b4: (d) => d.ratThinkChase(),
+  // --- the gargoyles (server/game/aigarg.mjs) ---
+  ...GARG_FN,
+  // --- the bat (server/game/aibat.mjs) ---
+  ...BAT_FN,
+  // --- the bone eel (server/game/aieel.mjs) ---
+  ...EEL_FN
 }
 
 /** The zombie's states by name (offsets of BLOOD.EXE's AISTATEs, tools/aistates.mjs) */
@@ -59,7 +68,7 @@ export const CULTIST = {
 export const RAT = { idle: 0x1a67c, search: 0x1a698, chase: 0x1a6b4, dodge: 0x1a6d0, recoil: 0x1a6ec, goto: 0x1a708, bite: 0x1a724 }
 
 /** Every state's name, for the dude's stateName */
-const NAMES = new Map([...Object.entries(ZOMBIE), ...Object.entries(CULTIST), ...Object.entries(RAT)].map(([k, v]) => [v, k]))
+const NAMES = new Map([...Object.entries(ZOMBIE), ...Object.entries(CULTIST), ...Object.entries(RAT), ...Object.entries(GARG), ...Object.entries(BAT), ...Object.entries(EEL)].map(([k, v]) => [v, k]))
 
 /** The sequence callbacks of states (Blood registers them at start; matched here by the state that plays them) */
 export const CALLBACK = {
@@ -69,21 +78,42 @@ export const CALLBACK = {
   [CULTIST.tThrow]: (d) => d.cultThrow(), [CULTIST.sThrow]: (d) => d.cultThrow(), [CULTIST.dThrow]: (d) => d.cultThrow(),
   [CULTIST.sFire]: (d) => d.cultShot(), [CULTIST.sProneFire]: (d) => d.cultShot(), [CULTIST.sSwimFire]: (d) => d.cultShot(),
   [CULTIST.tFire]: (d) => d.cultTommy(), [CULTIST.tProneFire]: (d) => d.cultTommy(), [CULTIST.tSwimFire]: (d) => d.cultTommy(),
-  [RAT.bite]: (d) => d.ratBite()
+  [RAT.bite]: (d) => d.ratBite(),
+  ...GARG_CALLBACK,
+  ...BAT_CALLBACK,
+  ...EEL_CALLBACK
 }
 
 /** Each type's first state (Blood's aiInitSprite) */
-export const START = { 201: CULTIST.idle, 202: CULTIST.idle, 203: ZOMBIE.idle, 205: ZOMBIE.buried, 220: RAT.idle, 244: ZOMBIE.laying }
+export const START = {
+  201: CULTIST.idle, 202: CULTIST.idle, 203: ZOMBIE.idle, 205: ZOMBIE.buried, 220: RAT.idle, 244: ZOMBIE.laying,
+  206: GARG.fIdle, 207: GARG.fIdle, 208: GARG.statueIdle, 209: GARG.statueIdle, 219: BAT.idle, 218: EEL.idle
+}
+
+/**
+ * aiInitSprite's flags (BLOOD.EXE 0x5e553): the fliers keep the map's and add 9 (no gravity unless the map gave
+ * it), the laying zombie 7, all else 15
+ */
+const INIT_FLAGS = (s, mapFlags) => [206, 207, 210, 218, 219].includes(s.type) ? mapFlags | 9 : s.type === 244 ? 7 : 15
 
 /** Mixed into a dude whose type runs by the exe's states */
 export const BloodAI = {
-  initAI () {
+  ...GargAI,
+  ...BatAI,
+  ...EelAI,
+
+  initAI (mapFlags) {
     this.states = this.game.res.tables.aiStates
     this.tx = 0; this.ty = 0; this.tz = 0
     this.target = -1
+    // (Blood's DUDEEXTRA stats: a few types' count of looks since they last saw anyone, and whether woken)
+    this.thinkTime = 0
+    this.active = false
     this.aiNewState(START[this.sprite.type])
     this.stateTimer = 0
-    this.sprite.flags = 15
+    this.sprite.flags = INIT_FLAGS(this.sprite, mapFlags)
+    // gravity by the flags from now on (kPhysGravity), as Blood's MoveDude
+    this.gravity = undefined
   },
 
   /** Blood's aiNewState */
@@ -133,6 +163,10 @@ export const BloodAI = {
     if (this.sprite.statnum !== 6) return
     if (this.sprite.type === 201 || this.sprite.type === 202) { this.cultRecoil(v); return }
     if (this.sprite.type === 220) { this.game.sound(this.sprite, 2102); this.aiNewState(RAT.recoil); this.teslaRecoil = false; return }
+    if (this.sprite.type === 206 || this.sprite.type === 207) { this.game.sound(this.sprite, 1402); this.aiNewState(GARG.fRecoil); this.teslaRecoil = false; return }
+    if (this.sprite.type === 208 || this.sprite.type === 209) { this.teslaRecoil = false; return }
+    if (this.sprite.type === 218) { this.game.sound(this.sprite, 1502); this.aiNewState(EEL.recoil); this.teslaRecoil = false; return }
+    if (this.sprite.type === 219) { this.game.sound(this.sprite, 2002); this.aiNewState(BAT.recoil); this.teslaRecoil = false; return }
     const third = Math.trunc(this.info.startHealth / 3)
     this.game.sound(this.sprite, 1106)
     if (this.teslaRecoil && this.data3 > third) this.aiNewState(ZOMBIE.teslaRecoil)
@@ -181,6 +215,33 @@ export const BloodAI = {
       case 220:
         if (this.target === -1) this.aiNewState(RAT.search)
         else { this.game.sound(s, 2100); this.aiNewState(RAT.chase) }
+        return
+      case 206: case 207:
+        // (BLOOD.EXE 0x5c7fc: woken, its looks counted afresh)
+        this.thinkTime = 0; this.active = true
+        if (this.target === -1) { this.aiNewState(GARG.fSearch); return }
+        this.game.sound(s, R.Chance(0x4000) ? (s.type === 206 ? 1401 : 1451) : (s.type === 206 ? 1400 : 1450))
+        this.aiNewState(GARG.fChase)
+        return
+      case 208: case 209:
+        // the statues: a cry (the flesh one's, both), and it breaks into a gargoyle
+        this.game.sound(s, R.Chance(0x4000) ? 1401 : 1400)
+        this.aiNewState(s.type === 208 ? GARG.fMorph : GARG.sMorph)
+        return
+      case 218:
+        // the eel (0x5c3fe)
+        this.thinkTime = 0; this.active = true
+        if (this.target === -1) { this.aiNewState(EEL.search); return }
+        this.game.sound(s, R.Chance(0x4000) ? 1501 : 1500)
+        this.aiNewState(EEL.chase)
+        return
+      case 219:
+        // the bat (0x5c36c): woken, off the ceiling (its flags back) and after its target
+        this.thinkTime = 0; this.active = true
+        if (s.flags === 0) s.flags = 9
+        if (this.target === -1) { this.aiNewState(BAT.search); return }
+        if (R.Chance(0xa000)) this.game.sound(s, 2000)
+        this.aiNewState(BAT.chase)
         return
       case 205: if (this.aiState === ZOMBIE.buried) this.aiNewState(ZOMBIE.rise); return
       case 244: if (this.aiState === ZOMBIE.laying) this.aiNewState(0x1ab04); return
@@ -256,6 +317,8 @@ export const BloodAI = {
     }
     // Then each type's (BLOOD.EXE 0x5cfa6): a cultist hurt by anything but fire dodges (standing, prone or swimming)
     if ((s.type === 201 || s.type === 202) && kind !== 1) this.dodgeBy()
+    // a flesh gargoyle hurt chases (0x5d380)
+    else if (s.type === 206) this.aiNewState(GARG.fChase)
   },
 
   /** The zombie's HackSeqCallback (0x71800...): its axe at where its target is, from its eyes to the target's */
