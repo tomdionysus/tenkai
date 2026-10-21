@@ -63,8 +63,6 @@ export default class Player {
     this.packItem = -1
     this.packActive = [false, false, false, false, false]
     this.packItemTime = 0
-    this.lastKeys = 0
-    this.lastUse = 0
     this.powerups = {}
     this.kills = 0
     this.deaths = 0
@@ -250,11 +248,9 @@ export default class Player {
   environment (input) {
     // (swimming: by the water links, Blood's CheckLink; the air and drowning: dudeLoop; a floor that hurts: Blood's
     // ProcessTouchObjects, server/game/touch.mjs)
-    // The pack's keys, each on its press: the previous and next item, the chosen one used, and each item's own
-    const keys = input.keys || 0, use = input.use || 0
-    const pressedKey = keys & ~this.lastKeys, pressedUse = use & ~this.lastUse
-    this.lastKeys = keys
-    this.lastUse = use
+    // The pack's keys (events, one a press: Game.playerTick makes a client's so): the previous and next item, the
+    // chosen one used, and each item's own
+    const pressedKey = input.keys || 0, pressedUse = input.use || 0
     if (pressedKey & KEY.prevItem) this.packNext(-1)
     if (pressedKey & KEY.nextItem) this.packNext(1)
     if ((pressedKey & KEY.useItem) && this.packItem >= 0) this.packUse(this.packItem)

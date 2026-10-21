@@ -265,7 +265,13 @@ export default class Game {
     // The input a client holds, with the presses it made since the last tick (server/index.mjs latches them)
     if (p.held) {
       const l = p.latched || {}
-      p.input = Object.assign({}, p.held, { buttons: p.held.buttons | (l.buttons || 0), keys: p.held.keys | (l.keys || 0), use: p.held.use | (l.use || 0), newWeapon: p.held.newWeapon || l.newWeapon || 0 })
+      // Blood's key flags (the action, the pack's keys and the like) and its use flags are events, one a press, as
+      // its own input sends them (a demo's are so already): a key a client holds counts on the tick it went down
+      const keys = p.held.keys | (l.keys || 0), use = p.held.use | (l.use || 0)
+      const pressedKeys = keys & ~(p.keysHeld || 0), pressedUse = use & ~(p.useHeld || 0)
+      p.keysHeld = p.held.keys
+      p.useHeld = p.held.use
+      p.input = Object.assign({}, p.held, { buttons: p.held.buttons | (l.buttons || 0), keys: pressedKeys, use: pressedUse, newWeapon: p.held.newWeapon || l.newWeapon || 0 })
       p.latched = { buttons: 0, keys: 0, use: 0, newWeapon: 0 }
     }
     p.tick(p.input)
