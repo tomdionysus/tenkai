@@ -48,12 +48,26 @@ export default class Missiles {
     this.list.push({ sprite: s, type: 'tnt', life: 90, gravity: true })
   }
 
+  /** A drip of water or blood from a generator: it falls, and splashes on what is under it */
+  drip (from, z, blood) {
+    const s = this.level.spawn(from.sectnum, from.x, from.y, z, STAT.thing, { picnum: blood ? 2263 : 2264, xrepeat: 16, yrepeat: 16, cstat: 0, type: blood ? 424 : 423 })
+    this.list.push({ sprite: s, type: 'drip', life: 300, blood })
+  }
+
   tick () {
     for (const m of this.list.slice()) {
       const s = m.sprite
       if (s.statnum >= 1024) { this.list.splice(this.list.indexOf(m), 1); continue }
       if (--m.life <= 0) { this.explode(m); continue }
       if (m.type === 'tnt') { this.fall(m); continue }
+      if (m.type === 'drip') {
+        const s2 = m.sprite
+        s2.zvel += 58254
+        s2.z += s2.zvel >> 8
+        const fz = this.level.engine.getflorzofslope(s2.sectnum, s2.x, s2.y)
+        if (s2.z >= fz) { s2.z = fz; this.effect(s2, FX_SEQ.splash); this.remove(m) }
+        continue
+      }
       this.fly(m)
     }
     for (const f of this.fx.slice()) if (--f.life <= 0) { this.level.remove(f.sprite); this.fx.splice(this.fx.indexOf(f), 1) }

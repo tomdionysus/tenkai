@@ -7,10 +7,11 @@ import { moveDude, approxDist } from './physics.mjs'
 import { STAT, CMD } from './triggers.mjs'
 import { DAMAGE, VECTOR } from './combat.mjs'
 
-const rnd = () => Math.random()
-const Chance = (c) => rnd() * 0x10000 < c
-const Random = (n) => Math.floor(rnd() * n)
-const Random3 = (n) => Math.floor(rnd() * (2 * n + 1)) - n
+// The game's one generator (Blood's), set by the Dudes from the game
+let R = null
+const Chance = (c) => R.Chance(c)
+const Random = (n) => R.Random(n)
+const Random3 = (n) => R.Random3(n)
 
 // A state: seq (offset from the dude's base), callback (on the seq's trigger frames), ticks (Blood's 120 Hz; 0 forever),
 // move ('forward', 'turn', 'dodge', null), think ('target', 'chase', 'search', 'goto', or the kind's own), next
@@ -33,7 +34,7 @@ const KINDS = {
       idle: S(0, { think: 'target' }), chase: S(8, { move: 'forward', think: 'chase' }), goto: S(8, { ticks: 600, move: 'forward', think: 'goto', next: 'idle' }),
       search: S(8, { ticks: 1800, move: 'forward', think: 'search', next: 'idle' }), recoil: S(5, { next: 'chase' }),
       hack: S(6, { callback: 'axe', ticks: 80, next: 'chase' }), ponder: S(0, { ticks: 120, move: 'turn', think: 'chase', next: 'chase' }),
-      buried: S(11, { think: 'buried' }), rise: S(11, { ticks: 0, next: 'chase', seqEnd: true }), laying: S(13, { think: 'buried' })
+      buried: S(11, { think: 'target' }), rise: S(11, { ticks: 0, next: 'chase', seqEnd: true }), laying: S(13, { think: 'target' })
     },
     alert: [1100, 2], search: [1100, 2], melee: 0x400
   },
@@ -385,6 +386,7 @@ export default class Dudes {
     this.library = game.res.seqs
     this.list = []
     this.bySprite = new Map()
+    R = game.random
     for (const s of this.level.sprites) {
       if (s.statnum !== STAT.dude || s.type < 201 || (s.type >= 231 && s.type <= 238) || !this.level.x(s)) continue
       if (!this.tables.dudeInfo[s.type]) continue
@@ -407,5 +409,5 @@ export default class Dudes {
 
   of (s) { return this.bySprite.get(s) || null }
 
-  tick () { for (const d of this.list.slice()) d.tick(this.game.frame) }
+  tick () { R = this.game.random; for (const d of this.list.slice()) d.tick(this.game.frame) }
 }

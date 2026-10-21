@@ -105,14 +105,14 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
       goes off): Blood's MoveThing, the explosion table, actRadiusDamage's knock
 - [ ] F2 The monsters traced from the original's memory (their sprites by index) and matched state by state:
       cultists, zombies, gargoyles, rats, bats, hands, spiders, eels
-- [ ] F3 Blood's random numbers (its own generator) so a seeded run repeats the original's draws; then
-      Monte-Carlo runs of random inputs in both, compared
+- [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
+- [ ] F3b The drift of one draw in six ticks: find its source (BLOOD.EXE's rand() callers, by disassembly)
 - [ ] F4 BLOOD001 (E1M6) and BLOOD002 (E1M5) traced and replayed
 - [ ] F5 The view against the original's screenshots at the same eye, for every map's start
 - [ ] G1 Sector damage (618: lava, fire), water (swimming, the water links), the hand's choke
 - [ ] G2 Powerups' effects (crystal ball, beast vision, cloak, death mask, jump boots), the pack's use keys
 - [ ] G3 Menus on the client: name, skill, mode; the death and restart in single player
-- [ ] V1 Flame and torch sprites drawn stretched; voxels (KVX) drawn as their 2D tiles for now
+- [x] V1 (the exploder traps, 459, now hidden) Flame and torch sprites drawn stretched; voxels (KVX) drawn as their 2D tiles for now
 - [ ] N1 Client-side prediction from the acknowledged input (Quake's): the movement code is shared (common/)
 
 ## Open decisions

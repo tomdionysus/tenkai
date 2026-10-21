@@ -180,8 +180,10 @@ export default class Player {
     // The original stands idle again below about half its walking speed (its trace changes tile between 51900 and 30318)
     const speed = approxDist(s.xvel, s.yvel) >= 0x8000
     let id
+    // PLAY1's sequences: M4 (+11) crouching (the original shows its tiles 3917-3932 when crouched: fidelity/montecarlo),
+    // M3 (+9) swimming
     if (this.posture === SWIM) id = this.seqBase + 9
-    else if (this.posture === CROUCH) id = speed ? this.seqBase + 15 : this.seqBase + 14
+    else if (this.posture === CROUCH) id = this.seqBase + 11
     else id = speed ? this.seqBase + 8 : this.seqBase
     this.seqs.spawn(s, id)
   }

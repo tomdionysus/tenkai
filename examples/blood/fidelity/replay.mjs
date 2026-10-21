@@ -19,10 +19,11 @@ export function startPlayer (level, number = 0) {
   return new Player(level, s, number)
 }
 
-export function replay (res, demo, ticks, onTick) {
-  const game = new Game(res, { map: demo.options.levelName, difficulty: demo.options.difficulty })
+export function replay (res, demo, ticks, onTick, options = {}) {
+  const game = new Game(res, Object.assign({ map: demo.options.levelName, difficulty: demo.options.difficulty, frame: 2 }, options))
   const level = game.level
   const p = game.addPlayer(0)
+  if (options.seed !== undefined) { game.random.seed = options.seed; game.random.calls = 0 }
   const out = []
   for (let k = 0; k < Math.min(ticks, demo.inputs.length); k++) {
     p.input = demo.inputs[k]
@@ -39,12 +40,16 @@ if (process.argv[1] && process.argv[1].endsWith('replay.mjs')) {
   const show = args.includes('--show') ? Number(args[args.indexOf('--show') + 1]) : 12
   const [file, ticksArg] = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--show')
   const trace = JSON.parse(fs.readFileSync(file))
-  const demo = Demo.load(path.join(ROOT, 'original', trace.demo))
+  const demo = Demo.load(trace.demoPath || path.join(ROOT, 'original', trace.demo))
   const res = new Resources()
   const sim = replay(res, demo, Number(ticksArg || demo.inputs.length))
   // The trace's samples during the demo (after its first reset to tick 0)
   const first = trace.samples.findIndex((s) => s.c[0] === 0)
-  const samples = trace.samples.slice(first).filter((s, i, a) => s.c[0] >= 1 && s.c[0] <= sim.length && (!i || s.c[0] >= a[i - 1].c[0]))
+  // Up to the demo's end: attract mode then starts the next demo, counting from 0 again
+  let after = trace.samples.slice(first)
+  const reset = after.findIndex((s, i) => i && s.c[0] < after[i - 1].c[0])
+  if (reset > 0) after = after.slice(0, reset)
+  const samples = after.filter((s) => s.c[0] >= 1 && s.c[0] <= sim.length)
   let worst = 0, sum = 0, n = 0, firstBad = null
   const lines = []
   // The original counts the tick before it moves the player, so a sample may hold the state of the tick before its

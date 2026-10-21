@@ -129,7 +129,8 @@ export default class Emu {
     require('emulators')
     const emulators = globalThis.emulators
     emulators.pathPrefix = path.join(path.dirname(require.resolve('emulators')), '/')
-    const files = GAME.map((f) => ({ path: 'BLOOD/' + f, contents: new Uint8Array(fs.readFileSync(path.join(ORIGINAL, f))) }))
+    const replaced = new Set((o.files || []).map((f) => f.path.toUpperCase()))
+    const files = GAME.filter((f) => !replaced.has(f)).map((f) => ({ path: 'BLOOD/' + f, contents: new Uint8Array(fs.readFileSync(path.join(ORIGINAL, f))) }))
     files.push({ path: 'BLOOD/BLOOD.CFG', contents: new TextEncoder().encode(config(o.config).replace(/\n/g, '\r\n')) })
     for (const f of o.files || []) files.push({ path: 'BLOOD/' + f.path, contents: f.contents })
     const conf = `[sdl]

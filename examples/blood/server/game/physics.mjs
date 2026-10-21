@@ -190,6 +190,7 @@ export function moveDude (level, d, P = PHYSICS) {
     if (up >= 0 && (level.sprites[up].type === MARKER.upWater || level.sprites[up].type === MARKER.upGoo)) depth = 1
     if (low >= 0 && (level.sprites[low].type === MARKER.lowWater || level.sprites[low].type === MARKER.lowGoo)) depth = 1
   }
+  // A player's floor test reaches 16 further (Blood's wd += 16: taking it away worsens every Monte-Carlo run)
   if (d.player) wd += 16
   if (s.zvel) s.z += s.zvel >> 8
   let zr = getZRange(level, s, wd)

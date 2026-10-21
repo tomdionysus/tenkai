@@ -28,4 +28,18 @@ describe('PictureAtlas', () => {
     a.draw(c, 'route', 0, 0)
     expect(c.drawImage).not.toHaveBeenCalled()
   })
+
+  it('should draw a piece scaled, mirrored, see-through and filtered, about its top left', () => {
+    const image = { width: 512, height: 512 }
+    const a = new PictureAtlas({ image, regions: { gun: [10, 20, 30, 40] } })
+    const c = jasmine.createSpyObj('context', ['drawImage', 'save', 'restore', 'translate', 'scale'])
+    c.globalAlpha = 1
+    a.draw(c, 'gun', 100, 50, { scale: 2, flipX: true, alpha: 0.5, filter: 'brightness(0.5)' })
+    expect(c.translate).toHaveBeenCalledWith(160, 50)
+    expect(c.scale).toHaveBeenCalledWith(-1, 1)
+    expect(c.drawImage).toHaveBeenCalledWith(image, 10, 20, 30, 40, 0, 0, 60, 80)
+    expect(c.globalAlpha).toEqual(0.5)
+    expect(c.filter).toEqual('brightness(0.5)')
+    expect(c.restore).toHaveBeenCalled()
+  })
 })

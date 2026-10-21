@@ -17,6 +17,6 @@ art.draw(context, 'map', 89, 0, { width: reveal })   // the left `reveal` pixels
 | Member | |
 |---|---|
 | `new PictureAtlas({ image, regions })` | the picture (or an Asset holding it); each piece's `[x, y, width, height]` or `{ x, y, width, height }` by name |
-| `draw(context, name, x, y, { width, height })` | the piece with its top left at (x, y), rounded; `width` or `height` draws only that much of it from its left and top |
+| `draw(context, name, x, y, { width, height, scale, flipX, flipY, alpha, filter })` | the piece with its top left at (x, y), rounded; `width` or `height` draws only that much of it from its left and top; `scale` (1 = as it is), mirrored by `flipX` and `flipY` about its own box, see-through by `alpha` (0 to 1), or through a CSS `filter` (`'brightness(0.5)'`: darker, as a weapon in the shade) |
 | `region(name)`, `has(name)` | a piece's place, `{ x, y, width, height }`; whether there is one |
 | `element` | the image element |

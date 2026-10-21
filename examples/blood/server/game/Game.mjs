@@ -11,6 +11,7 @@ import Pickups from './pickups.mjs'
 import Weapons from './weapons.mjs'
 import Missiles from './missiles.mjs'
 import Dudes from './dudes.mjs'
+import Random from './random.mjs'
 
 export const TICK_RATE = 30
 export const CLOCK_PER_TICK = 4
@@ -24,8 +25,11 @@ export default class Game {
     this.res = res
     this.options = Object.assign({ map: 'e1m1', gameType: 0, difficulty: 2 }, options)
     this.level = new Level(res, this.options.map)
+    this.random = new Random(this.options.seed || ((Date.now() * 2654435761) >>> 0))
     this.clock = 0
-    this.frame = 0
+    // Blood's gFrame: monsters think when (gFrame & 3) matches their sprite's (& 3); the original's ran 2 ahead of
+    // its demo's tick count (fidelity/random.mjs)
+    this.frame = this.options.frame || 0
     this.players = []
     this.events = [] // what happened this tick, for the clients: sounds, messages
     this.changedSectors = new Set()
@@ -47,6 +51,7 @@ export default class Game {
     this.burning = []
     this.respawns = []
     this.dudes = new Dudes(this)
+    this.initGenerators()
     this.startSeqs()
     this.started = false
   }
@@ -64,6 +69,53 @@ export default class Game {
     }
   }
 
+  /**
+   * Blood's generators (types 700-708): on, they repeat every busyTime tenths of a second, give or take a random
+   * data1 (Random2), sending their command and doing their thing: a drip of water or blood falls, a sound plays.
+   * Started at load when their state is not their rest state (InitGenerator)
+   */
+  initGenerators () {
+    const level = this.level
+    for (const s of level.sprites) {
+      if (s.statnum >= 1024 || s.type < 700 || s.type > 708) continue
+      const x = level.x(s)
+      if (!x) continue
+      if (s.type === 700) s.cstat = (s.cstat & ~1) | 32768
+      if (x.state !== x.restState && x.busyTime > 0) this.triggers.post(s.index, 3, Math.trunc(120 * (x.busyTime + this.random.Random2(x.data1)) / 10), 21)
+    }
+  }
+
+  /** The sprite types the game itself handles when a channel or an event reaches them (Blood's OperateSprite) */
+  operateSprite (s, x, event) {
+    if (s.type >= 700 && s.type <= 708) {
+      if (event.cmd === 0) { this.triggers.setSpriteState(s, x, 0); return true }
+      if (event.cmd === 21) { // kCmdRepeat
+        if (s.type !== 700) this.generate(s, x)
+        if (x.txID) this.triggers.send(s.index, 3, x.txID, x.command)
+        if (x.busyTime > 0) this.triggers.post(s.index, 3, Math.trunc(120 * (this.random.Random2(x.data1) + x.busyTime) / 10), 21)
+        return true
+      }
+      if (!x.state) { this.triggers.setSpriteState(s, x, 1); this.triggers.post(s.index, 3, 0, 21) }
+      return true
+    }
+    // A monster told to wake (on) or to die (off: Blood kills it)
+    if (s.statnum === STAT.dude && this.dudes && this.dudes.of(s)) {
+      const d = this.dudes.of(s)
+      if (event.cmd === 1 && (d.stateName === 'idle' || d.stateName === 'buried' || d.stateName === 'laying')) { d.activate(); return true }
+      if (event.cmd === 0) { d.damaged(null, 0, 1 << 15); return true }
+      return true
+    }
+    return false
+  }
+
+  /** Blood's ActivateGenerator */
+  generate (s, x) {
+    if (s.type === 701 || s.type === 702) {
+      const { bottom } = this.level.extents(s)
+      this.missiles.drip(s, bottom, s.type === 702)
+    } else if (s.type === 708) this.sound(s, x.data2)
+  }
+
   /** Sprites that show a sequence from the start (Blood's seqSpawn at load for things that animate by sequence) */
   startSeqs () {}
 
@@ -71,6 +123,8 @@ export default class Game {
   hideMarkers () {
     for (const s of this.level.sprites) {
       if (s.statnum === STAT.marker || s.statnum === STAT.pathMarker || (s.type >= 1 && s.type <= 15)) s.cstat |= 32768
+      // The exploder trap (459) is unseen until it goes off (Blood's actInit)
+      if (s.type === 459) { s.cstat |= 32768; s.cstat &= ~1 }
     }
   }
 
@@ -96,7 +150,7 @@ export default class Game {
     if (this.options.gameType === 2 && starts.length) {
       const clear = starts.filter((z) => !this.players.some((p) => p && p.health > 0 && approxDist(p.sprite.x - z.x, p.sprite.y - z.y) < 1024))
       const from = clear.length ? clear : starts
-      start = from[Math.floor(Math.random() * from.length)]
+      start = from[this.random.Random(from.length)]
     }
     const s = level.spawn(start.sectnum, start.x, start.y, start.z, STAT.dude, { cstat: 385, picnum: 3870, pal: 11 + (number & 3), clipdist: 48, xrepeat: 39, yrepeat: 37, ang: start.ang, type: 231 + number, shade: -8, flags: 2 })
     const fz = level.engine.getflorzofslope(s.sectnum, s.x, s.y)

@@ -69,3 +69,26 @@
   - a wall hit takes away the velocity into it (actWallBounceVector).
 - The result: within 20 units through tick 340 of BLOOD000; it then departs where the original is knocked about
   by being shot at (the monsters, not yet on the server).
+
+## The game in full, and the fidelity tools widened (2026-10-21, evening)
+
+- BLOOD.EXE's own tables read out by signature (`formats/exe.mjs`): dudeInfo (148 bytes a dude, types 201-255),
+  VECTORDATA (134 bytes, 22 hitscans), missileInfo (14 bytes, 300-317), and the pickups' tables (weapons from 40,
+  ammo from 60, items from 100). The server uses them as they are.
+- QAV (weapon animations): a 36-byte header and 204-byte frames of 8 tiles; a frame's callback (> 0) is when the
+  weapon fires. Weapons fire on those frames.
+- Blood's random numbers are Watcom's rand() (seed * 1103515245 + 12345), found in the original's memory 2146176
+  bytes before the player's sprite; the demo starts from the same state every run. `fidelity/random.mjs` compares
+  the remake's draws with the original's tick by tick: idle monsters (each a Chance every fourth frame by
+  (gFrame & 3) == (sprite & 3), buried zombies too) make the original's 7.75 draws a tick; the original's frame
+  counter runs 2 ahead of the demo's count; a slow drift of about one draw in six ticks is still unexplained.
+- Monte-Carlo (`fidelity/montecarlo.mjs`): random-input demos written with the original's header, played by the
+  original in place of BLOOD000.DEM (attract mode plays it), traced, replayed through the server and scored. It
+  found the crouch's sequence (PLAY1M4, +11; swimming +9) and confirmed the player's floor test's extra 16
+  (taking it out worsened every run). Three runs of 360 ticks keep together 180, 67 and 301 ticks.
+- Server: weapons, pickups, damage with the dude's resistances by skill, armour, death and respawn, missiles and
+  TNT, monsters on Blood's AI structure, generators, Bloodbath with frags and random starts; the level's end and the
+  next by BLOOD.INI. Client: the status bar and weapon in hand (QAV), sounds by position, music (the MIDIs rendered
+  to MP3 through FluidSynth in WebAssembly), room over room through stencilled portals (E1M1's sky), messages, the
+  end-of-level tally and the frag list.
+- Tenkai gained `PictureAtlas.draw` options (scale, mirror, alpha, filter) on the way.

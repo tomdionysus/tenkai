@@ -3,7 +3,6 @@
 // weapon fires when the original's does. The client is told which QAV is playing and from when, and draws it.
 import { VECTOR } from './combat.mjs'
 
-const R = (n) => Math.floor(Math.random() * (2 * n + 1)) - n // Blood's Random3: -n to n
 
 // Each weapon: its QAVs (by id), its ammo, and how it fires
 export const WEAPONS = {
@@ -104,6 +103,7 @@ export default class Weapons {
   /** A QAV frame's shot (Blood's Fire* functions) */
   shoot (w, callback, alt) {
     const p = this.p, s = p.sprite, game = this.game, combat = game.combat
+    const R = (n) => game.random.Random3(n)
     const { dx, dy, dz } = combat.aim(s.ang, p.slope())
     const zw = p.zWeapon - s.z
     switch (p.weapon) {

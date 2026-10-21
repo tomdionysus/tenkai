@@ -29,4 +29,29 @@ export default class Demo {
   }
 
   static load (path) { return new Demo(fs.readFileSync(path)) }
+
+  /**
+   * A demo of the given inputs, with another demo's header (its map, skill and options): for the original to play
+   * (fidelity/montecarlo.mjs puts it where attract mode plays BLOOD000.DEM)
+   */
+  static write (header, inputs, patch = {}) {
+    const H = 411, R = 22
+    const b = Buffer.alloc(H + inputs.length * R)
+    header.copy(b, 0, 0, H)
+    b.writeInt32LE(inputs.length, 10)
+    for (const [offset, value] of Object.entries(patch)) b[Number(offset)] = value
+    inputs.forEach((n, i) => {
+      const o = H + i * R
+      b[o] = n.run ? 0x20 : 0
+      b.writeInt8(Math.max(-128, Math.min(127, Math.round((n.forward || 0) / 256))), o + 4)
+      b.writeInt16LE(n.turn || 0, o + 5)
+      b.writeInt8(Math.max(-128, Math.min(127, Math.round((n.strafe || 0) / 256))), o + 7)
+      b.writeUInt32LE(n.buttons || 0, o + 8)
+      b.writeUInt32LE(n.keys || 0, o + 12)
+      b.writeUInt32LE(n.use || 0, o + 16)
+      b[o + 20] = n.newWeapon || 0
+      b.writeInt8(n.mlook || 0, o + 21)
+    })
+    return b
+  }
 }
