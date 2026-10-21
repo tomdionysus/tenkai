@@ -250,8 +250,9 @@ export default class Player {
   stance () {
     if (!this.seqs) return
     const s = this.sprite
-    // The original stands idle again below about half its walking speed (its trace changes tile between 51900 and 30318)
-    const speed = approxDist(s.xvel, s.yvel) >= 0x8000
+    // Blood's playerProcess: it walks while its speed >> 16 is not 0 (BLOOD.EXE 0x3fee0), measured before the
+    // move's drag (BLOOD001's player stands at tick 292 at 61900, walks at 74000)
+    const speed = approxDist(s.xvel, s.yvel) >= 0x10000
     let id
     // PLAY1's sequences: M4 (+11) crouching (the original shows its tiles 3917-3932 when crouched: fidelity/montecarlo),
     // M3 (+9) swimming
