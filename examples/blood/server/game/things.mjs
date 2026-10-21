@@ -162,14 +162,15 @@ export default class Things {
       // Blood's actDamageSprite: at nothing a thing is told off (trTriggerSprite): a breakable breaks; a player who
       // blew it up may remark on it
       m.done = true
+      // (a gib thrown loose has its gib data, not the map's: Blood's OperateSprite breaks it from its xsprite)
+      if (m.gibObject) this.activateGibObject(s, m.gibObject)
+      else this.game.triggers.triggerSprite(s.index, CMD.off)
+      // then the remark (after the break, BLOOD.EXE 0x2cbe2: its draws follow the gibs')
       const p = source && this.game.playerOf(source)
       if (kind === DAMAGE.explode && p && (s.type === 416 || s.type === 417 || (s.type >= 425 && s.type <= 427)) && this.game.clock > (p.remarkAt || 0) && this.game.random.Chance(0x4000)) {
         this.game.random.Random(10)
         p.remarkAt = this.game.clock + 3600
       }
-      // (a gib thrown loose has its gib data, not the map's: Blood's OperateSprite breaks it from its xsprite)
-      if (m.gibObject) this.activateGibObject(s, m.gibObject)
-      else this.game.triggers.triggerSprite(s.index, CMD.off)
     }
     return damage
   }

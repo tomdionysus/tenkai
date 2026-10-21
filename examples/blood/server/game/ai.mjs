@@ -234,13 +234,15 @@ export const BloodAI = {
    * another than its target on a chance of the damage times its type's (or kin's) change-target chance, takes the
    * attacker for its target and is woken
    */
-  aiDamaged (source, damage) {
+  aiDamaged (source, damage, kind) {
     const s = this.sprite
     if (!source || source === s) return
     if (this.target === -1 || (source.index !== this.target && this.game.random.Chance(damage * (source.type === s.type ? this.info.changeTargetKinChance : this.info.changeTargetChance)))) {
       this.aiSetTargetSprite(source.index)
       this.aiActivateDude()
     }
+    // Then each type's (BLOOD.EXE 0x5cfa6): a cultist hurt by anything but fire dodges (standing, prone or swimming)
+    if ((s.type === 201 || s.type === 202) && kind !== 1) this.dodgeBy()
   },
 
   /** The zombie's HackSeqCallback (0x71800...): its axe at where its target is, from its eyes to the target's */

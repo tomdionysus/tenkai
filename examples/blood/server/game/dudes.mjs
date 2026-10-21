@@ -432,7 +432,7 @@ class Dude {
     if (x.health <= 0) { this.die(source, kind === DAMAGE.explode && damage < (10 << 4) ? DAMAGE.fall : kind, damage); return damage }
     // A new target: the one that hurt it (Blood's aiDamageSprite)
     // (a roll only for another than its target: damage by its type's change-target chance, its kin's for its kind)
-    if (this.bloodAI) { if (source && source.statnum === STAT.dude) this.aiDamaged(source, damage); this.cumulDamage = (this.cumulDamage || 0) + damage; return damage }
+    if (this.bloodAI) { this.cumulDamage = (this.cumulDamage || 0) + damage; this.aiDamaged(source, damage, kind); return damage }
     if (source && source.statnum === STAT.dude && source !== s && (this.target < 0 || (source.index !== this.target && Chance(damage * (source.type === s.type ? this.info.changeTargetKinChance : this.info.changeTargetChance))))) { this.target = source.index; if (this.stateName === 'idle' || this.stateName === 'search' || this.stateName === 'goto') this.activate() }
     if (this.stateName === 'buried' || this.stateName === 'laying') { this.setState('rise'); return damage }
     // Recoil comes in the frame's minds, from all of the frame's damage (Blood's cumulDamage)
@@ -485,11 +485,14 @@ class Dude {
       } else if (nSeq === 14) play(14, null)
       else if (nSeq === 3) play(13, toGib(3))
       else play(nSeq)
-    } else {
-      // (the other types' deaths have no callback in Blood's table: their bodies stay whole)
+    } else if (DEATH_CRY[s.type]) {
+      // the gargoyles, the hound, the hand, the beast, the eel, the bat, the rat (BLOOD.EXE 0x2bb12...): a chance, and
+      // burnt on it their burnt cry, else one of two; the death's sequence (no callback: the body stays whole)
+      const base = DEATH_CRY[s.type]
+      if (R.Chance(0x4000) && nSeq === 3) game.sound(s, base + 2)
+      else game.sound(s, base + R.Random(2))
       play(nSeq, null)
-      if (kind !== DAMAGE.explode) game.sound(s, ({ zombie: 1105, gargoyle: 1405, rat: 2102, bat: 2002, spider: 1803, hand: 1903, eel: 1703 }[KIND_OF[s.type]] || 1018))
-    }
+    } else play(nSeq, null)
     // Blown apart: its gib types' pieces fly (GibSprite), and four spurts of blood
     if (kind === DAMAGE.explode) {
       for (const g of info.gibType) if (g >= 0) game.fx.gibSprite(s, g)
@@ -511,6 +514,9 @@ class Dude {
     this.dudes.remove(this)
   }
 }
+
+/** actKillDude's cries of the types that share its pattern (their first of two; the burnt one is 2 more) */
+const DEATH_CRY = { 206: 1403, 207: 1453, 210: 1603, 211: 1303, 212: 1903, 217: 1703, 218: 1503, 219: 2003, 220: 2103 }
 
 export default class Dudes {
   constructor (game) {
