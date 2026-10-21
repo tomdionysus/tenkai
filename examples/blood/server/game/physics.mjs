@@ -282,9 +282,10 @@ export function moveDude (level, d, P = PHYSICS) {
   d.height = Math.max(zr.florz - bottom, 0) >> 8
   d.floorZ = zr.florz
   d.ceilZ = zr.ceilz
-  // Standing on another sprite (a face sprite: a dude, a thing), Blood's MoveDude slides it off by how far it is
-  // from that sprite's middle, and does not drag it; under water there is no drag either
-  const onSprite = (d.floorHit & 0xe000) === 0xc000 ? level.sprites[d.floorHit & 0x1fff] : null
+  // Over another sprite (a face sprite: a dude, a thing, the floor its getzrange found, standing on it or not: zombie
+  // 232 in BLOOD000 at tick 685), Blood's MoveDude slides it off by how far it is from that sprite's middle, and does
+  // not drag it; under water there is no drag either
+  const onSprite = (zr.florhit & 0xe000) === 0xc000 ? level.sprites[zr.florhit & 0x1fff] : null
   if ((s.xvel || s.yvel) && onSprite && (onSprite.cstat & 0x30) === 0) {
     s.xvel += s.x - onSprite.x
     s.yvel += s.y - onSprite.y

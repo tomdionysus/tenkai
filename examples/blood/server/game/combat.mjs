@@ -89,11 +89,13 @@ export default class Combat {
       obj.cstat &= ~mask
       const c2 = extra ? extra.cstat : 0
       if (extra) extra.cstat &= ~mask
-      const h = engine.hitscan(x1, y1, z1, sectnum, dx, dy, dz << 4, CLIPMASK1)
+      const h = engine.hitscan(x1, y1, z1, sectnum, dx, dy, dz << 4, CLIPMASK1, goal)
       obj.cstat = c
       if (extra) extra.cstat = c2
       return h
     }
+    // (Build's hitscan goal from Blood's range: range << 4 along the shooter's facing)
+    const goal = range ? { x: x1 + mulscale(range << 4, trig.Cos(s.ang & 2047), 30), y: y1 + mulscale(range << 4, trig.Sin(s.ang & 2047), 30) } : null
     let hit = through(s, 256, s.sectnum)
     const pow2 = (n) => { let j = 15; while (j > 1 && (1 << j) > n) j--; return (1 << j) === n ? j : -1 }
     for (let n = 255; n >= 0; n--) {

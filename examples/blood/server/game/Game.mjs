@@ -227,7 +227,7 @@ export default class Game {
     // game's rand(): the original's draws match the remake's only with it (fidelity/randlog.mjs)
     if ((this.frame & 7) === 0) this.random.rand()
     // Blood's ProcessFrame: the players' input and weapons first, then the busy sectors, the events, the sequences,
-    // then the sprites (actProcessSprites): things, missiles, explosions, the dudes' moves (the players' among them),
+    // then the sprites (actProcessSprites): things, missiles, explosions, the dudes' moves (the players' after),
     // the dudes' minds (aiProcessDudes), the effects
     for (const p of this.players) if (p) this.playerTick(p)
     this.triggers.processBusy()
@@ -236,9 +236,11 @@ export default class Game {
     this.things.tick()
     this.missiles.tick()
     this.things.explosionsTick()
+    // (the dudes in their list's order, Blood's headspritestat: the map's monsters first, then the players, whose
+    // sprites came after: a zombie meets the player where the last tick left it, BLOOD000 at tick 697)
+    this.dudes.move()
     for (const p of this.players) if (p) this.playerMove(p)
     for (const p of this.players) if (p && p.health > 0) this.pickups.check(p)
-    this.dudes.move()
     this.dudes.think()
     this.fx.process()
     // Blood's actPostProcess: the status changes posted in the frame (actPostSprite), made at its end

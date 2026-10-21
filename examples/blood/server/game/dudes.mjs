@@ -186,7 +186,10 @@ class Dude {
     const { bottom } = level.extents(s)
     const cstat = s.cstat
     s.cstat &= ~256
-    const hit = engine.hitscan(s.x, s.y, s.z, s.sectnum, trig.Cos(ang) >> 16, trig.Sin(ang) >> 16, 0, CLIPMASK0)
+    // Blood's HitScan with a range: Build's goal range << 4 along the sprite's own facing (not the probe's): past
+    // it nothing is hit, so a dude barely moving finds every way shut (zombie 232 in BLOOD000 at tick 713)
+    const goal = range ? { x: s.x + mulscale(range << 4, trig.Cos(s.ang & 2047), 30), y: s.y + mulscale(range << 4, trig.Sin(s.ang & 2047), 30) } : null
+    const hit = engine.hitscan(s.x, s.y, s.z, s.sectnum, trig.Cos(ang & 2047) >> 16, trig.Sin(ang & 2047) >> 16, 0, CLIPMASK0, goal)
     s.cstat = cstat
     const dist = approxDist(s.x - hit.x, s.y - hit.y)
     if (dist - (s.clipdist << 2) < range) return hit.sprite >= 0 && hit.sprite === targetIndex

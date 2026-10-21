@@ -633,10 +633,11 @@ export class Engine {
    * Build's hitscan: the first thing a ray from (x, y, z) in sector `sectnum` along (vx, vy, vz) hits. vz is in the
    * ray's own scale (Build: z per 16384 of x and y). Returns { sect, wall, sprite, x, y, z }.
    */
-  hitscan (x, y, z, sectnum, vx, vy, vz, cliptype) {
+  hitscan (x, y, z, sectnum, vx, vy, vz, cliptype, goal = null) {
     const walls = this.world.walls, sectors = this.world.sectors, sprites = this.world.sprites
     const dawalclipmask = cliptype & 65535, dasprclipmask = cliptype >>> 16
-    const hit = { sect: -1, wall: -1, sprite: -1, x: 0x7fffffff, y: 0x7fffffff, z: 0 }
+    // (Build's hitscangoal: the first "hit" is the goal, so nothing farther than it, by |dx| + |dy|, is hit)
+    const hit = { sect: -1, wall: -1, sprite: -1, x: goal ? goal.x : 0x1fffffff, y: goal ? goal.y : 0x1fffffff, z: 0 }
     if (sectnum < 0) return hit
     const clipsectorlist = [sectnum]
     for (let c = 0; c < clipsectorlist.length; c++) {
