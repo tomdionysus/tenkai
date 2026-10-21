@@ -8,9 +8,10 @@ import Hud from './view/Hud.js'
 import Sounds from './Sounds.js'
 import { json, addImages, image } from './data.js'
 
+// (no Ctrl key: with W it is the browser's close-tab, which a page cannot stop)
 const KEYS = {
   forward: ['KeyW', 'ArrowUp'], back: ['KeyS', 'ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'],
-  strafeLeft: ['KeyA', 'Comma'], strafeRight: ['KeyD', 'Period'], jump: ['Space'], crouch: ['KeyC', 'ControlLeft'],
+  strafeLeft: ['KeyA', 'Comma'], strafeRight: ['KeyD', 'Period'], jump: ['Space'], crouch: ['KeyC', 'KeyZ'],
   open: ['KeyE'], fire: ['KeyF'], scores: ['Tab'], medkit: ['KeyM'], beastVision: ['KeyB'], crystalBall: ['KeyK'], jumpBoots: ['KeyJ'],
   prevItem: ['BracketLeft'], nextItem: ['BracketRight'], useItem: ['Enter'], altFire: ['KeyX'], walk: ['ShiftLeft', 'ShiftRight'], lookUp: ['PageUp'], lookDown: ['PageDown'], lookCenter: ['End'],
   ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n, i) => ['weapon' + (i + 1), ['Digit' + n]]))
@@ -81,14 +82,16 @@ export default class BloodClient extends GameEngine {
   }
 
   /**
-   * The mouse turns and looks. A click or a key asks for the pointer (pointer lock) on the canvas the game is drawn
-   * in (the view's own while playing); where the browser will not give it, the mouse still turns and looks while it
-   * moves over the game, and its buttons still fire
+   * The mouse turns and looks while the game has it: once a click on the game takes the pointer (pointer lock), or,
+   * where the browser will not give it, from that click while the page has the focus. Leaving the page (or Escape)
+   * lets the mouse go; a click takes it again
    */
   pointerLook () {
     const canvases = () => [this.element, this.view && this.view.canvas].filter(Boolean)
     const shown = () => canvases().find((c) => c.style.visibility !== 'hidden' && c.style.display !== 'none') || this.element
     const locked = () => canvases().includes(document.pointerLockElement)
+    this.mouseHeld = false
+    const release = () => { this.mouseHeld = false; this.mouse.fire = this.mouse.alt = false }
     const lock = () => {
       const canvas = shown()
       if (locked() || !canvas.requestPointerLock) return
@@ -99,17 +102,24 @@ export default class BloodClient extends GameEngine {
     }
     document.addEventListener('mousedown', (e) => {
       if (!canvases().includes(e.target)) return
+      // (the click that takes the mouse only takes it; the next ones fire)
+      const had = this.mouseHeld || locked()
+      this.mouseHeld = true
       lock()
-      this.mouse[e.button === 2 ? 'alt' : 'fire'] = true
+      if (had) this.mouse[e.button === 2 ? 'alt' : 'fire'] = true
     })
-    document.addEventListener('keydown', lock)
     document.addEventListener('mousemove', (e) => {
-      if (!locked() && !canvases().includes(e.target)) return
+      if (!locked() && !(this.mouseHeld && document.hasFocus() && canvases().includes(e.target))) return
       this.mouse.dx += e.movementX || 0
       this.mouse.dy += e.movementY || 0
     })
     document.addEventListener('mouseup', (e) => { this.mouse[e.button === 2 ? 'alt' : 'fire'] = false })
     document.addEventListener('contextmenu', (e) => { if (canvases().includes(e.target)) e.preventDefault() })
+    // The pointer let go (Escape), the page left or hidden: the mouse is the player's again
+    document.addEventListener('pointerlockchange', () => { if (!locked()) release() })
+    window.addEventListener('blur', release)
+    document.addEventListener('visibilitychange', () => { if (document.hidden) release() })
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') release() })
   }
 
   update (dt) {
