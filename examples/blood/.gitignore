@@ -2,3 +2,6 @@ bundle.js
 fly.bundle.js
 *.bundle.js
 status/
+# Screenshots of the original and the remake (the tools write them; not for the repository)
+*.png
+!assets/cover.png
