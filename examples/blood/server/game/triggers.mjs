@@ -288,11 +288,55 @@ export default class Triggers {
     return 0
   }
 
+  /**
+   * Blood's VDoorBusy (BLOOD.EXE 0x46230): a door (or lift) moving onto something it squashes (a dude or a thing
+   * whose top is above the sector's ceiling: GetCrushedSpriteExtents) as it closes: an interruptable one backs off
+   * by two steps (and hurts it first if it crushes: its data, else 500; a dead one stops it); one that is not goes
+   * on, but a crushing one hurts it and backs off the same
+   */
   vdoorBusy (nSector, x, busy) {
+    const time = Math.max(1, Math.trunc(120 * (x.state ? x.busyTimeB : x.busyTimeA) / 10))
+    const step = Math.trunc(65536 / time)
+    const crushed = this.crushedSprite(nSector)
+    const closing = busy > x.busy ? (x.onCeilZ > x.offCeilZ || x.onFloorZ < x.offFloorZ) : busy < x.busy ? (x.offCeilZ > x.onCeilZ || x.offFloorZ < x.onFloorZ) : false
+    if (crushed && closing) {
+      const back = (busy > x.busy ? -1 : 1) * Math.trunc(step / 2) * 4
+      const health = this.healthOf(crushed)
+      if (x.interruptable) {
+        if (x.crush) {
+          if (health <= 0) return 2
+          this.game.combat.damage(crushed, crushed, 0, (x.data || 500) << 4)
+        }
+        busy = Math.max(0, Math.min(65536, busy + back))
+      } else if (x.crush && health > 0) {
+        this.game.combat.damage(crushed, crushed, 0, (x.data || 500) << 4)
+        busy = Math.max(0, Math.min(65536, busy + back))
+      }
+    }
     const wave = x.busy < busy ? x.busyWaveA : x.busyWaveB
-    if (!this.crushCheck(nSector, x, busy, wave)) return 1
     this.zTranslate(nSector, x, busy, wave)
     return this.finishBusy(nSector, x, busy)
+  }
+
+  /** Blood's GetCrushedSpriteExtents (0x45b84): of the dudes and things in a sector, the one whose top is highest above its ceiling */
+  crushedSprite (nSector) {
+    const level = this.level
+    let best = null, highest = level.sectors[nSector].ceilingz
+    for (const i of level.engine.spritesIn(nSector)) {
+      const s = level.sprites[i]
+      if (s.statnum !== STAT.dude && s.statnum !== STAT.thing) continue
+      const { top } = level.extents(s)
+      if (top < highest) { highest = top; best = s }
+    }
+    return best
+  }
+
+  /** A sprite's health as Blood keeps it (a player's in its player, the rest in their xsprites) */
+  healthOf (s) {
+    const p = this.game.playerOf && this.game.playerOf(s)
+    if (p) return p.health
+    const x = this.level.x(s)
+    return x ? x.health : 0
   }
 
   vspriteBusy (nSector, x, busy) {
@@ -304,24 +348,6 @@ export default class Triggers {
     const dc = mulscale(x.onCeilZ - x.offCeilZ, this.wave(busy, wave), 16) - mulscale(x.onCeilZ - x.offCeilZ, this.wave(x.busy, wave), 16)
     if (dc) for (const i of this.level.engine.spritesIn(nSector)) { const s = this.level.sprites[i]; if (s.cstat & 16384) s.z += dc }
     return this.finishBusy(nSector, x, busy)
-  }
-
-  /** Whether a door may move: a door that would crush a dude stops (Blood checks the dudes in it) */
-  crushCheck (nSector, x, busy, wave) {
-    if (x.crush) return true
-    const sec = this.level.sectors[nSector]
-    const dc = x.onCeilZ - x.offCeilZ, df = x.onFloorZ - x.offFloorZ
-    const cz = dc ? x.offCeilZ + mulscale(dc, this.wave(busy, wave), 16) : sec.ceilingz
-    const fz = df ? x.offFloorZ + mulscale(df, this.wave(busy, wave), 16) : sec.floorz
-    if (cz <= sec.ceilingz && fz >= sec.floorz) return true
-    for (const i of this.level.engine.spritesIn(nSector)) {
-      const s = this.level.sprites[i]
-      if (s.statnum !== STAT.dude) continue
-      const { top, bottom } = this.level.extents(s)
-      if (cz > sec.ceilingz && top < cz) return false
-      if (fz < sec.floorz && bottom > fz) return false
-    }
-    return true
   }
 
   hdoorBusy (nSector, x, busy) {
