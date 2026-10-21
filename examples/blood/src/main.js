@@ -13,7 +13,7 @@ const KEYS = {
   forward: ['KeyW', 'ArrowUp'], back: ['KeyS', 'ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'],
   strafeLeft: ['KeyA', 'Comma'], strafeRight: ['KeyD', 'Period'], jump: ['Space'], crouch: ['KeyC', 'KeyZ'],
   open: ['KeyE'], fire: ['KeyF'], scores: ['Tab'], medkit: ['KeyM'], beastVision: ['KeyB'], crystalBall: ['KeyK'], jumpBoots: ['KeyJ'],
-  prevItem: ['BracketLeft'], nextItem: ['BracketRight'], useItem: ['Enter'], altFire: ['KeyX'], walk: ['ShiftLeft', 'ShiftRight'], lookUp: ['PageUp'], lookDown: ['PageDown'], lookCenter: ['End'],
+  prevItem: ['BracketLeft'], nextItem: ['BracketRight'], useItem: ['Enter'], crosshair: ['KeyI'], altFire: ['KeyX'], walk: ['ShiftLeft', 'ShiftRight'], lookUp: ['PageUp'], lookDown: ['PageDown'], lookCenter: ['End'],
   ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n, i) => ['weapon' + (i + 1), ['Digit' + n]]))
 }
 const BUTTON = { jump: 1, crouch: 2, fire: 4, altFire: 8, lookUp: 16, lookDown: 32 }
@@ -86,6 +86,8 @@ export default class BloodClient extends GameEngine {
     if (!this.client || !this.client.player || !this.world) return
     const i = this.input
     if (i.pressed('lookCenter')) this.look.horiz = 100
+    // Blood's Toggle_Crosshair (I): the aim reticle, off unless BLOOD.CFG's AimReticle says so
+    if (i.pressed('crosshair')) this.crosshair = !this.crosshair
     const run = !i.down('walk')
     const move = run ? 2048 : 1024
     let buttons = 0, keys = 0, newWeapon = 0
@@ -119,14 +121,12 @@ export default class BloodClient extends GameEngine {
   }
 
   /**
-   * The view angles, once a drawn frame by the time since the last (not by the game's fixed steps, which a frame
-   * holds none, one or two of): the mouse and the turning keys. The steps send them on to the server, which turns
-   * the player by them
+   * The view angles, once a drawn frame (the engine's frame hook; a frame holds none, one or two steps): the mouse
+   * and the turning keys. The steps send them on to the server, which turns the player by them
    */
-  turn () {
-    const now = performance.now()
-    const dt = Math.min(0.1, ((now - (this.turnedAt || now)) / 1000))
-    this.turnedAt = now
+  frame (dt) {
+    super.frame(dt)
+    if (!this.client || !this.client.player || !this.world) return
     const i = this.input, m = this.mouse.read()
     this.look.ang = (this.look.ang + m.dx * 2 + i.axis('left', 'right') * 1024 * dt + 2048 * 4) % 2048
     this.look.horiz = Math.max(0, Math.min(200, this.look.horiz - m.dy * 0.6 + i.axis('lookDown', 'lookUp') * 120 * dt))
@@ -139,7 +139,6 @@ export default class BloodClient extends GameEngine {
   draw (context) {
     const playing = this.client && this.client.state && this.world && this.view && this.view.gl && !this.screenStack.some((s) => s.visible)
     if (playing) {
-      this.turn()
       this.drawWorld()
       this.view.hud = this.hud.build()
       this.view.present(this.element)

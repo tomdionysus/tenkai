@@ -38,6 +38,8 @@ export default class Hud {
     const O = this.overlay
     O.begin(f)
     if (you) {
+      // The crosshair (viewDrawScreen, BLOOD.EXE 0x1e22c): tile 2319 at the view's middle, see-through, under the weapon
+      if (this.game.crosshair && !you.dead) O.draw(2319, 160, 90, { alpha: 0.66 })
       if (!you.dead) this.weapon(you)
       this.status(you)
     }
