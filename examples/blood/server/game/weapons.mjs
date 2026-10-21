@@ -231,21 +231,33 @@ export default class Weapons {
    * at the speed asked give or take a quarter, a turn give or take 56, and up
    */
   shellEject (side, speed) {
-    const p = this.p, s = p.sprite, game = this.game, R = game.random, trig = game.level.trig
+    const p = this.p, s = p.sprite
     p.zView = s.z - p.posture_().eyeAboveZ
     const t = p.zWeapon - p.zView
-    const z = p.zWeapon - t + (t >> 2)
+    this.eject(40, p.zWeapon - t + (t >> 2), side, speed, 20)
+  }
+
+  /** Blood's SpawnBulletEject (0x4ab8c) and fxSpawnEjectingBrass (0x73378): the tommy gun's casing (37-39), from halfway */
+  brassEject (side, speed) {
+    const p = this.p, s = p.sprite
+    p.zView = s.z - p.posture_().eyeAboveZ
+    const t = p.zWeapon - p.zView
+    this.eject(37, p.zWeapon - Math.trunc(t / 2), side, speed, 40)
+  }
+
+  eject (first, z, side, speed, up) {
+    const p = this.p, s = p.sprite, game = this.game, R = game.random, trig = game.level.trig
     let x = s.x + mulscale(s.clipdist - 4, trig.Cos(s.ang), 28), y = s.y + mulscale(s.clipdist - 4, trig.Sin(s.ang), 28)
     x += mulscale(side, trig.Cos((s.ang + 512) & 2047), 30)
     y += mulscale(side, trig.Sin((s.ang + 512) & 2047), 30)
-    const f = game.fx.spawn(40 + R.Random(3), s.sectnum, x, y, z, 0)
+    const f = game.fx.spawn(first + R.Random(3), s.sectnum, x, y, z, 0)
     if (!f) return
     const v = R.Random2(Math.trunc((Math.trunc(speed / 4) << 18) / 120))
     const ang = (s.ang + R.Random2(56) + 512) & 2047
     const vel = v + Math.trunc((speed << 18) / 120)
     f.xvel = mulscale(vel, trig.Cos(ang), 30)
     f.yvel = mulscale(vel, trig.Sin(ang), 30)
-    f.zvel = s.zvel - 0x20000 - Math.trunc((R.Random2(20) << 18) / 120)
+    f.zvel = s.zvel - 0x20000 - Math.trunc((R.Random2(up) << 18) / 120)
   }
 
   /**
@@ -340,11 +352,27 @@ export default class Weapons {
         game.shake(p, 0x100)
         break
       }
-      case 4: // the tommy gun: a bullet a frame, spread a little (alt: a sweep)
-        combat.fireVector(s, 0, zw, dx + R(alt ? 3000 : 300), dy + R(alt ? 3000 : 300), dz + R(300), VECTOR.tommyRegular)
+      case 4: { // the tommy gun
+        game.sound(s, 431)
+        if (!alt) {
+          // Blood's FireTommy (BLOOD.EXE 0x4d130): a bullet (vector 5) spread by Random3 in z (400), y and x (1200)
+          const z = dz + R(400), y = dy + R(1200), x = dx + R(1200)
+          combat.fireVector(s, 0, zw, x, y, z, VECTOR.tommyRegular)
+          this.brassEject(-15, -45)
+        } else {
+          // AltFireSpread2 (0x4d724): the sweep, each frame's trigger (1-14) turning the shot from -56 to +56 off the
+          // aim; a bullet (vector 3) spread by Random3 in z (300), y and x (600)
+          const n = Math.max(1, Math.min(14, callback))
+          const ang = (game.level.trig.getangle(dx, dy) + Math.trunc((n - 1) * 112 / 14) - 56) & 2047
+          const ax = game.level.trig.Cos(ang) >> 16, ay = game.level.trig.Sin(ang) >> 16
+          const z = dz + R(300), y = ay + R(600), x = ax + R(600)
+          combat.fireVector(s, 0, zw, x, y, z, VECTOR.tommyAP)
+          const speed = game.random.Random2(90)
+          this.brassEject(game.random.Random2(30), speed)
+        }
         this.use(w, 1)
-        game.sound(s, 1006 + (Math.random() < 0.5 ? 0 : 1))
         break
+      }
       case 2: // the flare pistol: a flare
         game.missiles.fire(s, 'flare', s.ang, p.slope(), zw)
         this.use(w, 1)
