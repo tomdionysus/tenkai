@@ -44,18 +44,25 @@ export default class Triggers {
   Sin (a) { return this.trig.Sin(a) }
 
   // --- the listeners on each channel ---
+  /**
+   * Blood's evInit: every sector, wall and sprite with a channel to listen on, in that order, sorted by channel
+   * with the C library's qsort (Watcom's, BLOOD.EXE 0xac8d0: not stable, so two on a channel may swap: BLOOD001's
+   * level start reaches sprite 1062 before 1061)
+   */
   listeners (rx) {
     if (!this.byChannel) {
       this.byChannel = new Map()
-      const add = (type, index, x) => {
-        if (!x || !x.rxID) return
-        let l = this.byChannel.get(x.rxID)
-        if (!l) this.byChannel.set(x.rxID, (l = []))
-        l.push({ type, index })
-      }
+      const list = []
+      const add = (type, index, x) => { if (x && x.rxID) list.push({ type, index, ch: x.rxID }) }
       this.level.sectors.forEach((s, i) => add(SECTOR, i, this.level.xs(i)))
       this.level.walls.forEach((w, i) => add(WALL, i, this.level.xw(i)))
       this.level.sprites.forEach((s, i) => { if (s.statnum < STAT.free) add(SPRITE, i, this.level.x(s)) })
+      watcomQsort(list, (a, b) => a.ch - b.ch)
+      for (const e of list) {
+        let l = this.byChannel.get(e.ch)
+        if (!l) this.byChannel.set(e.ch, (l = []))
+        l.push({ type: e.type, index: e.index })
+      }
     }
     return this.byChannel.get(rx) || []
   }
@@ -721,4 +728,61 @@ export class EventQueue {
       else i++
     }
   }
+}
+
+/**
+ * The Watcom C library's qsort (BLOOD.EXE 0xac8d0), on an array of objects in place: under 16 a gapped insertion
+ * sort (gap 3 over every third, then 1); else Bentley and McIlroy's: the pivot a median of three (of three medians
+ * past 42), a three-way partition with the equal ones gathered at the ends and swapped to the middle, then each side
+ */
+export function watcomQsort (a, cmp) {
+  const swap = (i, j) => { const t = a[i]; a[i] = a[j]; a[j] = t }
+  const med3 = (i, j, k) => {
+    if (cmp(a[i], a[j]) > 0) { if (cmp(a[i], a[k]) <= 0) return i; if (cmp(a[j], a[k]) > 0) return j; return k }
+    if (cmp(a[i], a[k]) >= 0) return i
+    if (cmp(a[j], a[k]) > 0) return k
+    return j
+  }
+  const vecswap = (i, j, n) => { for (let t = 0; t < n; t++) swap(i + t, j + t) }
+  const stack = [[0, a.length]]
+  while (stack.length) {
+    const [base, n] = stack.pop()
+    if (n <= 1) continue
+    if (n < 16) {
+      for (let gap = 3; gap > 0; gap -= 2) {
+        for (let p = base + gap; p < base + n; p += gap) {
+          for (let q = p; q > base; q -= gap) { if (cmp(a[q - gap], a[q]) > 0) swap(q, q - gap); else break }
+        }
+      }
+      continue
+    }
+    let pm = base + (n >> 1)
+    if (n > 29) {
+      let pl = base, pn = base + n - 1
+      if (n > 42) {
+        const d = n >> 3
+        pl = med3(pl, pl + d, pl + 2 * d)
+        pm = med3(pm - d, pm, pm + d)
+        pn = med3(pn - 2 * d, pn - d, pn)
+      }
+      pm = med3(pl, pm, pn)
+    }
+    const pv = a[pm]
+    let pa = base, pb = base, pc = base + n - 1, pd = pc
+    for (;;) {
+      let r
+      while (pb <= pc && (r = cmp(a[pb], pv)) <= 0) { if (r === 0) { swap(pa, pb); pa++ } pb++ }
+      while (pb <= pc && (r = cmp(a[pc], pv)) >= 0) { if (r === 0) { swap(pc, pd); pd-- } pc-- }
+      if (pb > pc) break
+      swap(pb, pc); pb++; pc--
+    }
+    const end = base + n
+    let s = Math.min(pa - base, pb - pa)
+    vecswap(base, pb - s, s)
+    s = Math.min(pd - pc, end - pd - 1)
+    vecswap(pb, end - s, s)
+    stack.push([base, pb - pa])
+    stack.push([end - (pd - pc), pd - pc])
+  }
+  return a
 }
