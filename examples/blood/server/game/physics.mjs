@@ -235,10 +235,12 @@ export function moveDude (level, d, P = PHYSICS) {
       v = 0
       s.zvel = level.velFloor[s.sectnum]
       d.falling = false
-    } else if (s.zvel === 0) d.falling = false
+    } else if (s.zvel === 0) { d.falling = false; s.flags &= ~4 }
   } else {
     d.floorHit = 0
     if (d.gravity !== false) d.falling = true
+    // Blood's kPhysFalling: in the air (with gravity), it is moved every frame until it lands
+    if (s.flags & 2) s.flags |= 4
   }
   if (top <= zr.ceilz) {
     d.ceilHit = zr.ceilhit
@@ -249,7 +251,13 @@ export function moveDude (level, d, P = PHYSICS) {
   d.height = Math.max(zr.florz - bottom, 0) >> 8
   d.floorZ = zr.florz
   d.ceilZ = zr.ceilz
-  if ((s.xvel || s.yvel) && d.height < P.airborne) {
+  // Standing on another sprite (a face sprite: a dude, a thing), Blood's MoveDude slides it off by how far it is
+  // from that sprite's middle, and does not drag it; under water there is no drag either
+  const onSprite = (d.floorHit & 0xe000) === 0xc000 ? level.sprites[d.floorHit & 0x1fff] : null
+  if ((s.xvel || s.yvel) && onSprite && (onSprite.cstat & 0x30) === 0) {
+    s.xvel += s.x - onSprite.x
+    s.yvel += s.y - onSprite.y
+  } else if ((s.xvel || s.yvel) && d.height < P.airborne && !(level.xs(s.sectnum) && level.xs(s.sectnum).underwater)) {
     let drag = P.dudeDrag
     if (d.height > 0) drag -= scale(P.dudeDrag, d.height, 0x100)
     s.xvel -= mulscaler(s.xvel, drag, 16)

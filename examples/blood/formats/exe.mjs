@@ -161,6 +161,68 @@ export default class BloodExe {
     return out
   }
 
+  /** The LE header's objects and fixups (where an address is put in at load, and what it points at) */
+  le () {
+    if (this._le) return this._le
+    const b = this.b, le = b.indexOf(Buffer.from('LE\0\0'))
+    const u32 = (o) => b.readUInt32LE(o)
+    const dataPages = u32(le + 0x80), objtab = le + u32(le + 0x40)
+    const objs = []
+    for (let i = 0; i < u32(le + 0x44); i++) {
+      const o = objtab + i * 24
+      objs.push({ vsize: u32(o), base: u32(o + 4), page: u32(o + 12), count: u32(o + 16), file: dataPages + (u32(o + 12) - 1) * 4096 })
+    }
+    // fixups by object: object number -> Map(offset in it -> { obj, off })
+    const fix = new Map()
+    const npages = u32(le + 0x14), fpt = le + u32(le + 0x68), frt = le + u32(le + 0x6c)
+    const objOfPage = (page) => { for (let i = 0; i < objs.length; i++) if (page >= objs[i].page - 1 && page < objs[i].page - 1 + objs[i].count) return i + 1; return 0 }
+    for (let page = 0; page < npages; page++) {
+      let p = frt + u32(fpt + page * 4)
+      const end = frt + u32(fpt + (page + 1) * 4)
+      const ob = objOfPage(page), pageBase = (page - (objs[ob - 1].page - 1)) * 4096
+      if (!fix.has(ob)) fix.set(ob, new Map())
+      const m = fix.get(ob)
+      while (p < end) {
+        const stype = b[p], flags = b[p + 1]; p += 2
+        let srcs = null, count = 0
+        if (stype & 0x20) { count = b[p]; p += 1 } else { srcs = [b.readInt16LE(p)]; p += 2 }
+        let obj
+        if (flags & 0x40) { obj = b.readUInt16LE(p); p += 2 } else { obj = b[p]; p += 1 }
+        let off = 0
+        if ((stype & 0xf) !== 2) { if (flags & 0x10) { off = u32(p); p += 4 } else { off = b.readUInt16LE(p); p += 2 } }
+        if (!srcs) { srcs = []; for (let k = 0; k < count; k++) srcs.push(b.readInt16LE(p + k * 2)); p += count * 2 }
+        for (const so of srcs) m.set(pageBase + so, { obj, off })
+      }
+    }
+    this._le = { objs, fix }
+    return this._le
+  }
+
+  /**
+   * Blood's AI states (AISTATE, 28 bytes in v1.11: seqId, funcId, stateTicks, then the enter, move and think
+   * functions and the next state), by their offset in the data object: { seq, func, ticks, enter, move, think,
+   * next }, the functions as the code's linear addresses (0x10000 based, as tools/disasm.mjs shows them), next as
+   * a state's offset. Found by their shape (tools/aistates.mjs prints them).
+   */
+  aiStates () {
+    const { objs, fix } = this.le()
+    const DATA = objs[3], CODE = objs[0], df = fix.get(4) || new Map(), b = this.b
+    const loaded = Math.min(DATA.count * 4096, b.length - DATA.file)
+    const i32 = (o) => b.readInt32LE(DATA.file + o)
+    const codeAt = (o) => { const f = df.get(o); if (f && f.obj === 1) return CODE.base + f.off; return i32(o) === 0 ? 0 : -1 }
+    const dataAt = (o) => { const f = df.get(o); if (f && f.obj === 4) return f.off; return i32(o) === 0 ? 0 : -1 }
+    const out = new Map()
+    for (let o = 0; o + 28 <= loaded; o += 4) {
+      const seq = i32(o), func = i32(o + 4), ticks = i32(o + 8)
+      if (seq < -1 || seq > 64 || func < -1 || func > 64 || ticks < 0 || ticks > 10000) continue
+      if (df.get(o) || df.get(o + 4) || df.get(o + 8)) continue
+      const enter = codeAt(o + 12), move = codeAt(o + 16), think = codeAt(o + 20), next = dataAt(o + 24)
+      if (enter < 0 || move < 0 || think < 0 || next < 0 || !(enter || move || think || next)) continue
+      out.set(o, { at: o, seq, func, ticks, enter, move, think, next })
+    }
+    return out
+  }
+
   dudeInfo () {
     const at = this.find([0x00, 0x10, 0x28, 0x00, 0x46, 0x00, 0xb0, 0x04, 0x00, 0x00, 0x30])
     if (at < 0) throw new Error('dudeInfo not found')

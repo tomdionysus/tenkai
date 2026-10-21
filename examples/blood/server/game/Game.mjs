@@ -113,7 +113,7 @@ export default class Game {
     if (s.statnum === STAT.dude && this.dudes && this.dudes.of(s)) {
       const d = this.dudes.of(s)
       if (event.cmd === 1 && (d.stateName === 'idle' || d.stateName === 'buried' || d.stateName === 'laying')) { d.activate(); return true }
-      if (event.cmd === 0) { d.damaged(null, 0, 1 << 15); return true }
+      if (event.cmd === 0 && d.x.health > 0) { d.damaged(null, 0, 1 << 15); return true }
       return true
     }
     return false

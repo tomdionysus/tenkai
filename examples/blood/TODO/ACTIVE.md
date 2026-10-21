@@ -103,8 +103,8 @@ level's end leads to the next by BLOOD.INI. Open, in the order to take them:
 
 - [x] F1 Thing physics and explosions matched to the original (BLOOD000 departs at tick 340 where its thrown TNT
       goes off): Blood's MoveThing, the explosion table, actRadiusDamage's knock
-- [x] F2 (first pass: zombies, TNT, gibs) The monsters traced from the original's memory (their sprites by index) and matched state by state:
-      cultists, zombies, gargoyles, rats, bats, hands, spiders, eels
+- [ ] F2 The monsters from the original's own AI states and functions (server/game/ai.mjs, the zombies done):
+      cultists, gargoyles and statues, rats, bats, hands, spiders, the bone eel; then aiDamageSprite's per-type part
 - [x] F3 Blood's random numbers found (Watcom rand); Monte-Carlo runs of random inputs in both, compared
 - [x] F3b The drift of one draw in six ticks: Blood's CalcGameChecksum (found by logging rand()'s callers)
 - [ ] F3c The draws part: BLOOD000 at tick 352 (the zombie's body rides the rising gibs in the original: its

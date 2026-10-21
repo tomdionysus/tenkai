@@ -25,7 +25,7 @@ export class Resources {
     this.seqs = new SeqLibrary(this.blood)
     // The original's own tables, read out of its executable
     const exe = BloodExe.load(path.join(dir, 'BLOOD.EXE'))
-    this.tables = { dudeInfo: exe.dudeInfo(), vectorData: exe.vectorData(), weaponItems: exe.weaponItems(), ammoItems: exe.ammoItems(), items: exe.items(), missileInfo: exe.missileInfo(), thingInfo: exe.thingInfo(), explodeInfo: exe.explodeInfo(), gibThings: exe.gibThings(), fxData: exe.fxData(), gibList: exe.gibList() }
+    this.tables = { dudeInfo: exe.dudeInfo(), vectorData: exe.vectorData(), weaponItems: exe.weaponItems(), ammoItems: exe.ammoItems(), items: exe.items(), missileInfo: exe.missileInfo(), thingInfo: exe.thingInfo(), explodeInfo: exe.explodeInfo(), gibThings: exe.gibThings(), fxData: exe.fxData(), gibList: exe.gibList(), aiStates: exe.aiStates() }
     this.qavs = {}
     for (const e of this.blood.ofType('QAV')) this.qavs[e.id] = qavRead(this.blood.read(e))
   }

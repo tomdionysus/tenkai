@@ -20,7 +20,8 @@ const demo = trace.demoPath ? new Demo(fs.readFileSync(trace.demoPath)) : Demo.l
 const ours = []
 replay(new Resources(), demo, Number(ticksArg), (c, p, level) => {
   const d = {}
-  for (const s of level.sprites) if (s.statnum === 6 || (s.statnum === 4 && s.type >= 201 && s.type < 260)) d[s.index] = [s.x, s.y, s.z, s.ang, s.picnum, s.statnum]
+  // (a dead dude is a thing, Blood's 426: followed by its index)
+  for (const s of level.sprites) if (s.statnum === 6 || (s.statnum === 4 && ((s.type >= 201 && s.type < 260) || s.type === 426))) d[s.index] = [s.x, s.y, s.z, s.ang, s.picnum, s.statnum]
   ours[c] = d
 }, { seed: samples[0].r })
 const start = samples[0].dudes

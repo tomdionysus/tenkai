@@ -4,6 +4,8 @@
 // (sight by distance, periphery and line of sight; hearing). Their numbers are the original's dudeInfo (BLOOD.EXE).
 import { mulscale, dmulscale, divscale, CLIPMASK0, CLIPMASK1 } from '../../common/engine.mjs'
 import { moveDude, approxDist } from './physics.mjs'
+import { findSector } from './fx.mjs'
+import { BloodAI, START as AI_START } from './ai.mjs'
 import { STAT, CMD } from './triggers.mjs'
 import { DAMAGE, VECTOR } from './combat.mjs'
 
@@ -93,6 +95,8 @@ class Dude {
     this.gravity = !this.kind.flies
     sprite.flags |= this.kind.flies ? 0 : 2
     this.x.health = this.info.startHealth << 4
+    // The types ported from the original's own states and functions (server/game/ai.mjs)
+    if (AI_START[sprite.type] !== undefined) { Object.assign(this, BloodAI); this.bloodAI = true; this.initAI(); return }
     const start = sprite.type === 205 || sprite.type === 244 ? 'buried' : sprite.type === 230 || sprite.type === 246 ? 'proneIdle' : 'idle'
     this.setState(start)
   }
@@ -110,6 +114,7 @@ class Dude {
 
   /** Blood's aiProcessDudes for this dude: its state's move and (every fourth frame) think, its state's time, recoil */
   think (frame) {
+    if (this.bloodAI) { this.aiProcess(frame); return }
     const s = this.sprite
     if (this.x.health <= 0) { this.cumulDamage = 0; return }
     if (this.stateTimer > 0) this.stateTimer -= 4
@@ -130,7 +135,9 @@ class Dude {
   move () {
     const s = this.sprite
     if (this.x.health <= 0) return
-    if (s.xvel || s.yvel || s.zvel || !this.kind.flies) moveDude(this.level, this)
+    // Blood's actProcessSprites moves a dude only when it falls (kPhysFalling: in the air, or a frame of its sequence
+    // changed its height) or anything moves it, its own speed or its floor's or ceiling's
+    if ((s.flags & 4) || s.xvel || s.yvel || s.zvel || this.level.velFloor[s.sectnum] || this.level.velCeil[s.sectnum]) moveDude(this.level, this)
     if (this.kind.flies) { s.xvel -= mulscale(s.xvel, 0x2000, 16); s.yvel -= mulscale(s.yvel, 0x2000, 16); s.zvel -= mulscale(s.zvel, 0x2000, 16) }
   }
 
@@ -168,24 +175,49 @@ class Dude {
   }
 
   /** Blood's CanMove: whether the dude can go `range` along `ang` (nothing in the way, no fall it would not take) */
+  /**
+   * Blood's CanMove (BLOOD.EXE 0x5b1d8): a probe along `ang`; blocked within `range` (and its size) unless by its
+   * target; then where it would be: no sector there fails, and each type's own rule for crushing floors (sector
+   * type 618 or an xsector's damage), deep water (an xsector's depth, or a water link above or below), being under
+   * water, and a drop of more than 0x2000
+   */
   canMove (targetIndex, ang, range) {
     const s = this.sprite, level = this.level, engine = level.engine, trig = level.trig
     const { bottom } = level.extents(s)
     const cstat = s.cstat
-    s.cstat &= ~257
+    s.cstat &= ~256
     const hit = engine.hitscan(s.x, s.y, s.z, s.sectnum, trig.Cos(ang) >> 16, trig.Sin(ang) >> 16, 0, CLIPMASK0)
     s.cstat = cstat
     const dist = approxDist(s.x - hit.x, s.y - hit.y)
     if (dist - (s.clipdist << 2) < range) return hit.sprite >= 0 && hit.sprite === targetIndex
     const x = s.x + mulscale(range, trig.Cos(ang), 30), y = s.y + mulscale(range, trig.Sin(ang), 30)
-    const n = engine.updatesectorz(x, y, s.z, s.sectnum)
+    const n = findSector(level, x, y, s.z, s.sectnum)
     if (n < 0) return false
-    if (this.kind.flies) return true
-    const fz = engine.getflorzofslope(n, x, y)
+    const floorZ = engine.getflorzofslope(n, x, y)
     const xs = level.xs(n)
-    if (xs && (xs.underwater || xs.damageType)) return false
-    if (fz - bottom > 0x2000) return false
-    return true
+    const underwater = !!(xs && xs.underwater)
+    let depth = !!(xs && xs.depth), water = false
+    const crusher = level.sectors[n].lotag === 618 || !!(xs && xs.damageType > 0)
+    if (level.upperLink) {
+      const up = level.upperLink[n], low = level.lowerLink[n]
+      if (up >= 0 && (level.sprites[up].type === 9 || level.sprites[up].type === 13)) water = depth = true
+      if (low >= 0 && (level.sprites[low].type === 10 || level.sprites[low].type === 14)) depth = true
+    }
+    const drop = floorZ - bottom <= 0x2000
+    switch (s.type) {
+      case 206: case 207: case 219: // gargoyles and bats: room for their size, and no deep water
+        if (s.clipdist > dist) return false
+        return !depth
+      case 218: // the bone eel: in water, not at its surface
+        return !water && underwater
+      case 204: case 211: case 213: case 214: case 215: case 216: case 220: case 227: case 245:
+        if (crusher || depth || underwater) return false
+        return drop
+      default:
+        if (crusher) return false
+        if (underwater || (xs && xs.depth)) return true
+        return drop
+    }
   }
 
   /** Blood's aiChooseDirection */
@@ -197,8 +229,8 @@ class Dude {
     const v8 = vc < 0 ? -341 : 341
     const t = this.target
     if (this.canMove(t, s.ang + vc, vsi)) this.goalAng = s.ang + vc
-    else if (this.canMove(t, s.ang + (vc >> 1), vsi)) this.goalAng = s.ang + (vc >> 1)
-    else if (this.canMove(t, s.ang - (vc >> 1), vsi)) this.goalAng = s.ang - (vc >> 1)
+    else if (this.canMove(t, s.ang + Math.trunc(vc / 2), vsi)) this.goalAng = s.ang + Math.trunc(vc / 2)
+    else if (this.canMove(t, s.ang - Math.trunc(vc / 2), vsi)) this.goalAng = s.ang - Math.trunc(vc / 2)
     else if (this.canMove(t, s.ang + v8, vsi)) this.goalAng = s.ang + v8
     else if (this.canMove(t, s.ang, vsi)) this.goalAng = s.ang
     else if (this.canMove(t, s.ang - v8, vsi)) this.goalAng = s.ang - v8
@@ -390,6 +422,7 @@ class Dude {
     if (x.health <= 0) { this.die(source, kind, damage); return damage }
     // A new target: the one that hurt it (Blood's aiDamageSprite)
     // (a roll only for another than its target: damage by its type's change-target chance, its kin's for its kind)
+    if (this.bloodAI) { if (source && source.statnum === STAT.dude) this.aiDamaged(source, damage); this.cumulDamage = (this.cumulDamage || 0) + damage; return damage }
     if (source && source.statnum === STAT.dude && source !== s && (this.target < 0 || (source.index !== this.target && Chance(damage * (source.type === s.type ? this.info.changeTargetKinChance : this.info.changeTargetChance))))) { this.target = source.index; if (this.stateName === 'idle' || this.stateName === 'search' || this.stateName === 'goto') this.activate() }
     if (this.stateName === 'buried' || this.stateName === 'laying') { this.setState('rise'); return damage }
     // Recoil comes in the frame's minds, from all of the frame's damage (Blood's cumulDamage)
@@ -412,16 +445,15 @@ class Dude {
     // The body is a thing now, Blood's kThingBloodChunks (426) with that thing's mass and bounce: it keeps what
     // knocked it, flies, falls and lands (actKillDude to kStatThing)
     this.game.sound(s, kind === DAMAGE.explode ? 717 : ({ cultist: 1018, zombie: 1105, gargoyle: 1405, rat: 2102, bat: 2002, spider: 1803, hand: 1903, eel: 1703 }[KIND_OF[s.type]] || 1018))
+    // What it carried, and its own trigger (Blood's actKillDude: trTriggerSprite with off, while still a dude)
+    if (this.x.dropMsg) this.game.drop(s, this.x.dropMsg)
+    this.game.triggers.triggerSprite(s.index, CMD.off)
     this.dudeType = s.type
     s.type = 426
     s.statnum = STAT.thing
     s.flags |= 2
     this.game.things.body(s)
     level.touched()
-    // What it carried
-    if (this.x.dropMsg) this.game.drop(s, this.x.dropMsg)
-    // Its own trigger: a dude's death sends its command (Blood's actKillDude: trTriggerSprite with off)
-    this.game.triggers.triggerSprite(s.index, CMD.off)
     this.game.kills++
     if (source && this.game.playerOf(source)) this.game.playerOf(source).kills++
     this.dudes.remove(this)

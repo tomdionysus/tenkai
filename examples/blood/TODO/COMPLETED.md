@@ -156,3 +156,13 @@
   thingInfo's clipdist and flags (actInit: a breakable's is 0); aiActivateDude picks a way first (its
   aiChooseDirection draw) when the dude's state is off, then each type's cry. BLOOD001's and BLOOD002's draws
   match the original's to tick 183.
+- A disassembler for BLOOD.EXE (tools/x86.mjs, disasm.mjs) and its AI states read out (tools/aistates.mjs: 28-byte
+  AISTATEs, a sequence, a callback, ticks, enter, move, think, next). The trace samples every dude's AI state
+  (its xsprite's aiState at 0x34; the in-memory XSPRITE is 56 bytes), frame by frame (STEP=1). The axe zombies
+  (203, the buried 205, the laying 244) now run by the original's own states and its functions ported from their
+  disassembly (server/game/ai.mjs: aiNewState, aiProcessDudes' step, aiThinkTarget, aiLookForTarget,
+  aiActivateDude, aiSetTarget, aiMoveForward and aiMoveTurn, CanMove, RecoilDude, zombThinkChase, Ponder, Goto,
+  Search, entryEStand, entryEZombie, HackSeqCallback). With Blood's MoveDude rules found on the way (a dude moves
+  only when falling or moved; standing on a face sprite it slides off it, undragged; no drag under water) and
+  aiChooseDirection's halving toward zero: BLOOD000's zombie stirs, rises, is blown up and lands within a few
+  units of the original's, and BLOOD001's draws match to tick 195.
