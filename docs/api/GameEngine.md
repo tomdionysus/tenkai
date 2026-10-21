@@ -134,6 +134,8 @@ Each step:
 Because logic, timers and animation all advance together in steps, they stay in step with each other,
 pause together, and behave the same at any frame rate.
 
+Each drawn frame then calls [`frame(dt)`](#framedt) with the seconds since the last frame, and draws.
+
 ## Methods to override
 
 ### `init(callback)`
@@ -150,6 +152,14 @@ here. It can be written three ways:
 Called once per step with the step's length in seconds. Put game logic here. The default runs the current
 mode's `update(dt)`; call `super.update(dt)` from your own to keep that.
 
+### `frame(dt)`
+
+Called once per drawn frame, after the frame's steps (none, one or several at a high frame rate) and before
+drawing, with the seconds since the last frame (at most a quarter of a second). Put here what should follow
+the display rather than the steps: a view turned by the mouse (see [MouseLook](MouseLook.md)), a camera eased
+toward its target. Game logic stays in `update`, at the fixed rate. The default runs the current mode's
+`frame(dt)`; call `super.frame(dt)` from your own to keep that.
+
 ## Modes
 
 A game usually has states: a title screen, play, a pause, game over. A **mode** is an object for one of
@@ -160,6 +170,7 @@ them, with any of these optional methods:
 | `enter(previous)` | When the game switches to it. |
 | `exit()` | When the game switches away. |
 | `update(dt)` | Every step, by the default `update`. |
+| `frame(dt)` | Every drawn frame, by the default `frame`. |
 | `draw(context)` | Every frame, after the scenes and entities, in game coordinates. |
 
 Anything else on it is up to the game, such as a `click` method the game calls from its mouse handler.

@@ -167,6 +167,34 @@ describe('GameEngine', () => {
     })
   })
 
+  describe('frame', () => {
+    it('should run the steps the time holds, then frame with the time since the last frame, then draw', () => {
+      var x1 = new GameEngine()
+      x1.running = false
+      x1.element = { getContext: () => ({ setTransform: () => {} }) }
+      var order = []
+      spyOn(x1, 'step').and.callFake(() => order.push('step'))
+      spyOn(x1, 'frame').and.callFake((dt) => order.push('frame ' + dt.toFixed(2)))
+      spyOn(x1, 'draw').and.callFake(() => order.push('draw'))
+      jasmine.clock().install()
+      jasmine.clock().mockDate(new Date(1000))
+      x1._tick()
+      jasmine.clock().mockDate(new Date(1050))
+      x1._tick()
+      jasmine.clock().uninstall()
+      expect(order.slice(0, 2)).toEqual(['frame 0.00', 'draw'])
+      expect(order.slice(2)).toEqual(['step', 'step', 'step', 'frame 0.05', 'draw'])
+    })
+
+    it('should give the mode\'s frame the time by default', () => {
+      var x1 = new GameEngine()
+      var mode = { frame: jasmine.createSpy('frame') }
+      x1.setMode(mode)
+      x1.frame(0.02)
+      expect(mode.frame).toHaveBeenCalledWith(0.02)
+    })
+  })
+
   describe('stop', () => {
     it('should set running to false', () => {
       var x1 = new GameEngine()
