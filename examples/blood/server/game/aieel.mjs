@@ -103,7 +103,7 @@ export const EelAI = {
     const tp = game.playerOf(t), tx = level.x(t)
     const health = tp ? tp.health : tx ? tx.health : 0
     if (!(health > 0)) { this.aiNewState(EEL.search); return }
-    if (tp && tp.powerups && tp.powerups[13] > 0) { this.aiNewState(EEL.search); return }
+    if (tp && tp.powerups && tp.powerups[113] > 0) { this.aiNewState(EEL.search); return }
     const dist = approxDist(dx, dy)
     if (dist > info.seeDist) { this.target = -1; this.aiNewState(EEL.search); return }
     const delta = ((getangle(this, dx, dy) + 1024 - s.ang) & 2047) - 1024

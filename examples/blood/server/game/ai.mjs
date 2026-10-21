@@ -250,7 +250,7 @@ export const BloodAI = {
 
   /** The players this dude could notice: Blood's loop over them, skipping its owner, the dead and the cloaked */
   players () {
-    return this.game.players.filter((p) => p && p.health > 0 && !(p.powerups && p.powerups[13]))
+    return this.game.players.filter((p) => p && p.health > 0 && !(p.powerups && p.powerups[113]))
   },
 
   /** Blood's aiThinkTarget (0x5dcb0), and aiLookForTarget (0x5de9c) for the searching: the same, by a chance */
@@ -358,7 +358,7 @@ export const BloodAI = {
     const tx = this.level.x(t)
     const alive = tp ? tp.health > 0 : tx && tx.health > 0
     if (!alive) { this.aiNewState(ZOMBIE.search); return }
-    if (tp && tp.powerups && (tp.powerups[13] || tp.powerups[31])) { this.aiNewState(ZOMBIE.goto); return }
+    if (tp && tp.powerups && (tp.powerups[113] || tp.powerups[131])) { this.aiNewState(ZOMBIE.goto); return }
     const dist = approxDist(dx, dy)
     if (dist <= info.seeDist) {
       const delta = ((getangle(this, dx, dy) + 1024 - s.ang) & 2047) - 1024
@@ -455,7 +455,7 @@ export const BloodAI = {
       } else if (this.x.medium <= 2) this.aiNewState(CULTIST.swimSearch)
       return
     }
-    if (tp && tp.powerups && tp.powerups[13] > 0) { this.byMedium(CULTIST.search, CULTIST.swimSearch); return }
+    if (tp && tp.powerups && tp.powerups[113] > 0) { this.byMedium(CULTIST.search, CULTIST.swimSearch); return }
     const dist = approxDist(dx, dy)
     if (dist <= info.seeDist) {
       const delta = ((getangle(this, dx, dy) + 1024 - s.ang) & 2047) - 1024
@@ -621,7 +621,7 @@ export const BloodAI = {
     const tp = game.playerOf(t), tx = this.level.x(t)
     const health = tp ? tp.health : tx ? tx.health : 0
     if (!(health > 0)) { this.aiNewState(RAT.search); return }
-    if (tp && tp.powerups && tp.powerups[13] > 0) { this.aiNewState(RAT.search); return }
+    if (tp && tp.powerups && tp.powerups[113] > 0) { this.aiNewState(RAT.search); return }
     const dist = approxDist(dx, dy)
     if (dist <= info.seeDist) {
       const delta = ((getangle(this, dx, dy) + 1024 - s.ang) & 2047) - 1024

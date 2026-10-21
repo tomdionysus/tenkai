@@ -204,7 +204,7 @@ export default class Combat {
     // A player with the reflective shots: the shot comes back at the shooter
     if (kind === 3) {
       const p = game.playerOf(level.sprites[hit.sprite])
-      if (p && p.powerups && p.powerups[24]) { hit.sprite = shooter.index; hit.x = shooter.x; hit.y = shooter.y; hit.z = shooter.z }
+      if (p && p.powerups && p.powerups[124]) { hit.sprite = shooter.index; hit.x = shooter.x; hit.y = shooter.y; hit.z = shooter.z }
     }
     let x = hit.x - mulscale(dx, 16, 14), y = hit.y - mulscale(dy, 16, 14), z = hit.z - mulscale(dz, 256, 14)
     const sect = hit.sect
