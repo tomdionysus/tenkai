@@ -179,7 +179,7 @@ export default class Game {
       const from = clear.length ? clear : starts
       start = from[this.random.Random(from.length)]
     }
-    const s = level.spawn(start.sectnum, start.x, start.y, start.z, STAT.dude, { cstat: 385, picnum: 3870, pal: 11 + (number & 3), clipdist: 48, xrepeat: 39, yrepeat: 37, ang: start.ang, type: 231 + number, shade: -8, flags: 2 })
+    const s = level.spawn(start.sectnum, start.x, start.y, start.z, STAT.dude, { cstat: 385, picnum: 3870, pal: 11 + (number & 3), clipdist: 48, xrepeat: 39, yrepeat: 37, ang: start.ang, type: 231 + number, shade: -8, flags: 15 })
     const fz = level.engine.getflorzofslope(s.sectnum, s.x, s.y)
     s.z += fz - level.extents(s).bottom
     const p = new Player(level, s, number)

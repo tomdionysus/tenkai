@@ -517,6 +517,7 @@ export const BloodAI = {
     const v = Math.trunc(dist / 540)
     if (dist > 0x1e00) impact = false
     const thing = game.things.fire(s, type, 0, Math.trunc(dz / 128) - 14500, Math.trunc((v << 23) / 120), impact ? { impact: true } : {})
-    if (!impact) game.things.moving.get(thing.index).fuse = Math.trunc((120 * (1 + R.Random(2))) / 4)
+    // (else Blood's evPost of an "on" to it, one or two seconds on: it goes off when the queue gets there)
+    if (!impact) game.things.fuseEvent(thing, 120 * (1 + R.Random(2)))
   }
 }

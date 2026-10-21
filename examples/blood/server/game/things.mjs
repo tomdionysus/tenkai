@@ -228,11 +228,6 @@ export default class Things {
       s.cstat = cstat
       if (pos.sectnum >= 0) { s.x = pos.x; s.y = pos.y; if (pos.sectnum !== s.sectnum) { s.sectnum = pos.sectnum; level.touched() } }
       if ((hit & 0xc000) === 0x8000) wallBounce(level, s, hit & 0x3fff, info.elastic)
-      // A sprite in the way: what a thrown bundle meets
-      if (!hit) {
-        const near = this.touching(s)
-        if (near >= 0) hit = 0xc000 | near
-      }
     }
     if (s.zvel) s.z += s.zvel >> 8
     // Blood's MoveThing: no clipping at a parallaxed sky (things fly above it, as the gibs in BLOOD000)
@@ -309,6 +304,14 @@ export default class Things {
       if (s.z >= top && s.z <= bottom) return i
     }
     return -1
+  }
+
+  /** Blood's evPost of kCmdOn to a lit thing, `delay` clocks on: it goes off then (OperateSprite on TNT) */
+  fuseEvent (s, delay) {
+    const m = this.moving.get(s.index)
+    this.game.triggers.post(s.index, SPRITE, delay, CMD.on, () => {
+      if (s.statnum === STAT.thing && this.level.sprites[s.index] === s) this.explode(s, this.kindOf(s), this.level.sprites[m ? m.owner : -1])
+    })
   }
 
   /** Blood's actExplodeSprite's kind by the thing: a TNT stick's small, a barrel's large, the rest standard */

@@ -105,7 +105,8 @@ export default class Triggers {
   processEvents () {
     while (this.events.size && this.events.lowest() <= this.game.clock) {
       const e = this.events.remove()
-      if (e.cmd === CMD.callback) { if (e.callback) e.callback(e.index, e.type) } else this.message(e.type, e.index, e)
+      // (an event with its own handler: a callback, or a command for what has no xsprite here, a thrown TNT's fuse)
+      if (e.cmd === CMD.callback || e.callback) { if (e.callback) e.callback(e.index, e.type) } else this.message(e.type, e.index, e)
     }
   }
 

@@ -17,6 +17,9 @@ export const BUTTON = { jump: 1, crouch: 2, fire: 4, altFire: 8, lookUp: 16, loo
 export const KEY = { action: 1, jab: 2, prevItem: 4, nextItem: 8, useItem: 16, prevWeapon: 32, nextWeapon: 64, holster: 128, lookCenter: 256, lookLeft: 512, lookRight: 1024, spin180: 2048, pause: 4096, quit: 8192, restart: 16384 }
 
 /** An input that does nothing */
+/** Blood's pain sounds of a player by the damage's kind (fall, burn, bullet, explode, drown, spirit, tesla) */
+const PAIN = [[731, 732, 733], [742, 743, 744], [731, 732, 733], [731, 732, 733], [724, 724, 724], [731, 732, 733], [0, 0, 0]]
+
 export const IDLE = { run: 0, forward: 0, turn: 0, strafe: 0, buttons: 0, keys: 0, use: 0, newWeapon: 0, mlook: 0 }
 
 export default class Player {
@@ -81,7 +84,14 @@ export default class Player {
     this.health = Math.max(0, this.health - damage)
     this.hurt = Math.min(64, this.hurt + (damage >> 4))
     if (this.health <= 0) this.die(source, kind)
-    else if (this.game) this.game.sound(this.sprite, damage > 160 ? 1061 : 1060)
+    else if (this.game) {
+      // Blood's playerDamageSprite: the pain's sound by the damage's kind (BLOOD.EXE d:0x16214), one of three on a
+      // roll below 160 of damage; under water, drowning's own
+      const pain = PAIN[kind] || PAIN[0]
+      let id = damage >= 160 ? pain[0] : pain[this.game.random.Random(3)]
+      if (kind === 4 && this.x && this.x.medium === 1) id = 714
+      this.game.sound(this.sprite, id)
+    }
     return damage
   }
 
