@@ -75,7 +75,7 @@ and expect anything played before then to be silent.
 
 ## Methods
 
-### `play(src, { channel, loop, volume, offset, duration, loopStart, loopEnd, rate })`
+### `play(src, { channel, loop, volume, offset, duration, loopStart, loopEnd, rate, pan })`
 
 Play a sound and return its handle. `src` is a URL, or a list of layers that start together, each a URL or
 `{ src, loop }`. The sound starts once all its layers have loaded, at the same moment; the handle works at
@@ -90,6 +90,7 @@ once, so the sound can be stopped or sought before it starts.
 | `duration` | to the end | Play only this many seconds from `offset`, then end: one sound out of a file that holds many (an audio sprite, its sounds' offsets and lengths in the game's own index). A `seek` keeps the same end. Not for looping layers. |
 | `loopStart`, `loopEnd` | whole sound | For looping layers: play from the start, then repeat this region (seconds), as sampled instruments and engine hums do. A layer can give its own. |
 | `rate` | 1 | Playback rate: 2 is an octave up and twice as fast. An old sound chip played a sample at another period; the rate is the recorded period over the new one. |
+| `pan` | 0 | Where it is heard from, -1 (the left) to 1 (the right). |
 
 The handle has:
 
@@ -105,6 +106,19 @@ The handle has:
 const theme = sounds.play([{ src: 'intro.ogg' }, { src: 'drums.ogg', loop: true }], { channel: 'music' })
 theme.seek(12.5)
 theme.stop()
+```
+
+### `SoundManager.positional(listener, at, { range, mirror })`
+
+How loud a sound at a place is to a listener, and from which side: `{ volume, pan }` to play it with. The
+listener is `{ x, y, ang }`, its facing in radians from the x axis toward the y axis; the sound is at `{ x, y }`.
+The volume falls straight from 1 at the listener to 0 at `range` (default 1000) away; the pan is the sine of
+the angle from the facing, so a sound ahead or behind is in the middle and one to the side all on that side.
+`mirror` swaps the sides for a world whose y axis points up (the default is a screen's, y down).
+
+```js
+const { volume, pan } = SoundManager.positional({ x: me.x, y: me.y, ang: me.facing }, shot, { range: 2000 })
+if (volume > 0) sounds.play('shot.wav', { volume, pan })
 ```
 
 ### `playVoice(src, options)` / `stopVoice()`

@@ -88,6 +88,14 @@ Everything below is exported from the package (`import { ... } from 'tenkai'`) u
   depth order over a ground, with a camera that can glide between the game's ticks.
 - [WebGLScene](api/WebGLScene.md): a scene drawn through WebGL 2 on a canvas of its own, put into the game's
   canvas under its children, for a 3D view in the scene tree.
+- [QuadBatch](api/QuadBatch.md): quads gathered into one vertex array for one WebGL draw call (sprites, a HUD,
+  glyphs over a 3D view).
+- [ShadeTable](api/ShadeTable.md): a 256-colour game's shade table (Build's palookups, Doom's COLORMAP) turned
+  to colours through a palette, for a shader's one lookup; palettes read from an image.
+- [ScreenFit](api/ScreenFit.md): where a fixed-size screen (320 by 200, its pixels taller than wide) goes in a
+  window of any size.
+- [MouseLook](api/MouseLook.md): the mouse as a first-person game reads it: pointer lock, how far it moved since
+  the last frame, its buttons; taken by a click, let go by Escape or leaving the page.
 - [Camera](api/Camera.md): the scroll of a flat scene after a target: a lead, a speed, forward only or both
   ways, a limit, an eased other axis, and what is off screen.
 - [Motion](api/Motion.md): a character's movement through scripted steps and animation frames.

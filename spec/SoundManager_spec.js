@@ -283,3 +283,33 @@ describe('SoundManager', () => {
     })
   })
 })
+
+describe('SoundManager positional sound', () => {
+  it('should pan a sound through a stereo panner when asked, and not otherwise', () => {
+    var ctx = fakeContext()
+    var panners = []
+    ctx.createStereoPanner = () => { var p = { pan: { value: 0 }, connect: (next) => next }; panners.push(p); return p }
+    var sounds = new SoundManager({ context: ctx })
+    spyOn(sounds, 'load').and.returnValue(new Promise(() => {}))
+    sounds.play('a.wav', { pan: 0.5 })
+    expect(panners.length).toEqual(1)
+    expect(panners[0].pan.value).toEqual(0.5)
+    sounds.play('a.wav', { pan: 3 })
+    expect(panners[1].pan.value).toEqual(1)
+    sounds.play('a.wav')
+    expect(panners.length).toEqual(2)
+  })
+
+  it('should give the volume and side of a sound at a place', () => {
+    var listener = { x: 0, y: 0, ang: 0 }
+    expect(SoundManager.positional(listener, { x: 500, y: 0 }, { range: 1000 })).toEqual({ volume: 0.5, pan: 0 })
+    var right = SoundManager.positional(listener, { x: 0, y: 100 }, { range: 1000 })
+    expect(right.pan).toBeCloseTo(1)
+    expect(right.volume).toBeCloseTo(0.9)
+    expect(SoundManager.positional(listener, { x: 0, y: -100 }, { range: 1000 }).pan).toBeCloseTo(-1)
+    expect(SoundManager.positional(listener, { x: 0, y: -100 }, { range: 1000, mirror: true }).pan).toBeCloseTo(1)
+    expect(SoundManager.positional({ x: 0, y: 0, ang: Math.PI / 2 }, { x: 0, y: 100 }).pan).toBeCloseTo(0)
+    expect(SoundManager.positional(listener, { x: 5000, y: 0 }, { range: 1000 }).volume).toEqual(0)
+    expect(SoundManager.positional(listener, { x: 0, y: 0 }).pan).toEqual(0)
+  })
+})

@@ -46,6 +46,22 @@ Draws the frame. Does nothing; override it.
 Changes the canvas's size and the viewport, then calls `resized(width, height)`, which a subclass overrides
 to remake buffers of the canvas's size.
 
+### `present(page)` / `withdraw(page)`
+
+For a game whose whole frame is WebGL (a 3D view with its HUD drawn in it): `present` renders the scene and
+shows its canvas on the page over the game's canvas (`page`), at the game canvas's size and place, with the
+game canvas hidden, so no copy is made into a 2D canvas (which can cost a slow GPU more than the rendering).
+The game then skips its own drawing while it presents, and takes the mouse on this canvas as well as its own
+(see [MouseLook](MouseLook.md)). `withdraw` takes the canvas off the page and shows the game's again.
+
+```js
+draw (context) {
+  if (this.playing) { this.view.present(this.element); return }
+  this.view.withdraw(this.element)
+  super.draw(context)
+}
+```
+
 ### `WebGLScene.program(gl, vertex, fragment)`
 
 Compiles and links a program from two shader sources, throwing an error that names the shader that failed

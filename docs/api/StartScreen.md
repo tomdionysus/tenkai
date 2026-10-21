@@ -38,6 +38,8 @@ it.
 | `subtitle` | the year and publisher | The line under the title, written out instead. |
 | `prompt` | `'Click or press any key to start'` | The line asking the player to start. |
 | `logo` | Tenkai's logo | An image, or its URL, for the bottom right corner; `null` for none. |
+| `cover` | none | Cover art (the game's box), an image or its URL, above the title in the middle of the screen; the cover, title, subtitle and prompt are centred on the screen together. Without it the screen is as before. |
+| `coverHeight` | 0.5 | The cover's height as a share of the shorter side; it is kept within the window's width and the space the lines leave. |
 | `logoColor` | the text colour | Draw the logo all in this colour; `''` for its own colours. |
 | `logoHeight` | a seventh of the shorter side | The logo's height in pixels; its width follows. |
 | `background`, `color` | `'black'`, `'#e8e8e8'` | Fill and text colours. |
@@ -58,9 +60,9 @@ Takes the screen away without starting.
 
 ### `layout(width, height)`
 
-Where everything goes on a screen of that size in CSS pixels: `{ unit, title, subtitle, prompt, logo,
-margin }`, each line with its font `size` and centre `y`, the logo as `{ x, y, width, height }` (or `null`
-until its image has loaded).
+Where everything goes on a screen of that size in CSS pixels: `{ unit, title, subtitle, prompt, cover, logo,
+margin }`, each line with its font `size` and centre `y`, the cover and the logo as `{ x, y, width, height }`
+(or `null` when there is none, or until its image has loaded).
 
 ### `draw(context, width, height, now)`
 
