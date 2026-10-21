@@ -92,3 +92,24 @@
   to MP3 through FluidSynth in WebAssembly), room over room through stencilled portals (E1M1's sky), messages, the
   end-of-level tally and the frag list.
 - Tenkai gained `PictureAtlas.draw` options (scale, mirror, alpha, filter) on the way.
+
+## Monsters, things and explosions against the original (2026-10-21, night)
+
+- `fidelity/trace.mjs` with DUDES=1 records every monster and every sprite the original makes (thrown TNT, effects,
+  gibs) from its memory; `fidelity/dudes.mjs` sets each monster's story (when it stirs, where it ends, its tile)
+  beside the remake's.
+- Buried zombies lie as ZOMB1I2 (+12, tile 3055) and rise by ZOMB1M2 (+9, 3046-3054, then 1224); they think as
+  idle monsters do (a Chance each fourth frame), hearing only (their sight is 0). The remake's rise within 2-8
+  ticks of the original's (the random draws decide).
+- BLOOD.EXE's thingInfo (51 bytes, 400-429), explodeInfo (27 bytes, 8 kinds) and GIBTHING (20 bytes) read out.
+  Things move by Blood's MoveThing (bounce by elasticity, friction capped at 0x11111, fall damage over
+  dmgResist). The thrown TNT bundle (419) flies about 152 units a tick and goes off on meeting a monster: in
+  BLOOD000 it goes off at tick 301 in both. Its explosion is the standard kind (1: the original's explosion
+  sprite is type 1); an explosion lasts its ticks, hurting and concussing every frame (Blood's ConcussSprite: by
+  size over mass). The zombie dies at 302 (the original's 301), flies as a body (ZOMB1D2, +2 for a blast) and
+  throws its gibs (the human run, 1454-1456, and the head 3405), blocking things the player can step on: the
+  original's player climbs one at tick 351.
+- What still parts the two: the random draws (a burst of about 16 more in the original near tick 20, then a
+  slow drift), so where the gibs land and how monsters choose differ after a few seconds.
+- Views compared: the original's screen at a demo tick beside the remake's from the server's own state at that
+  tick (`fidelity/views.mjs`): the mausoleum, the graveyard, its fence and sky agree.
