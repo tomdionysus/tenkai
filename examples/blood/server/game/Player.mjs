@@ -72,7 +72,8 @@ export default class Player {
 
   /** Blood's playerDamageSprite: armour takes some of it (body against bullets and blasts, fire against burning, spirit) */
   damaged (source, kind, damage) {
-    if (this.health <= 0 || this.godMode) return 0
+    // The death mask makes its wearer invulnerable while it lasts
+    if (this.health <= 0 || this.godMode || this.powerups[114]) return 0
     const slot = kind === 1 ? 1 : kind === 5 ? 2 : (kind === 2 || kind === 3) ? 0 : -1
     if (slot >= 0 && this.armor[slot] > 0) {
       const absorbed = Math.min(this.armor[slot] << 4, damage >> 1)
@@ -108,6 +109,7 @@ export default class Player {
     if (this.flash > 0) this.flash = Math.max(0, this.flash - 0.1)
     if (this.shakeAmount > 0) this.shakeAmount = Math.max(0, this.shakeAmount - 0x40)
     for (const k of Object.keys(this.powerups)) if (--this.powerups[k] <= 0) delete this.powerups[k]
+    this.environment(input)
     if (this.weaponState) this.weaponState.tick(input)
     const posture = POSTURES[this.posture]
     if (input.buttons || input.forward || input.strafe || input.turn) this.restTime = 0
@@ -140,11 +142,17 @@ export default class Player {
     if (input.keys & KEY.spin180) this.spin = this.spin || -1024
     s.ang = this.ang
     if (!(input.buttons & BUTTON.jump)) this.cantJump = false
-    if (this.posture === CROUCH) {
+    if (this.posture === SWIM) {
+      // Swimming: jump rises, crouch sinks (Blood's swim posture's jump is its stroke upwards)
+      if (input.buttons & BUTTON.jump) s.zvel -= posture.normalJumpZ
+      if (input.buttons & BUTTON.crouch) s.zvel += posture.normalJumpZ
+      s.zvel -= s.zvel >> 3
+    } else if (this.posture === CROUCH) {
       if (!(input.buttons & BUTTON.crouch)) this.posture = STAND
     } else if (this.posture === STAND) {
       if (!this.cantJump && (input.buttons & BUTTON.jump) && this.height === 0) {
-        s.zvel = posture.normalJumpZ
+        // The jumping boots jump twice as high (Blood's pwupJumpZ)
+        s.zvel = this.powerups[115] ? posture.pwupJumpZ : posture.normalJumpZ
         this.cantJump = true
         this.jumped = true
       }
@@ -161,6 +169,32 @@ export default class Player {
     this.stance()
     moveDude(level, this)
     this.view()
+  }
+
+  /**
+   * Where the player is: water (swimming, the air running out), a sector that hurts (Blood's damageType: lava,
+   * fire, acid), and the pack's use keys (the doctor's bag heals from its store, up to 100)
+   */
+  environment (input) {
+    const s = this.sprite, level = this.level, game = this.game
+    const x = level.xs(s.sectnum)
+    const under = x && x.underwater
+    if (under && this.posture !== SWIM) this.posture = SWIM
+    else if (!under && this.posture === SWIM && !(level.upperLink && level.lowerLink[s.sectnum] >= 0)) this.posture = STAND
+    if (under && !this.powerups[118]) {
+      this.air = (this.air === undefined ? 30 * 15 : this.air) - 1
+      if (this.air < 0 && game && game.frame % 15 === 0) this.damaged(null, 4, 3 << 4)
+    } else this.air = 30 * 15
+    if (x && x.damageType > 0 && this.height === 0 && game) {
+      const amount = x.data ? Math.max(0, Math.min(1000, x.data)) : 1000
+      this.damaged(null, x.damageType - 1, Math.trunc(4 * amount / 120))
+    }
+    if ((input.use & 8) && this.pack[0] > 0 && (this.health >> 4) < 100) {
+      const heal = Math.min(this.pack[0], 100 - (this.health >> 4))
+      this.health += heal << 4
+      this.pack[0] -= heal
+      if (game) game.sound(s, 776)
+    }
   }
 
   /** Dead: the body falls, the view sinks to the floor; a press of fire or open comes back (in a game of several) */

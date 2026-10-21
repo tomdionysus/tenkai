@@ -1,0 +1,29 @@
+[
+ {
+  "tick": 120,
+  "x": -2159,
+  "y": 29210,
+  "z": -10780,
+  "ang": 1897,
+  "sect": 150,
+  "file": "fidelity/views/orig-120.png"
+ },
+ {
+  "tick": 260,
+  "x": -1147,
+  "y": 38876,
+  "z": -18972,
+  "ang": 509,
+  "sect": 33,
+  "file": "fidelity/views/orig-260.png"
+ },
+ {
+  "tick": 300,
+  "x": -759,
+  "y": 42345,
+  "z": -21020,
+  "ang": 640,
+  "sect": 18,
+  "file": "fidelity/views/orig-300.png"
+ }
+]

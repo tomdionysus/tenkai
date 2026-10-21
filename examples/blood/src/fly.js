@@ -26,9 +26,21 @@ class Fly extends GameEngine {
       x: Number(params.get('x') || s.x), y: Number(params.get('y') || s.y), z: Number(params.get('z') || (map.sectors[s.sector].floorz - 0x2600)),
       ang: Number(params.get('ang') || s.ang), horiz: Number(params.get('horiz') || 100)
     }
+    // A state saved by the server's game (fidelity/views.mjs): its moved sectors and walls, its sprites, its eye
+    if (params.get('state')) await this.loadState(await json(params.get('state')))
     if (params.get('stretch')) this.view.stretch = Number(params.get('stretch'))
     if (params.get('vis')) this.view.visScale = 1 / Number(params.get('vis'))
     window.fly = this
+  }
+
+  async loadState (state) {
+    const map = this.view.map
+    for (const [i, fields] of Object.entries(state.sectors || {})) Object.assign(map.sectors[i], fields)
+    for (const [i, fields] of Object.entries(state.walls || {})) Object.assign(map.walls[i], fields)
+    this.view.setMap(map)
+    this.view.sprites = state.sprites || []
+    if (state.eye) Object.assign(this.view.eye, state.eye)
+    if (state.clock) this.view.clock = state.clock
   }
 
   update (dt) {

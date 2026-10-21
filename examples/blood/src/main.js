@@ -11,7 +11,7 @@ import { json, addImages, image } from './data.js'
 const KEYS = {
   forward: ['KeyW', 'ArrowUp'], back: ['KeyS', 'ArrowDown'], left: ['ArrowLeft'], right: ['ArrowRight'],
   strafeLeft: ['KeyA', 'Comma'], strafeRight: ['KeyD', 'Period'], jump: ['Space'], crouch: ['KeyC', 'ControlLeft'],
-  open: ['KeyE', 'Enter'], fire: ['KeyF'], scores: ['Tab'], altFire: ['KeyX'], walk: ['ShiftLeft', 'ShiftRight'], lookUp: ['PageUp'], lookDown: ['PageDown'], lookCenter: ['End'],
+  open: ['KeyE', 'Enter'], fire: ['KeyF'], scores: ['Tab'], medkit: ['KeyM'], altFire: ['KeyX'], walk: ['ShiftLeft', 'ShiftRight'], lookUp: ['PageUp'], lookDown: ['PageDown'], lookCenter: ['End'],
   ...Object.fromEntries([1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((n, i) => ['weapon' + (i + 1), ['Digit' + n]]))
 }
 const BUTTON = { jump: 1, crouch: 2, fire: 4, altFire: 8, lookUp: 16, lookDown: 32 }
@@ -110,9 +110,11 @@ export default class BloodClient extends GameEngine {
     if (i.down('altFire') || this.mouse.alt) buttons |= BUTTON.altFire
     if (i.down('open')) keys |= KEY.action
     for (let n = 1; n <= 10; n++) if (i.pressed('weapon' + n)) newWeapon = n
+    let use = 0
+    if (i.down('medkit')) use |= 8
     const held = {
       run: run ? 1 : 0, forward: i.axis('back', 'forward') * move, strafe: i.axis('strafeRight', 'strafeLeft') * move,
-      ang: Math.round(this.look.ang) & 2047, horiz: Math.round(this.look.horiz), buttons, keys, newWeapon
+      ang: Math.round(this.look.ang) & 2047, horiz: Math.round(this.look.horiz), buttons, keys, newWeapon, use
     }
     // A script driving the page (the checks in tools/) holds keys by setting `forced`
     if (this.forced) { Object.assign(held, this.forced); if (this.forced.ang !== undefined) this.look.ang = this.forced.ang }
@@ -146,6 +148,9 @@ export default class BloodClient extends GameEngine {
     this.bob = { x: Math.sin(this.bobPhase) * 6 * amount, y: Math.abs(Math.cos(this.bobPhase)) * 6 * amount }
     const sec = this.world.map.sectors[you.sectnum]
     this.weaponShade = sec ? sec.floorshade : 0
+    // Under water the world is seen through WATER.PAL (Blood's palette 1)
+    const xs = sec && sec.extra >= 0 ? this.world.map.xsectors[sec.extra] : null
+    this.view.palette = xs && xs.underwater ? 1 : 0
     this.view.sprites = this.world.sprites(previous, state, t, you.sprite)
   }
 
