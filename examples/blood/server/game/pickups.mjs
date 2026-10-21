@@ -56,7 +56,8 @@ export default class Pickups {
     if (x && x.pickup) this.game.triggers.triggerSprite(item.index, CMD.spritePickup)
     p.flash = 1
     // In Bloodbath, weapons and items come back; otherwise they are gone
-    if (this.game.options.gameType === 2 && type < 100) this.game.respawnLater(item, type >= 60 ? 30 : 30)
+    // (a pickup a player dropped on dying does not come back)
+    if (this.game.options.gameType === 2 && type < 100 && !item.dropped) this.game.respawnLater(item, type >= 60 ? 30 : 30)
     else { this.game.seqs.kill(item); this.level.remove(item) }
   }
 

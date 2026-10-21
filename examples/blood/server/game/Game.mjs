@@ -426,6 +426,54 @@ export default class Game {
     item.z = fz - (this.level.extents(item).bottom - item.z)
   }
 
+  /**
+   * A player's inventory thrown out as pickups when they die (the remake's own, for its multiplayer: v1.11 drops
+   * nothing of a player's): each weapon held but the pitchfork as its pickup (with the ammo that comes with it),
+   * the rest of the ammo as the pickups that hold it (the largest first), each pack item with store left, each
+   * key. Flung from the body as the gibs are, flying and falling by the things' physics until they land, pickups
+   * from then
+   */
+  dropInventory (p) {
+    const tables = this.res.tables, drops = []
+    const ammo = p.ammo.slice()
+    for (let n = 2; n <= 10; n++) {
+      if (!p.weapons[n]) continue
+      const type = Object.keys(tables.weaponItems).find((k) => tables.weaponItems[k].weapon === n && tables.weaponItems[k].picnum > 0)
+      if (!type) continue
+      drops.push(Number(type))
+      const w = tables.weaponItems[type]
+      if (w.ammoType >= 0) ammo[w.ammoType] = Math.max(0, ammo[w.ammoType] - w.count)
+    }
+    const ammoItems = Object.entries(tables.ammoItems).filter(([k, v]) => v.ammoType < 255 && v.count > 0 && v.picnum > 0)
+    ammo.forEach((amount, type) => {
+      let left = amount
+      const sizes = ammoItems.filter(([k, v]) => v.ammoType === type).sort((a, b) => b[1].count - a[1].count)
+      if (!sizes.length) return
+      for (const [k, v] of sizes) while (left >= v.count && drops.length < 24) { drops.push(Number(k)); left -= v.count }
+      if (left > 0 && drops.length < 24) drops.push(Number(sizes[sizes.length - 1][0]))
+    })
+    for (const [type, info] of Object.entries(tables.items)) if (info.packSlot >= 0 && p.pack[info.packSlot] > 0 && drops.length < 24) drops.push(Number(type))
+    for (let k = 1; k <= 6; k++) if (p.keys[k]) drops.push(99 + k)
+    // (spread evenly round the body, from where it faces, each a little further and higher than the last: no draws
+    // on the game's random numbers, which the original's demos account for every one of)
+    drops.forEach((type, i) => this.throwItem(p.sprite, type, (p.sprite.ang + Math.trunc(2048 * i / drops.length)) & 2047, i % 3))
+  }
+
+  /** A pickup flung from a sprite's middle at an angle, `far` 0 to 2: a thing while it flies (Things.tick makes it a pickup once it lies still) */
+  throwItem (s, type, a, far = 1) {
+    const tables = this.res.tables, trig = this.level.trig
+    const t = tables.weaponItems[type] || tables.ammoItems[type] || tables.items[type]
+    if (!t || t.picnum <= 0 || s.sectnum < 0) return
+    const { top, bottom } = this.level.extents(s)
+    const item = this.level.spawn(s.sectnum, s.x, s.y, (top + bottom) >> 1, STAT.thing, { picnum: t.picnum, xrepeat: t.xrepeat, yrepeat: t.yrepeat, shade: t.shade, pal: t.pal, type, cstat: 0, clipdist: 16, flags: 3 })
+    const v = 0x20000 + far * 0x18000
+    item.xvel = Math.floor(v * trig.Cos(a & 2047) / 2 ** 30)
+    item.yvel = Math.floor(v * trig.Sin(a & 2047) / 2 ** 30)
+    item.zvel = -(0x40000 + far * 0x30000)
+    item.dropped = true
+    this.things.moving.set(item.index, { drop: true })
+  }
+
   respawnLater (item, seconds) {
     const keep = Object.assign({}, item)
     this.level.remove(item)

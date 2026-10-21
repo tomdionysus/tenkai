@@ -215,6 +215,15 @@ export default class Things {
       if (s.statnum !== STAT.thing) continue
       // Blood's gSpriteHit florhit: whether it lies on the floor (an explosion there is a different sequence)
       m.florhit = this.level.extents(s).bottom >= this.level.engine.getflorzofslope(s.sectnum, s.x, s.y) - 256
+      // A dropped pickup (Game.throwItem) come to rest on the floor: a pickup from now
+      if (m.drop && m.florhit && !(s.flags & 4) && s.zvel === 0 && approxDist(s.xvel, s.yvel) < 0x8000) {
+        s.xvel = s.yvel = 0
+        s.flags = 0
+        s.statnum = STAT.item
+        this.moving.delete(index)
+        this.level.touched()
+        continue
+      }
       // (a gib object breaks when its health is gone: a hard landing's damage, once it is unlocked; gib 892 in
       // BLOOD000 lands at tick 703 with 7 of 240 taken and stays whole)
       // Blood's Impact: whatever it hits (floor, ceiling, wall, a sprite other than its thrower) sets it off

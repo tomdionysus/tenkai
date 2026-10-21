@@ -123,6 +123,7 @@ export default class Player {
       // Blood's playerFrag: the message's words drawn from its tables (25 for a frag, 5 for a suicide: BLOOD.EXE
       // 0x401de, 0x4011b)
       const killer = source && this.game.playerOf(source)
+      this.game.dropInventory(this)
       if (killer && killer !== this) { this.game.random.Random(25); killer.frags = (killer.frags || 0) + 1; this.game.message(null, (killer.name || 'Player') + ' killed ' + (this.name || 'Player')) } else if (killer === this) { this.game.random.Random(5); this.game.message(null, (this.name || 'Player') + ' killed themselves') }
     }
   }
