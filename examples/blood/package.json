@@ -4,9 +4,11 @@
   "type": "module",
   "description": "Blood (Monolith, 1997) remade: a Node server and a Tenkai client",
   "scripts": {
-    "data": "node tools/build.mjs",
-    "server": "node server/index.mjs",
-    "client": "esbuild src/main.js --bundle --outfile=bundle.js --servedir=. --serve=8047"
+    "data": "node tools/build.mjs && node tools/music.cjs",
+    "build": "../../node_modules/.bin/esbuild src/main.js --bundle --minify --outfile=bundle.js && ../../node_modules/.bin/esbuild src/fly.js --bundle --outfile=fly.bundle.js",
+    "start": "node server/index.mjs",
+    "soak": "node fidelity/soak.mjs",
+    "test": "node fidelity/soak.mjs 600 e1m1 && node fidelity/replay.mjs fidelity/trace-blood000.json 340 --show 0"
   },
   "dependencies": {
     "earcut": "^3.2.4",
