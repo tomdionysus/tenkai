@@ -130,3 +130,20 @@
   128/65536, x and y drawn toward the sector's wind), and no input scale. With both, BLOOD000's player matches the
   original's velocity to the unit on every tick up to 350 (where gibs placed by the drifting random draws differ),
   and its position to the unit past tick 330 (it parted at 91 before).
+- The original's rand() callers logged (fidelity/randlog.mjs patches rand() in the emulator's memory to write each
+  caller and the tick into a ring buffer; tools/randcalls.py --json names each call site's source file). They
+  showed: Blood's CalcGameChecksum draws once every eight frames (network.cpp), Blood's frame count starts at 0 for
+  a demo (not 2), the generators' first draws come in the level's setup, the secret's message is a draw between two.
+  With these, BLOOD000's draws are the original's, tick by tick and in order, to tick 351, through the thrown TNT,
+  its explosion, the zombie blown apart and the blood and gibs after (they parted at tick 17 before).
+- Blood's effects ported (server/game/fx.mjs): gFXData (57, read from BLOOD.EXE), fxSpawn's draws (two flips,
+  the life), fxProcess (drag, gravity, the floor's callbacks: fxBloodBits), fxSpawnBlood and fxBloodSpurt, fxDynPuff
+  (lit TNT's smoke every 12 clock ticks), GibSprite with gibList (31, read from the exe: GIBFX 21 bytes packed,
+  GIBTHING 20) and ChanceToCount; gib objects (bits 425, the head 427) locked for 180 clock ticks, then broken by
+  what they hit into blood chunks (actActivateGibObject). Things spawn with cstat 128 and their own, repeat 64, in
+  the sprite's sector; locked things are not concussed; things fly above a parallaxed sky; a thing's air drag 128.
+- The frame in Blood's order: the players' input and weapons (after the turn and the weapon's height), then busy
+  sectors, events, sequences, then things, missiles, explosions (from the frame after their own), the dudes' moves,
+  the dudes' minds (aiProcessDudes: recoil from the frame's total damage, RecoilDude's draw), the effects. Dudes get
+  their type's clipdist (actInit); a dead dude is thing 426 with its thingInfo; a dude rolls for a new target only
+  for another attacker. The TNT bundle's strength is its hold over 240 (thrown at letting go, impact on what it hits).

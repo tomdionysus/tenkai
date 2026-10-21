@@ -81,9 +81,23 @@ await new Promise((resolve) => {
         // The dudes, the monsters that died (things now), and every sprite the game made after the map's (thrown TNT,
         // missiles, effects)
         if (stat >= 1024 || (stat !== 6 && !dudeIndex.has(i) && i < map.sprites.length)) continue
-        d[i] = [mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i16(o + 28) & 2047, mem.i16(o + 14), stat, mem.i16(o + 38)]
+        // (then its velocity, from Blood's xvel, yvel and zvel arrays, and its cstat)
+        const v = arrays.sprites + VEL + 4 * i
+        d[i] = [mem.i32(o), mem.i32(o + 4), mem.i32(o + 8), mem.i16(o + 28) & 2047, mem.i16(o + 14), stat, mem.i16(o + 38), mem.i32(v), mem.i32(v + 16384), mem.i32(v + 32768), mem.u16(o + 12)]
       }
       sample.dudes = d
+    }
+    // Every sprite within NEAR of the player (NEAR=1500): index, place, tile, cstat, status, type
+    if (process.env.NEAR && arrays.sprites !== null) {
+      const r = Number(process.env.NEAR), n = []
+      for (let i = 0; i < 4096; i++) {
+        const o = arrays.sprites + i * 44
+        const stat = mem.i16(o + 26)
+        if (stat >= 1024 || o === P) continue
+        const x = mem.i32(o), y = mem.i32(o + 4)
+        if (Math.abs(x - s.x) < r && Math.abs(y - s.y) < r) n.push([i, x, y, mem.i32(o + 8), mem.i16(o + 14), mem.u16(o + 12), stat, mem.i16(o + 38)])
+      }
+      sample.near = n
     }
     samples.push(sample)
     if (performance.now() - tStart > Number(seconds) * 1000) { clearInterval(h); resolve() }

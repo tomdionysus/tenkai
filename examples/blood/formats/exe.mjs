@@ -115,6 +115,52 @@ export default class BloodExe {
     return out
   }
 
+  /**
+   * Blood's effects (gFXData, 26 bytes each, 57 of them): u8 callback (on reaching the floor; 255 none), u8 detail,
+   * i16 seq, i16 flags (1: a chance to flip in x, 2: in y), i32 gravity, i32 drag, i32 duration (clock ticks; 0
+   * lasts as its sequence), i16 picnum, u8 xrepeat, yrepeat, i16 cstat, i8 shade, u8 pal. Found by the first
+   * effects' sequences (49, 50, 51).
+   */
+  fxData () {
+    const at = this.find([0xff, 0x00, 0x31, 0x00, 0x01, 0x00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0x00, 0x32, 0x00])
+    if (at < 0) throw new Error('fxData not found')
+    const out = []
+    for (let k = 0; k < 57; k++) {
+      const o = at + k * 26, b = this.b
+      out.push({ callback: b[o], detail: b[o + 1], seq: b.readInt16LE(o + 2), flags: b.readInt16LE(o + 4), gravity: b.readInt32LE(o + 6), drag: b.readInt32LE(o + 10), duration: b.readInt32LE(o + 14), picnum: b.readInt16LE(o + 18), xrepeat: b[o + 20], yrepeat: b[o + 21], cstat: b.readInt16LE(o + 22), shade: b.readInt8(o + 24), pal: b[o + 25] })
+    }
+    return out
+  }
+
+  /**
+   * Blood's gibList (20 bytes each, 31 of them): a pointer to its GIBFX records and their count, a pointer to its
+   * GIBTHING records and their count, a sound. GIBFX (21 bytes, packed): i32 fx, i8 pal (-1: the sprite's own),
+   * i32 chance, i32 count, i32 speed across, i32 speed up. GIBTHING (20 bytes): i32 type, picnum (-1: the thing's
+   * own), chance, speed across, speed up. The pointers are offsets in the data object: found from its first
+   * GIBFX record (glass: effect 18, three of them, 200 and 400) at its offset there, 0x1b758.
+   */
+  gibList () {
+    const first = this.find([0x12, 0, 0, 0, 0, 0, 0, 1, 0, 3, 0, 0, 0, 0xc8, 0, 0, 0, 0x90, 0x01, 0, 0, 0x1f])
+    if (first < 0) throw new Error('gibList not found')
+    const data = first - 0x1b758, b = this.b
+    const out = []
+    for (let k = 0; k < 31; k++) {
+      const o = data + 0x1bcd8 + k * 20
+      const fxAt = b.readInt32LE(o), nfx = b.readInt32LE(o + 4), thingAt = b.readInt32LE(o + 8), nthing = b.readInt32LE(o + 12)
+      const fx = [], things = []
+      for (let i = 0; i < nfx; i++) {
+        const p = data + fxAt + i * 21
+        fx.push({ fx: b.readInt32LE(p), pal: b.readInt8(p + 4), chance: b.readInt32LE(p + 5), count: b.readInt32LE(p + 9), across: b.readInt32LE(p + 13), up: b.readInt32LE(p + 17) })
+      }
+      for (let i = 0; i < nthing; i++) {
+        const p = data + thingAt + i * 20
+        things.push({ type: b.readInt32LE(p), picnum: b.readInt32LE(p + 4), chance: b.readInt32LE(p + 8), across: b.readInt32LE(p + 12), up: b.readInt32LE(p + 16) })
+      }
+      out.push({ fx, things, sound: b.readInt32LE(o + 16) })
+    }
+    return out
+  }
+
   dudeInfo () {
     const at = this.find([0x00, 0x10, 0x28, 0x00, 0x46, 0x00, 0xb0, 0x04, 0x00, 0x00, 0x30])
     if (at < 0) throw new Error('dudeInfo not found')

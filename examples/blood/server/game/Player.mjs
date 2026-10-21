@@ -98,7 +98,7 @@ export default class Player {
     }
   }
 
-  /** Blood's ProcessInput, then the dude's move for the tick */
+  /** Blood's playerProcess: ProcessInput (the input's speed, turn, stance) and the weapon; move() moves it */
   tick (input = this.input) {
     this.input = input
     const s = this.sprite, level = this.level, trig = level.trig
@@ -108,7 +108,6 @@ export default class Player {
     if (this.shakeAmount > 0) this.shakeAmount = Math.max(0, this.shakeAmount - 0x40)
     for (const k of Object.keys(this.powerups)) if (--this.powerups[k] <= 0) delete this.powerups[k]
     this.environment(input)
-    if (this.weaponState) this.weaponState.tick(input)
     const posture = POSTURES[this.posture]
     if (input.buttons || input.forward || input.strafe || input.turn) this.restTime = 0
     else if (this.restTime >= 0) this.restTime += 4
@@ -163,8 +162,22 @@ export default class Player {
       if (this.horiz === 100) this.lookCenter = false
     }
     this.stance()
-    moveDude(level, this)
+    // Then, as Blood's playerProcess: the eye and the weapon's height follow the body, and the weapon (after the
+    // turn: a shot goes where the player now faces, from where the weapon now is)
     this.view()
+    if (this.weaponState) this.weaponState.tick(input)
+  }
+
+  /**
+   * The dude's move for the tick (Blood's MoveDude, in actProcessSprites: after the busy sectors, the events and
+   * the sequences, which Blood runs after the players' input), then the view
+   */
+  move () {
+    const s = this.sprite
+    moveDude(this.level, this)
+    if (this.health > 0) return
+    const floor = s.z - 0x400
+    if (this.zView < floor) this.zView = Math.min(floor, this.zView + 0x200)
   }
 
   /**
@@ -197,9 +210,6 @@ export default class Player {
   deadTick (input) {
     const s = this.sprite
     s.xvel = 0; s.yvel = 0
-    moveDude(this.level, this)
-    const floor = s.z - 0x400
-    if (this.zView < floor) this.zView = Math.min(floor, this.zView + 0x200)
     if (this.game && this.game.frame - this.deadAt > 30 && (input.buttons & 4 || input.keys & KEY.action)) this.game.respawn(this)
   }
 

@@ -24,10 +24,11 @@ export function startPlayer (level, number = 0) {
 /** `options.seed`: the random state to start from (the original's at the demo's start), or a fixed 1 */
 export function replay (res, demo, ticks, onTick, options = {}) {
   if (options.seed === undefined) options = Object.assign({}, options, { seed: 1 })
-  const game = new Game(res, Object.assign({ map: demo.options.levelName, difficulty: demo.options.difficulty, frame: 2 }, options))
+  // Seeded before the level is set up: the original's state at the demo's start is before its generators' first
+  // draws (Blood's InitGenerator), which the remake makes likewise; Blood's frame count starts at 0
+  const game = new Game(res, Object.assign({ map: demo.options.levelName, difficulty: demo.options.difficulty, frame: 0 }, options))
   const level = game.level
   const p = game.addPlayer(0)
-  if (options.seed !== undefined) { game.random.seed = options.seed; game.random.calls = 0 }
   const out = []
   { const s = p.sprite; out.start = { c: 0, x: s.x, y: s.y, z: s.z, ang: s.ang, sect: s.sectnum, xvel: 0, yvel: 0, zvel: 0, h: p.height } }
   for (let k = 0; k < Math.min(ticks, demo.inputs.length); k++) {

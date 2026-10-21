@@ -2,14 +2,14 @@
 // original's thingInfo (BLOOD.EXE: mass, clipdist, how they bounce, what hurts them), and explosions by its
 // explodeInfo (damage falling off with distance, the concussion's push by size and mass).
 import { mulscale, divscale, ksqrt, scale, CLIPMASK0 } from '../../common/engine.mjs'
-import { approxDist, wallBounce, getZRange, checkLink } from './physics.mjs'
-import { STAT } from './triggers.mjs'
+import { approxDist, wallBounce, getZRange, checkLink, airDrag } from './physics.mjs'
+import { STAT, CMD, SPRITE } from './triggers.mjs'
 import { DAMAGE } from './combat.mjs'
 
 // Blood's explosion kinds (explodeInfo's order): the thrown bundle's is the standard (1: the original's explosion
 // sprite has type 1), a barrel's the large (2)
 export const EXPLOSION = { small: 0, standard: 1, large: 2, fireball: 3, napalm: 5, spray: 6, tnt: 1 }
-const THING = { tntBarrel: 400, proxBomb: 401, remoteBomb: 402, tntStick: 418, tntBundle: 419, sprayBundle: 420, dripWater: 423, dripBlood: 424 }
+const THING = { tntBarrel: 400, proxBomb: 401, remoteBomb: 402, tntStick: 418, tntBundle: 419, sprayBundle: 420, dripWater: 423, dripBlood: 424, bloodBits: 425, bloodChunks: 426, zombieHead: 427 }
 
 export default class Things {
   constructor (game) {
@@ -24,22 +24,33 @@ export default class Things {
 
   mass (s) { const t = this.info[s.type] || (this.bodies.get(s.index)); return t ? t.mass : 0 }
 
+  /** Blood's GibThing for each of a list of gib records */
+  gib (s, records) { for (const g of records) this.gibThing(s, g) }
+
   /**
-   * Blood's GibThing for each of a list of gib records: a piece of a body (or a head) from a random place on its
-   * edge, flying at random within the record's speeds (across, up), a thing that bounces and blocks
+   * Blood's GibThing: a piece of a body (or a head) from a random place on its edge (or a given place), flying at
+   * random within the record's speeds (across, up), a thing that bounces and blocks
    */
-  gib (s, records) {
+  gibThing (s, g, pos = null, vel = null) {
     const level = this.level, trig = level.trig, R = this.game.random
+    if (g.chance !== 0x10000 && !R.Chance(g.chance)) return
     const { top, bottom } = level.extents(s)
-    for (const g of records) {
-      if (!R.Chance(g.chance)) continue
+    let x, y, z
+    if (pos) ({ x, y, z } = pos)
+    else {
       const a = R.Random(2048)
-      const x = s.x + mulscale(s.clipdist << 2, trig.Cos(a), 30), y = s.y + mulscale(s.clipdist << 2, trig.Sin(a), 30)
-      const z = bottom - R.Random(Math.max(1, bottom - top))
-      const sect = level.engine.updatesector(x, y, s.sectnum)
-      if (sect < 0) continue
-      const info = this.info[g.type]
-      const gib = level.spawn(sect, x, y, z, STAT.thing, { picnum: g.picnum > -1 ? g.picnum : info.picnum, xrepeat: 48, yrepeat: 48, clipdist: info.clipdist, cstat: info.cstat, type: g.type, flags: info.flags })
+      x = s.x + mulscale(s.clipdist << 2, trig.Cos(a), 30); y = s.y + mulscale(s.clipdist << 2, trig.Sin(a), 30)
+      z = bottom - R.Random(Math.max(1, bottom - top))
+    }
+    // In the sprite's own sector, as Blood's actSpawnThing (its heights there decide how the piece flies up)
+    const sect = s.sectnum
+    if (sect < 0) return
+    const info = this.info[g.type]
+    const gib = level.spawn(sect, x, y, z, STAT.thing, { picnum: g.picnum > -1 ? g.picnum : info.picnum, xrepeat: info.xrepeat || 64, yrepeat: info.yrepeat || 64, clipdist: info.clipdist, cstat: 128 | info.cstat, type: g.type, flags: info.flags })
+    if (vel) {
+      gib.xvel = vel.x + R.Random2(g.across); gib.yvel = vel.y + R.Random2(g.across); gib.zvel = vel.z - R.Random(g.up)
+    } else {
+      // (a thing's speeds are over 180, an effect's over 120)
       gib.xvel = R.Random2(Math.trunc((g.across << 18) / 120))
       gib.yvel = R.Random2(Math.trunc((g.across << 18) / 120))
       const cz = level.engine.getceilzofslope(sect, x, y), fz = level.engine.getflorzofslope(sect, x, y)
@@ -48,14 +59,23 @@ export default class Things {
       if (dz2 < dz1 && dz2 < 0x4000) gib.zvel = 0
       else if (dz2 > dz1 && dz1 < 0x4000) gib.zvel = -R.Random(up)
       else gib.zvel = R.Random2(up)
-      this.moving.set(gib.index, { health: info.startHealth << 4 })
     }
+    // Blood's actSpawnThing for the bits and the head: locked for 180 clock ticks, then broken by what they hit into
+    // their own gibs (actActivateGibObject: blood chunks, GIBTYPE 18 or 7) with their sound
+    const gibObject = g.type === THING.bloodBits || g.type === THING.bloodChunks || g.type === THING.zombieHead
+      ? { gib: g.type === THING.bloodBits ? 19 : 8, sound: g.type === THING.zombieHead ? 318 : 319, unlock: this.game.clock + 180 } : null
+    this.moving.set(gib.index, { health: info.startHealth << 4, gibObject })
   }
 
-  /** A dead dude's body, moved as a thing with its own mass (no bounce) */
-  body (s, mass) {
-    if (!this.bodies) this.bodies = new Map()
-    this.bodies.set(s.index, { mass, elastic: 0, dmgResist: 0x7fffffff, clipdist: s.clipdist })
+  /** Blood's actActivateGibObject: a gib object broken (its gib types, its sound) and gone */
+  activateGibObject (s, o) {
+    if (o.gib > 0) this.game.fx.gibSprite(s, o.gib - 1)
+    if (o.sound > 0) this.game.sound(s, o.sound)
+    this.remove(s)
+  }
+
+  /** A dead dude's body (Blood's kThingBloodChunks, moved by its thingInfo; it does not die again) */
+  body (s) {
     this.moving.set(s.index, { health: 1 << 30, body: true })
   }
 
@@ -77,7 +97,7 @@ export default class Things {
     if (sectnum < 0) { sectnum = from.sectnum; x = from.x; y = from.y }
     const s = level.spawn(sectnum, x, y, z, STAT.thing, {
       picnum: info.picnum, xrepeat: info.xrepeat || 32, yrepeat: info.yrepeat || 32, shade: info.shade, pal: info.pal, clipdist: info.clipdist,
-      cstat: info.cstat, ang: from.ang, owner: from.index, type, flags: info.flags
+      cstat: 128 | info.cstat, ang: from.ang, owner: from.index, type, flags: info.flags
     })
     s.xvel = mulscale(speed, trig.Cos(from.ang), 30)
     s.yvel = mulscale(speed, trig.Sin(from.ang), 30)
@@ -86,6 +106,11 @@ export default class Things {
     s.yvel += Math.trunc((from.yvel || 0) / 2)
     s.zvel += Math.trunc((from.zvel || 0) / 2)
     this.moving.set(s.index, Object.assign({ owner: from.index, health: info.startHealth << 4 }, o))
+    // Blood's actSpawnThing: lit TNT smokes from its fuse (fxDynPuff, at once and every 12 clock ticks) and hisses
+    if (type === THING.tntStick || type === THING.tntBundle) {
+      this.game.triggers.post(s.index, SPRITE, 0, CMD.callback, () => this.game.fx.dynPuff(s))
+      this.game.sound(s, 450)
+    }
     return s
   }
 
@@ -103,19 +128,32 @@ export default class Things {
     return damage
   }
 
-  tick () {
-    // Explosions last their time (explodeInfo's ticks, 120 Hz): every frame of it they hurt and push what is in reach
+  /**
+   * Explosions last their time (explodeInfo's ticks, 120 Hz): every frame of it they hurt and push what is in reach,
+   * from the frame after the one that made them (Blood posts the sprite to its explosions at the frame's end)
+   */
+  explosionsTick () {
     for (const ex of this.explosions.slice()) {
-      this.blast(ex)
+      if (ex.frame === this.game.frame) continue
+      if (ex.time > 0) this.blast(ex)
       ex.time -= 4
       if (ex.time <= 0) this.explosions.splice(this.explosions.indexOf(ex), 1)
     }
+  }
+
+  tick () {
     for (const [index, m] of [...this.moving]) {
       const s = this.level.sprites[index]
       if (!s || s.statnum !== STAT.thing) { this.moving.delete(index); continue }
       if (m.fuse !== undefined && --m.fuse <= 0) { this.explode(s, EXPLOSION.tnt, this.level.sprites[m.owner]); continue }
       if (!(s.xvel || s.yvel || s.zvel || (s.flags & 4) || (s.flags & 2))) continue
+      // Blood's actAirDrag on a moving thing, as on a dude (the thrown TNT slows so in BLOOD000)
+      airDrag(this.level, s, 128)
       const hit = this.move(s)
+      // Blood's gSpriteHit florhit: whether it lies on the floor (an explosion there is a different sequence)
+      m.florhit = this.level.extents(s).bottom >= this.level.engine.getflorzofslope(s.sectnum, s.x, s.y) - 256
+      // A gib object, once unlocked, breaks on what it hits (Blood's Impact on it, through kCmdOff)
+      if (hit && m.gibObject && this.game.clock >= m.gibObject.unlock) { this.activateGibObject(s, m.gibObject); continue }
       // Blood's Impact: whatever it hits (floor, ceiling, wall, a sprite other than its thrower) sets it off
       if (hit && m.impact && ((hit & 0xc000) !== 0xc000 || (hit & 0x3fff) !== m.owner)) { this.explode(s, EXPLOSION.tnt, this.level.sprites[m.owner]); continue }
       if (hit && (s.type === THING.dripWater || s.type === THING.dripBlood) && (hit & 0xc000) === 0x4000) {
@@ -145,10 +183,11 @@ export default class Things {
       }
     }
     if (s.zvel) s.z += s.zvel >> 8
-    let zr = getZRange(level, s, s.clipdist << 2)
+    // Blood's MoveThing: no clipping at a parallaxed sky (things fly above it, as the gibs in BLOOD000)
+    let zr = getZRange(level, s, s.clipdist << 2, 0)
     ;({ top, bottom } = level.extents(s))
     if ((s.flags & 2) && bottom < zr.florz) { s.z += 455; s.zvel += 58254 }
-    if (checkLink(level, s)) zr = getZRange(level, s, s.clipdist << 2)
+    if (checkLink(level, s)) zr = getZRange(level, s, s.clipdist << 2, 0)
     ;({ top, bottom } = level.extents(s))
     if (bottom >= zr.florz) {
       s.z += zr.florz - bottom
@@ -205,13 +244,13 @@ export default class Things {
     const game = this.game
     const owner = source || s
     const x = s.x, y = s.y, z = s.z, sectnum = s.sectnum
+    const m = this.moving.get(s.index)
+    // On the floor the explosion's sequence is 3, in the air 4; sparks (GIBTYPE_5) or, from a barrel, its staves
+    game.missiles.effect({ x, y, z, sectnum }, m && m.florhit ? 3 : 4)
+    game.sound({ x, y, z, sectnum, index: -1 }, kind === EXPLOSION.small ? 303 : kind === EXPLOSION.large ? 305 : 304)
+    game.fx.gibSprite(s, s.type === THING.tntBarrel ? 14 : 5)
     this.remove(s)
-    const ex = { x, y, z, sectnum, e, owner, time: e.ticks }
-    this.explosions.push(ex)
-    this.blast(ex)
-    ex.time -= 4
-    game.missiles.effect({ x, y, z, sectnum }, kind === EXPLOSION.small ? 4 : 3)
-    game.sound({ x, y, z, sectnum, index: -1 }, kind === EXPLOSION.small ? 303 : 304)
+    this.explosions.push({ x, y, z, sectnum, e, owner, time: e.ticks, frame: game.frame })
     if (e.quake) game.shakeNear({ x, y }, e.quake << 4)
   }
 
@@ -234,6 +273,9 @@ export default class Things {
       if (e.burnTime) game.burn(d, owner, e.burnTime << 2)
     }
     for (const d of near(STAT.thing)) {
+      // (a locked thing is let be: the gibs, their first 180 clock ticks)
+      const m = this.moving.get(d.index)
+      if (m && m.gibObject && this.game.clock < m.gibObject.unlock) continue
       if (e.force) this.concuss(d, x, y, z, e.force, owner)
       if (e.burnTime) game.burn(d, owner, e.burnTime << 2)
     }

@@ -108,15 +108,28 @@ class Dude {
 
   get targetSprite () { return this.target >= 0 ? this.level.sprites[this.target] : null }
 
-  tick (frame) {
+  /** Blood's aiProcessDudes for this dude: its state's move and (every fourth frame) think, its state's time, recoil */
+  think (frame) {
     const s = this.sprite
-    if (this.x.health <= 0) return
+    if (this.x.health <= 0) { this.cumulDamage = 0; return }
     if (this.stateTimer > 0) this.stateTimer -= 4
     const st = this.state
     if (st.move) this['move_' + st.move]()
     if (st.think && (frame & 3) === (s.index & 3)) this['think_' + st.think]()
     if (st.ticks && this.stateTimer <= 0 && st.next) this.setState(st.next)
     if (this.waitSeq && this.dudes.seqs.playing(s) < 0) { this.waitSeq = false; if (st.next) this.setState(st.next) }
+    // Hurt enough this frame (all its damage together, against what it can take): Blood's RecoilDude, a draw first
+    if (this.x.health > 0 && this.cumulDamage >= (this.info.hinderDamage << 4)) {
+      Chance(0x8000)
+      if (this.kind.states.recoil && this.stateName !== 'buried' && this.stateName !== 'rise') this.setState('recoil')
+    }
+    this.cumulDamage = 0
+  }
+
+  /** The dude's move for the frame (Blood's MoveDude, in actProcessSprites' dudes before their minds) */
+  move () {
+    const s = this.sprite
+    if (this.x.health <= 0) return
     if (s.xvel || s.yvel || s.zvel || !this.kind.flies) moveDude(this.level, this)
     if (this.kind.flies) { s.xvel -= mulscale(s.xvel, 0x2000, 16); s.yvel -= mulscale(s.yvel, 0x2000, 16); s.zvel -= mulscale(s.zvel, 0x2000, 16) }
   }
@@ -351,10 +364,11 @@ class Dude {
     x.health = Math.max(0, x.health - damage)
     if (x.health <= 0) { this.die(source, kind, damage); return damage }
     // A new target: the one that hurt it (Blood's aiDamageSprite)
-    if (source && source.statnum === STAT.dude && source !== s && (this.target < 0 || Chance(0x4000))) { this.target = source.index; if (this.stateName === 'idle' || this.stateName === 'search' || this.stateName === 'goto') this.activate() }
+    // (a roll only for another than its target: damage by its type's change-target chance, its kin's for its kind)
+    if (source && source.statnum === STAT.dude && source !== s && (this.target < 0 || (source.index !== this.target && Chance(damage * (source.type === s.type ? this.info.changeTargetKinChance : this.info.changeTargetChance))))) { this.target = source.index; if (this.stateName === 'idle' || this.stateName === 'search' || this.stateName === 'goto') this.activate() }
     if (this.stateName === 'buried' || this.stateName === 'laying') { this.setState('rise'); return damage }
-    // Recoil, by how hard it was hit against what it can take
-    if (damage >= (this.info.hinderDamage << 4) && Chance(0x8000) && this.kind.states.recoil) this.setState('recoil')
+    // Recoil comes in the frame's minds, from all of the frame's damage (Blood's cumulDamage)
+    this.cumulDamage = (this.cumulDamage || 0) + damage
     return damage
   }
 
@@ -363,19 +377,22 @@ class Dude {
     // Blood's actKillDude: blown up (the flying body, +2), burnt (+3), anything else (+1)
     const seq = kind === DAMAGE.explode ? 2 : kind === DAMAGE.burn ? 3 : 1
     const id = this.dudes.library.get(this.info.seqStartID + seq) ? this.info.seqStartID + seq : this.info.seqStartID + 1
+    // (its cstat as the sequence's frames leave it: a body still blocks, as Blood's, and a gib can ride it)
     this.dudes.seqs.spawn(s, id)
-    s.cstat &= ~257
-    // Blown apart: the body's pieces fly (Blood's GibSprite; the human's run of gibs, a zombie's head too)
+    // Blown apart (Blood's actKillDude): its gib types' pieces fly (GibSprite), and four spurts of blood
     if (kind === DAMAGE.explode) {
-      const g = this.game.res.tables.gibThings
-      this.game.things.gib(s, g.slice(0, 7).concat(KIND_OF[s.type] === 'zombie' ? [g[22]] : []))
+      for (const g of this.info.gibType) if (g >= 0) this.game.fx.gibSprite(s, g)
+      for (let i = 0; i < 4; i++) this.game.fx.spawnBlood(s)
     }
-    // The body is a thing now: it keeps what knocked it, flies, falls and lands (Blood's actKillDude to kStatThing)
+    // The body is a thing now, Blood's kThingBloodChunks (426) with that thing's mass and bounce: it keeps what
+    // knocked it, flies, falls and lands (actKillDude to kStatThing)
+    this.game.sound(s, kind === DAMAGE.explode ? 717 : ({ cultist: 1018, zombie: 1105, gargoyle: 1405, rat: 2102, bat: 2002, spider: 1803, hand: 1903, eel: 1703 }[KIND_OF[s.type]] || 1018))
+    this.dudeType = s.type
+    s.type = 426
     s.statnum = STAT.thing
     s.flags |= 2
-    this.game.things.body(s, this.info.mass)
+    this.game.things.body(s)
     level.touched()
-    this.game.sound(s, kind === DAMAGE.explode ? 717 : ({ cultist: 1018, zombie: 1105, gargoyle: 1405, rat: 2102, bat: 2002, spider: 1803, hand: 1903, eel: 1703 }[KIND_OF[s.type]] || 1018))
     // What it carried
     if (this.x.dropMsg) this.game.drop(s, this.x.dropMsg)
     // Its own trigger: a dude's death sends its command (Blood's actKillDude: trTriggerSprite with off)
@@ -399,6 +416,8 @@ export default class Dudes {
     for (const s of this.level.sprites) {
       if (s.statnum !== STAT.dude || s.type < 201 || (s.type >= 231 && s.type <= 238) || !this.level.x(s)) continue
       if (!this.tables.dudeInfo[s.type]) continue
+      // Blood's actInit: a dude's size is its type's (the map's clipdist is not kept)
+      s.clipdist = this.tables.dudeInfo[s.type].clipdist
       this.add(s)
     }
     this.total = this.list.length
@@ -418,5 +437,6 @@ export default class Dudes {
 
   of (s) { return this.bySprite.get(s) || null }
 
-  tick () { R = this.game.random; for (const d of this.list.slice()) d.tick(this.game.frame) }
+  move () { for (const d of this.list.slice()) d.move() }
+  think () { R = this.game.random; for (const d of this.list.slice()) d.think(this.game.frame) }
 }

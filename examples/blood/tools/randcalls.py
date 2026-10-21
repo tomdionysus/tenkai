@@ -1,7 +1,7 @@
 # Where BLOOD.EXE calls rand() (Watcom's, found by its multiplier 0x41C64E6D), attributed to the source file whose name
 # the nearest assertion in the code pushes (Blood's asserts carry "src\\file.cpp"). For finding which parts of the
 # original draw random numbers.
-#   python3 tools/randcalls.py [file]   (with a file: the addresses of its calls)
+#   python3 tools/randcalls.py [file]   (with a file: the addresses of its calls; --json: every call site's file)
 import struct, re, collections, bisect, sys
 d = open(__import__('os').path.join(__import__('os').path.dirname(__file__), '..', 'original', 'BLOOD.EXE'), 'rb').read()
 le = d.find(b'LE\x00\x00')
@@ -64,8 +64,12 @@ for c in calls:
     nm = name if dist < 0x1000 else '?'
     by[nm] += 1
     detail[nm].append(hex(c))
-print('rand at', hex(rand), 'called from', len(calls), 'places;', len(names), 'source names,', len(refs), 'references')
-if len(sys.argv) > 1:
+if sys.argv[1:2] != ['--json']: print('rand at', hex(rand), 'called from', len(calls), 'places;', len(names), 'source names,', len(refs), 'references')
+if len(sys.argv) > 1 and sys.argv[1] == '--json':
+    # every call site (its address) with its source file, for fidelity/randlog.mjs's logs
+    import json
+    print(json.dumps({hex(int(a, 16)): n for n, l in detail.items() for a in l}))
+elif len(sys.argv) > 1:
     print(' '.join(detail[sys.argv[1]]))
 else:
     for n, c in by.most_common(): print(f'{n:28s} {c}')

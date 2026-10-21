@@ -16,11 +16,10 @@ const first = trace.samples.findIndex((s) => s.c[0] === 0)
 const samples = trace.samples.slice(first)
 const seed = samples[0].r
 const demo = Demo.load(path.join(ROOT, 'original', trace.demo || 'BLOOD000.DEM'))
-const game = new Game(new Resources(), { map: demo.options.levelName, difficulty: demo.options.difficulty, seed, frame: Number(process.env.FRAME || 2) })
+// The original's state at tick 0 is before its generators' first draws (Blood's InitGenerator): the remake is seeded
+// with it before its level is set up, and makes them likewise
+const game = new Game(new Resources(), { map: demo.options.levelName, difficulty: demo.options.difficulty, seed, frame: Number(process.env.FRAME || 0) })
 const p = game.addPlayer(0)
-// The original's state at tick 0 is after its level's load (its generators' first draws): the remake's likewise
-game.random.seed = seed
-game.random.calls = 0
 // The remake's state after each tick
 const states = [game.random.seed]
 const counts = []

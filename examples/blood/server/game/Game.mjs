@@ -13,6 +13,7 @@ import Missiles from './missiles.mjs'
 import Dudes from './dudes.mjs'
 import Random from './random.mjs'
 import Things from './things.mjs'
+import Effects from './fx.mjs'
 
 export const TICK_RATE = 30
 export const CLOCK_PER_TICK = 4
@@ -49,6 +50,7 @@ export default class Game {
     this.pickups = new Pickups(this)
     this.missiles = new Missiles(this)
     this.things = new Things(this)
+    this.fx = new Effects(this)
     this.kills = 0
     this.burning = []
     this.respawns = []
@@ -194,14 +196,24 @@ export default class Game {
   tick () {
     if (!this.started) { this.triggers.start(this.options.gameType); this.started = true }
     this.events = []
+    // Blood's CalcGameChecksum every eight frames (the network's sync check), whose first word is a draw of the
+    // game's rand(): the original's draws match the remake's only with it (fidelity/randlog.mjs)
+    if ((this.frame & 7) === 0) this.random.rand()
+    // Blood's ProcessFrame: the players' input and weapons first, then the busy sectors, the events, the sequences,
+    // then the sprites (actProcessSprites): things, missiles, explosions, the dudes' moves (the players' among them),
+    // the dudes' minds (aiProcessDudes), the effects
+    for (const p of this.players) if (p) this.playerTick(p)
     this.triggers.processBusy()
     this.triggers.processEvents()
     this.seqs.process(CLOCK_PER_TICK)
-    for (const p of this.players) if (p) this.playerTick(p)
-    for (const p of this.players) if (p && p.health > 0) this.pickups.check(p)
-    this.dudes.tick()
-    this.missiles.tick()
     this.things.tick()
+    this.missiles.tick()
+    this.things.explosionsTick()
+    for (const p of this.players) if (p) this.playerMove(p)
+    for (const p of this.players) if (p && p.health > 0) this.pickups.check(p)
+    this.dudes.move()
+    this.dudes.think()
+    this.fx.process()
     this.burn()
     this.respawnItems()
     this.frame++
@@ -215,10 +227,15 @@ export default class Game {
       p.input = Object.assign({}, p.held, { buttons: p.held.buttons | (l.buttons || 0), keys: p.held.keys | (l.keys || 0), use: p.held.use | (l.use || 0), newWeapon: p.held.newWeapon || l.newWeapon || 0 })
       p.latched = { buttons: 0, keys: 0, use: 0, newWeapon: 0 }
     }
-    const before = p.sprite.sectnum
-    p.changedSector = null
     p.tick(p.input)
     if (p.input.keys & KEY.action) this.action(p)
+  }
+
+  /** A player's move for the tick, and the sectors it leaves and enters */
+  playerMove (p) {
+    const before = p.sprite.sectnum
+    p.changedSector = null
+    p.move()
     if (p.changedSector) this.sectorChange(p.sprite, p.changedSector.from, p.changedSector.to, p)
     else if (p.sprite.sectnum !== before) this.sectorChange(p.sprite, before, p.sprite.sectnum, p)
   }
@@ -360,7 +377,11 @@ export default class Game {
     this.sound(null, 3008)
   }
   totalSecrets (n) { this.secrets.total = n }
-  secret (cmd) { this.secrets.found++; this.message(null, 'A secret is revealed.') }
+  /** Blood's CSecretMgr::Found: counted, and in single player one of two messages, chosen by a draw */
+  secret (cmd) {
+    this.secrets.found++
+    if ((this.options.gameType || 0) === 0) this.message(null, this.random.Random(2) ? 'You found a secret.' : 'A secret is revealed.')
+  }
   breakWall (nWall) {
     const w = this.level.walls[nWall]
     w.cstat &= ~(1 | 16 | 64 | 256)

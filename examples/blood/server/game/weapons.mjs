@@ -132,16 +132,15 @@ export default class Weapons {
           this.play('blown', BUNDLE.blown)
         })
         if (this.state !== 'lit') return true
-        // Letting go counts once the fuse has caught (about 24 clocks: the three throws in BLOOD000 and BLOOD002);
-        // let go before that, it is lobbed at the least strength (BLOOD000's throw, let go at 16 clocks)
-        if (elapsed < 24) { if (!(input.buttons & (this.timed ? 8 : 4))) this.tapped = true; return true }
         if (this.timed) {
           if (!(input.buttons & 8)) { this.fuse = q.duration - elapsed; this.play('drop', BUNDLE.drop) }
           return true
         }
         if (!(input.buttons & 4)) {
           this.fuse = q.duration - elapsed
-          this.power = this.tapped ? 0 : Math.min(0x10000, divscale(game.clock - this.throwTime, 240, 16))
+          // Blood's throwPower: the hold over 240 clock ticks (BLOOD000's throw, let go at 16, and BLOOD002's, at
+          // 24, fly as the original's to the unit)
+          this.power = Math.min(0x10000, divscale(game.clock - this.throwTime, 240, 16))
           this.play('throw', BUNDLE.throw)
           this.soundsDone = -1
         }
@@ -164,7 +163,6 @@ export default class Weapons {
         // Fire: lit, to be thrown when let go; alt: lit, to be dropped when let go with the fuse burning
         if ((input.buttons & 12) && this.hasAmmo(w)) {
           this.timed = !(input.buttons & 4)
-          this.tapped = false
           this.throwTime = game.clock
           this.play('lit', BUNDLE.fuse)
           this.soundsDone = -1
