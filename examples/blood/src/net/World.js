@@ -1,6 +1,7 @@
-// The client's copy of the level: the map from data/ with the server's changes laid over it (moved sectors and walls),
-// and the sprites and players as the server last said, kept for drawing between ticks. No game logic: what the server
-// says is what there is.
+// The client's copy of the level: the map's fixed shape from data/ (which walls make which sectors, what is beyond
+// each wall), with everything that can change laid over it from the server's state each tick (every sector's
+// heights and surfaces, every wall's place and surface), and the sprites and players as the server last said, kept
+// for drawing between ticks. No game logic and nothing of its own: what the server says is what there is.
 const SPRITE_FIELDS = ['x', 'y', 'z', 'ang', 'picnum', 'cstat', 'shade', 'pal', 'xrepeat', 'yrepeat', 'xoffset', 'yoffset', 'sectnum']
 const SECTOR_FIELDS = ['ceilingz', 'floorz', 'ceilingpicnum', 'floorpicnum', 'ceilingshade', 'floorshade', 'ceilingxpanning', 'ceilingypanning', 'floorxpanning', 'floorypanning', 'ceilingstat', 'floorstat', 'visibility']
 const WALL_FIELDS = ['x', 'y', 'picnum', 'overpicnum', 'shade', 'cstat', 'xpanning', 'ypanning', 'pal']
@@ -9,37 +10,32 @@ export default class World {
   /** @param {object} map The map as data/maps/<name>.json holds it */
   constructor (map) {
     this.map = map
-    this.atLoad = { sectors: map.sectors.map((s) => SECTOR_FIELDS.map((f) => s[f])), walls: map.walls.map((w) => WALL_FIELDS.map((f) => w[f])) }
-    this.applied = { sectors: {}, walls: {} }
+    this.applied = { sectors: [], walls: [] }
     this.wallSector = new Int32Array(map.walls.length)
     map.sectors.forEach((s, i) => { for (let w = s.wallptr; w < s.wallptr + s.wallnum; w++) this.wallSector[w] = i })
   }
 
   /**
-   * The server's sectors and walls laid over the map; returns the sectors whose drawing changed (with their
-   * neighbours' walls: the view redraws them)
+   * The server's sectors and walls laid over the map; returns the sectors whose drawing changed (a wall's sector
+   * with it: the view redraws them)
    */
   apply (state) {
     const changed = new Set()
-    const lay = (kind, list, fields, objects) => {
-      const now = state[kind] || {}
-      const before = this.applied[kind]
-      // Back to the map's values for any that are no longer sent
-      for (const k of Object.keys(before)) if (!(k in now)) { this.set(objects[k], fields, this.atLoad[kind][k]); delete before[k]; changed.add(kind === 'sectors' ? Number(k) : this.wallSector[k]) }
-      for (const [k, v] of Object.entries(now)) {
-        const b = before[k]
-        if (b && b.every((x, i) => x === v[i])) continue
-        this.set(objects[k], fields, v)
-        before[k] = v
-        changed.add(kind === 'sectors' ? Number(k) : this.wallSector[k])
+    const lay = (list, fields, objects, applied, sectorOf) => {
+      if (!list) return
+      for (let k = 0; k < list.length; k++) {
+        const v = list[k], b = applied[k]
+        if (!v || v === b) continue
+        if (b && b.length === v.length && b.every((x, i) => x === v[i])) { applied[k] = v; continue }
+        fields.forEach((f, i) => { objects[k][f] = v[i] })
+        applied[k] = v
+        changed.add(sectorOf(k))
       }
     }
-    lay('sectors', null, SECTOR_FIELDS, this.map.sectors)
-    lay('walls', null, WALL_FIELDS, this.map.walls)
+    lay(state.sectors, SECTOR_FIELDS, this.map.sectors, this.applied.sectors, (k) => k)
+    lay(state.walls, WALL_FIELDS, this.map.walls, this.applied.walls, (k) => this.wallSector[k])
     return changed
   }
-
-  set (o, fields, values) { fields.forEach((f, i) => { o[f] = values[i] }) }
 
   /** The sprites to draw, between the last two states by `t` (0 the earlier, 1 the later), less one sprite (the viewer's) */
   sprites (previous, state, t, skip = -1) {
