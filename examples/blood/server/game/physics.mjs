@@ -284,6 +284,13 @@ export function moveDude (level, d, P = PHYSICS) {
     if (d.linked) d.linked(link)
   }
   ;({ top, bottom } = level.extents(s))
+  // A player at its floor looks again at its own size, without the 16 more (BLOOD.EXE 0x35744): what it finds is
+  // its ceiling, and its floor unless the first floor is near enough (within its bottom's reach)
+  if (d.player && bottom >= zr.florz) {
+    const zr2 = getZRange(level, s, s.clipdist << 2)
+    if (!(bottom <= zr2.florz && s.z - zr.florz < bz)) { zr.florz = zr2.florz; zr.florhit = zr2.florhit }
+    zr.ceilz = zr2.ceilz; zr.ceilhit = zr2.ceilhit
+  }
   d.landed = 0
   if (zr.florz <= bottom) {
     d.floorHit = zr.florhit

@@ -71,7 +71,8 @@ export default class Player {
   get x () { return this.level.x(this.sprite) }
 
   /** The slope the player aims along: through the middle of the view (z per 16384 of x and y, in x and y units) */
-  slope () { return Math.round(16384 * (100 - this.horiz) / 100) }
+  /** Blood's slope (BLOOD.EXE 0x3f476): -horiz << 7, the remake's horiz 100 being Blood's 0 */
+  slope () { return (100 - this.horiz) * 128 }
 
   /** Blood's playerDamageSprite: armour takes some of it (body against bullets and blasts, fire against burning, spirit) */
   damaged (source, kind, damage) {
