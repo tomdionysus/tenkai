@@ -69,7 +69,12 @@ if (process.argv[1] && process.argv[1].endsWith('replay.mjs')) {
   const cost = (c) => c.d + c.dz / 16 + c.da * 8
   for (const t of samples) {
     const now = sim[t.c[0] - 1], before = t.c[0] >= 2 ? sim[t.c[0] - 2] : start
-      const candidates = [diff(now, t), diff(before, t), diff(Object.assign({}, before, { ang: now.ang }), t)]
+      // (each of x, y, z and the angle from either tick: the original moves them at different points of its frame)
+    const candidates = []
+    for (let k = 0; k < 16; k++) {
+      const pick = (bit, f) => (k & bit ? before : now)[f]
+      candidates.push(diff(Object.assign({}, now, { x: pick(1, 'x'), y: pick(2, 'y'), z: pick(4, 'z'), ang: pick(8, 'ang'), sect: pick(1, 'sect') }), t))
+    }
     const { m, d, dz, da } = candidates.reduce((x, y) => (cost(y) < cost(x) ? y : x))
     matched.push({ t, m })
     sum += d; n++; worst = Math.max(worst, d)
