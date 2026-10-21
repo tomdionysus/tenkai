@@ -7,6 +7,8 @@ import BloodMap from '../../formats/map.mjs'
 import Art from '../../formats/art.mjs'
 import { Engine, Trig } from '../../common/engine.mjs'
 import { SeqLibrary } from './seq.mjs'
+import BloodExe from '../../formats/exe.mjs'
+import qavRead from '../../formats/qav.mjs'
 
 const ROOT = path.resolve(new URL('../..', import.meta.url).pathname)
 
@@ -21,6 +23,11 @@ export class Resources {
     this.trig = new Trig(this.blood.read('COSINE.DAT'), fs.readFileSync(path.join(dir, 'TABLES.DAT')))
     this.ini = parseIni(fs.readFileSync(path.join(dir, 'BLOOD.INI'), 'latin1'))
     this.seqs = new SeqLibrary(this.blood)
+    // The original's own tables, read out of its executable
+    const exe = BloodExe.load(path.join(dir, 'BLOOD.EXE'))
+    this.tables = { dudeInfo: exe.dudeInfo(), vectorData: exe.vectorData(), weaponItems: exe.weaponItems(), ammoItems: exe.ammoItems(), items: exe.items(), missileInfo: exe.missileInfo() }
+    this.qavs = {}
+    for (const e of this.blood.ofType('QAV')) this.qavs[e.id] = qavRead(this.blood.read(e))
   }
 
   map (name) { return new BloodMap(this.blood.read(name.toUpperCase() + '.MAP')) }

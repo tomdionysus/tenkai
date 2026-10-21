@@ -6,6 +6,7 @@ import RFF from '../formats/rff.mjs'
 import Art from '../formats/art.mjs'
 import BloodMap from '../formats/map.mjs'
 import seq from '../formats/seq.mjs'
+import qav from '../formats/qav.mjs'
 import sfx, { rate, wav } from '../formats/sfx.mjs'
 import { palette, shadeTable } from '../formats/tables.mjs'
 import { png } from './png.mjs'
@@ -92,6 +93,13 @@ if (want('seqs')) {
   const seqs = {}
   for (const e of blood.ofType('SEQ')) seqs[e.name] = Object.assign({ id: e.id }, seq(blood.read(e)))
   write('seqs.json', JSON.stringify(seqs))
+}
+
+if (want('qavs')) {
+  console.log('qavs')
+  const qavs = {}
+  for (const e of blood.ofType('QAV')) qavs[e.id] = Object.assign({ name: e.name }, qav(blood.read(e)))
+  write('qavs.json', JSON.stringify(qavs))
 }
 
 if (want('sounds')) {

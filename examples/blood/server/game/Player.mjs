@@ -48,6 +48,18 @@ export default class Player {
     this.bobWidth = 0
     this.health = 100 << 4
     this.keys = [false, false, false, false, false, false, false, false]
+    this.armor = [0, 0, 0]
+    this.ammo = new Array(13).fill(0)
+    this.weapons = { 1: true, want: 0 }
+    this.weapon = 1
+    this.pack = [0, 0, 0, 0, 0]
+    this.powerups = {}
+    this.kills = 0
+    this.deaths = 0
+    this.fragged = 0
+    this.flash = 0
+    this.hurt = 0
+    this.shakeAmount = 0
     this.restTime = 0
     /** Player one's sequences (PLAY1*: idle 12032, then by offset); each player's own base */
     this.seqBase = 12032
@@ -55,10 +67,48 @@ export default class Player {
 
   get pos () { return this.sprite }
 
+  /** The slope the player aims along: through the middle of the view (z per 16384 of x and y, in x and y units) */
+  slope () { return Math.round(16384 * (100 - this.horiz) / 100) }
+
+  /** Blood's playerDamageSprite: armour takes some of it (body against bullets and blasts, fire against burning, spirit) */
+  damaged (source, kind, damage) {
+    if (this.health <= 0 || this.godMode) return 0
+    const slot = kind === 1 ? 1 : kind === 5 ? 2 : (kind === 2 || kind === 3) ? 0 : -1
+    if (slot >= 0 && this.armor[slot] > 0) {
+      const absorbed = Math.min(this.armor[slot] << 4, damage >> 1)
+      this.armor[slot] = Math.max(0, this.armor[slot] - (absorbed >> 4))
+      damage -= absorbed
+    }
+    this.health = Math.max(0, this.health - damage)
+    this.hurt = Math.min(64, this.hurt + (damage >> 4))
+    if (this.health <= 0) this.die(source, kind)
+    else if (this.game) this.game.sound(this.sprite, damage > 160 ? 1061 : 1060)
+    return damage
+  }
+
+  die (source, kind) {
+    const s = this.sprite
+    this.deaths++
+    this.deadAt = this.game ? this.game.frame : 0
+    if (this.seqs) this.seqs.spawn(s, this.seqBase + 1)
+    s.cstat &= ~257
+    if (this.game) {
+      this.game.sound(s, kind === 3 ? 717 : 1063)
+      const killer = source && this.game.playerOf(source)
+      if (killer && killer !== this) { killer.frags = (killer.frags || 0) + 1; this.game.message(null, (killer.name || 'Player') + ' killed ' + (this.name || 'Player')) } else if (killer === this) this.game.message(null, (this.name || 'Player') + ' killed themselves')
+    }
+  }
+
   /** Blood's ProcessInput, then the dude's move for the tick */
   tick (input = this.input) {
     this.input = input
     const s = this.sprite, level = this.level, trig = level.trig
+    if (this.health <= 0) { this.deadTick(input); return }
+    if (this.hurt > 0) this.hurt--
+    if (this.flash > 0) this.flash = Math.max(0, this.flash - 0.1)
+    if (this.shakeAmount > 0) this.shakeAmount = Math.max(0, this.shakeAmount - 0x40)
+    for (const k of Object.keys(this.powerups)) if (--this.powerups[k] <= 0) delete this.powerups[k]
+    if (this.weaponState) this.weaponState.tick(input)
     const posture = POSTURES[this.posture]
     if (input.buttons || input.forward || input.strafe || input.turn) this.restTime = 0
     else if (this.restTime >= 0) this.restTime += 4
@@ -111,6 +161,16 @@ export default class Player {
     this.stance()
     moveDude(level, this)
     this.view()
+  }
+
+  /** Dead: the body falls, the view sinks to the floor; a press of fire or open comes back (in a game of several) */
+  deadTick (input) {
+    const s = this.sprite
+    s.xvel = 0; s.yvel = 0
+    moveDude(this.level, this)
+    const floor = s.z - 0x400
+    if (this.zView < floor) this.zView = Math.min(floor, this.zView + 0x200)
+    if (this.game && this.game.frame - this.deadAt > 30 && (input.buttons & 4 || input.keys & KEY.action)) this.game.respawn(this)
   }
 
   /** The sequence for how the player stands and moves (Blood's playerProcess): idle, moving, crouching, swimming */
@@ -166,8 +226,10 @@ export default class Player {
     const s = this.sprite
     return {
       number: this.number, sprite: s.index, x: s.x, y: s.y, z: this.zView, ang: this.ang, horiz: this.horiz, sectnum: s.sectnum,
-      health: this.health >> 4, armor: this.armor || [0, 0, 0], weapon: this.weapon || 1, ammo: this.ammo || [], keys: this.keys.map((k) => k ? 1 : 0),
-      bob: this.bobHeight || 0, zWeapon: this.zWeapon - this.zView, tint: this.tint || null, dead: this.health <= 0 ? 1 : 0
+      health: this.health >> 4, armor: this.armor.slice(), weapon: this.weapon, ammo: this.ammo.slice(), keys: this.keys.map((k) => k ? 1 : 0),
+      weapons: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter((n) => this.weapons[n]), pack: this.pack.slice(), powerups: Object.keys(this.powerups).map(Number),
+      qav: this.weaponState ? this.weaponState.status() : null, zWeapon: this.zWeapon - this.zView, hurt: this.hurt, flash: Math.round(this.flash * 10),
+      shake: this.shakeAmount, dead: this.health <= 0 ? 1 : 0, kills: this.kills, frags: this.frags || 0, deaths: this.deaths
     }
   }
 

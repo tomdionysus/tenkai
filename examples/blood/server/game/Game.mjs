@@ -6,6 +6,11 @@ import Player, { KEY } from './Player.mjs'
 import Triggers, { CMD, STAT, SECTOR_TYPE } from './triggers.mjs'
 import { approxDist, linkSectors } from './physics.mjs'
 import Seqs from './seq.mjs'
+import Combat from './combat.mjs'
+import Pickups from './pickups.mjs'
+import Weapons from './weapons.mjs'
+import Missiles from './missiles.mjs'
+import Dudes from './dudes.mjs'
 
 export const TICK_RATE = 30
 export const CLOCK_PER_TICK = 4
@@ -29,12 +34,37 @@ export default class Game {
     this.ended = null
     this.triggers = new Triggers(this)
     this.seqs = new Seqs(this.level, res.seqs)
+    this.filterSprites()
     this.hideMarkers()
     linkSectors(this.level)
     this.takeStarts()
     this.triggers.init()
+    this.combat = new Combat(this)
+    this.pickups = new Pickups(this)
+    this.missiles = new Missiles(this)
+    this.kills = 0
+    this.burning = []
+    this.respawns = []
+    this.dudes = new Dudes(this)
+    this.startSeqs()
     this.started = false
   }
+
+  /**
+   * The sprites this game has (Blood's dbInit): each extra says at which skills and in which kinds of game it is
+   * left out (lSkill a bit a skill; lS single, lB Bloodbath, lC co-op)
+   */
+  filterSprites () {
+    const level = this.level, skill = this.options.difficulty, type = this.options.gameType
+    for (const s of level.sprites) {
+      const x = level.x(s)
+      if (!x || s.statnum >= 1024) continue
+      if ((x.lSkill & (1 << skill)) || (x.lS && type === 0) || (x.lB && type === 2) || (x.lC && type === 1)) level.remove(s)
+    }
+  }
+
+  /** Sprites that show a sequence from the start (Blood's seqSpawn at load for things that animate by sequence) */
+  startSeqs () {}
 
   /** Blood hides its markers and the sprites only the editor shows when a level loads */
   hideMarkers () {
@@ -67,6 +97,8 @@ export default class Game {
     const p = new Player(level, s, number)
     p.game = this
     p.hitWall = (nWall) => this.wallBump(p, nWall)
+    p.weaponState = new Weapons(this, p)
+    p.start = start
     p.seqs = this.seqs
     this.seqs.spawn(s, p.seqBase)
     this.players[number] = p
@@ -103,6 +135,11 @@ export default class Game {
     this.triggers.processEvents()
     this.seqs.process(CLOCK_PER_TICK)
     for (const p of this.players) if (p) this.playerTick(p)
+    for (const p of this.players) if (p && p.health > 0) this.pickups.check(p)
+    this.dudes.tick()
+    this.missiles.tick()
+    this.burn()
+    this.respawnItems()
     this.frame++
     this.clock += CLOCK_PER_TICK
   }
@@ -167,6 +204,68 @@ export default class Game {
     if (kind === 'sector') this.triggers.triggerSector(i, CMD.sectorPush)
     else if (kind === 'wall') this.triggers.triggerWall(i, CMD.wallPush)
     else this.triggers.triggerSprite(i, CMD.spritePush)
+  }
+
+  /** A player back after dying: at a start, with the pitchfork */
+  respawn (p) {
+    const number = p.number
+    this.removePlayer(number)
+    const np = this.addPlayer(number)
+    np.name = p.name
+    np.deaths = p.deaths
+    np.frags = p.frags
+    np.kills = p.kills
+    np.input = p.input
+    return np
+  }
+
+  // --- burning, drops, items coming back ---
+  burn (target, source, ticks) {
+    if (target) {
+      const b = this.burning.find((b) => b.sprite === target)
+      if (b) b.ticks = Math.max(b.ticks, ticks)
+      else this.burning.push({ sprite: target, source, ticks })
+      return
+    }
+    for (const b of this.burning.slice()) {
+      if (--b.ticks <= 0 || b.sprite.statnum >= 1024) { this.burning.splice(this.burning.indexOf(b), 1); continue }
+      if (this.frame % 8 === 0) this.combat.damage(b.source, b.sprite, 1, 2 << 4)
+    }
+  }
+
+  /** A dude's drop (its xsprite's dropMsg: an item type) where it fell */
+  drop (s, type) {
+    const tables = this.res.tables
+    const t = tables.weaponItems[type] || tables.ammoItems[type] || tables.items[type]
+    if (!t || t.picnum <= 0) return
+    const item = this.level.spawn(s.sectnum, s.x, s.y, s.z, STAT.item, { picnum: t.picnum, xrepeat: t.xrepeat, yrepeat: t.yrepeat, shade: t.shade, pal: t.pal, type, cstat: 0 })
+    const fz = this.level.engine.getflorzofslope(item.sectnum, item.x, item.y)
+    item.z = fz - (this.level.extents(item).bottom - item.z)
+  }
+
+  respawnLater (item, seconds) {
+    const keep = Object.assign({}, item)
+    this.level.remove(item)
+    this.respawns.push({ at: this.frame + seconds * 30, keep })
+  }
+
+  respawnItems () {
+    for (const r of this.respawns.slice()) {
+      if (r.at > this.frame) continue
+      const k = r.keep
+      this.level.spawn(k.sectnum, k.x, k.y, k.z, STAT.item, { picnum: k.picnum, xrepeat: k.xrepeat, yrepeat: k.yrepeat, shade: k.shade, pal: k.pal, type: k.type, cstat: k.cstat, extra: k.extra })
+      this.respawns.splice(this.respawns.indexOf(r), 1)
+    }
+  }
+
+  effect (e) {
+    const at = { x: e.x, y: e.y, z: e.z, sectnum: e.sectnum }
+    if (at.sectnum >= 0) this.missiles.effect(at, e.type === 'blood' ? 59 : 44)
+  }
+
+  shake (p, amount) { p.shakeAmount = Math.max(p.shakeAmount, amount) }
+  shakeNear (s, amount) {
+    for (const p of this.players) if (p && approxDist(p.sprite.x - s.x, p.sprite.y - s.y) < 0x2000) this.shake(p, amount)
   }
 
   // --- what the triggers call back ---

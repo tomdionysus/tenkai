@@ -293,7 +293,8 @@ export default class BuildView extends WebGLScene {
     gl.uniform3f(this.uniforms.uEye, eye.x, eye.y, eye.z)
     gl.uniform2f(this.uniforms.uFwd, Math.cos(a), Math.sin(a))
     gl.uniform2f(this.uniforms.uTan, 0.625 * aspect * this.stretch, 0.625 / this.zscale)
-    gl.uniform1f(this.uniforms.uHoriz, (eye.horiz - 100) / 100)
+    // Build's horiz: the horizon's row, 100 the middle of 200; more looks up
+    gl.uniform1f(this.uniforms.uHoriz, (100 - eye.horiz) / 100)
     gl.uniform1f(this.uniforms.uClock, this.clock)
     gl.uniform1i(this.uniforms.uPalette, this.palette)
     gl.uniform1f(this.uniforms.uVisScale, this.visScale)

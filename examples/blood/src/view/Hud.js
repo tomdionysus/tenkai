@@ -1,9 +1,18 @@
-// The HUD over the view: for now the messages Blood shows in the top left (the server's text), held for a few
-// seconds each. The status bar and the weapon in hand come with the weapons.
+// What Blood draws over the view (screen.cpp's viewDrawStatus at full size, and the weapon in hand): the health and
+// ammo box with their numbers, the armour gauges, the keys, the messages; and the weapon's QAV animation, as the
+// server says which plays and from when. All in Blood's 320x200 screen, scaled to the window as the original was to
+// a 4:3 monitor.
+import Tiles from './Tiles.js'
+
+const pad = (n) => String(Math.max(0, Math.min(999, n | 0))).padStart(3, ' ')
+
 export default class Hud {
   constructor (game) {
     this.game = game
     this.messages = []
+    this.tiles = new Tiles(game.indexes.tiles, (name) => { const a = game.getAsset(name); return a && a.element })
+    this.qavs = null
+    fetch('data/qavs.json').then((r) => r.json()).then((q) => { this.qavs = q })
   }
 
   say (text) {
@@ -12,19 +21,93 @@ export default class Hud {
     if (this.messages.length > 4) this.messages.shift()
   }
 
-  draw (context) {
+  /** The 320x200 screen inside the canvas: as wide as 4:3 allows, centred */
+  frame () {
+    const W = this.game.width, H = this.game.height
+    const scale = Math.min(W / 320, H / 240)
+    return { scale, sx: scale, sy: scale * 1.2, x: (W - 320 * scale) / 2, y: H - 200 * scale * 1.2 }
+  }
+
+  draw (ctx) {
+    const c = this.game.client
+    const you = c && c.state && c.state.you
+    const f = this.frame()
+    ctx.save()
+    ctx.imageSmoothingEnabled = false
+    if (you) {
+      this.tint(ctx, you)
+      ctx.save()
+      // The weapon fills the bottom of the whole screen width, as Blood scaled it to the view
+      ctx.translate(f.x, f.y)
+      ctx.scale(f.sx, f.sy)
+      if (!you.dead) this.weapon(ctx, you)
+      this.status(ctx, you)
+      ctx.restore()
+    }
+    this.text(ctx, f)
+    ctx.restore()
+  }
+
+  /** Red when hurt, gold when picking up (Blood's palette flashes) */
+  tint (ctx, you) {
+    const a = Math.min(0.5, (you.hurt || 0) / 64)
+    if (a > 0) { ctx.fillStyle = `rgba(160, 0, 0, ${a})`; ctx.fillRect(0, 0, this.game.width, this.game.height) }
+    if (you.flash > 0) { ctx.fillStyle = `rgba(255, 220, 120, ${you.flash / 40})`; ctx.fillRect(0, 0, this.game.width, this.game.height) }
+  }
+
+  /** The QAV's frame at its time: up to 8 tiles about the QAV's origin, bobbing with the walk */
+  weapon (ctx, you) {
+    const w = you.qav
+    if (!w || !this.qavs) return
+    const q = this.qavs[w.qav]
+    if (!q) return
+    const c = this.game.client
+    const at = w.at + c.fraction() * 4
+    const frame = q.frames[Math.max(0, Math.min(q.frames.length - 1, Math.floor(at / q.ticksPerFrame)))]
+    const bob = this.game.bob || { x: 0, y: 0 }
+    for (const t of frame.tiles) {
+      this.tiles.draw(ctx, t.picnum, q.x + t.x + bob.x, q.y + t.y + bob.y, {
+        scale: t.z / 65536 || 1, flipY: !!(t.stat & 4), alpha: t.stat & 32 ? 0.33 : t.stat & 1 ? 0.66 : 1, dark: Math.max(0, (t.shade + (this.game.weaponShade || 0)) / 64)
+      })
+    }
+  }
+
+  /** Blood's full-size status: health and ammo at the bottom left, armour and keys at the bottom right */
+  status (ctx, you) {
+    const T = this.tiles
+    T.draw(ctx, 2201, 34, 187)
+    if (you.health >= 16 || (performance.now() & 512) || you.health === 0) T.number(ctx, pad(you.health), 2190, 8, 183)
+    const ammoType = [-1, -1, 1, 2, 3, 4, 5, 6, 7, 8, 9][you.weapon]
+    if (ammoType >= 0) T.number(ctx, pad(ammoType === 6 ? you.ammo[ammoType] / 10 : you.ammo[ammoType]), 2240, 42, 183)
+    T.draw(ctx, 2173, 284, 187)
+    const gauge = (tile, y, value) => {
+      if (!value) return
+      const s = T.size(tile)
+      ctx.save()
+      ctx.beginPath(); ctx.rect(250, y - s.h, s.w * Math.min(1, value / 200), s.h * 2); ctx.clip()
+      T.draw(ctx, tile, 250, y, { topLeft: true })
+      ctx.restore()
+      T.number(ctx, pad(value), 2230, 255, y + 3, { scale: 0.5 })
+    }
+    gauge(2207, 175, you.armor[1])
+    gauge(2209, 183, you.armor[0])
+    gauge(2208, 191, you.armor[2])
+    for (let i = 0; i < 6; i++) {
+      const x = i & 1 ? 320 - (78 + (i >> 1) * 10) : 73 + (i >> 1) * 10
+      T.draw(ctx, 2220 + i, x, 194, { dark: you.keys[i + 1] ? 0 : 0.7, alpha: you.keys[i + 1] ? 1 : 0.5 })
+    }
+  }
+
+  text (ctx, f) {
     const now = performance.now()
     this.messages = this.messages.filter((m) => m.until > now)
-    const scale = Math.max(1, Math.floor(this.game.height / 240))
-    context.save()
-    context.font = (8 * scale) + 'px monospace'
-    context.textBaseline = 'top'
+    const size = Math.max(10, Math.round(7 * f.sx))
+    ctx.font = 'bold ' + size + 'px monospace'
+    ctx.textBaseline = 'top'
     this.messages.forEach((m, i) => {
-      context.fillStyle = 'black'
-      context.fillText(m.text, 4 * scale + 1, 4 * scale + i * 10 * scale + 1)
-      context.fillStyle = '#e0c8a0'
-      context.fillText(m.text, 4 * scale, 4 * scale + i * 10 * scale)
+      const y = 4 + i * size * 1.2
+      ctx.fillStyle = 'black'; ctx.fillText(m.text, 5, y + 1)
+      ctx.fillStyle = '#d8c09a'; ctx.fillText(m.text, 4, y)
     })
-    context.restore()
   }
 }

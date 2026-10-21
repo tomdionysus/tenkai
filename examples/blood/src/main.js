@@ -5,6 +5,7 @@ import { GameEngine, GameClient, ServerFinder, ServerConfig } from '../../../ind
 import BuildView from './view/BuildView.js'
 import World from './net/World.js'
 import Hud from './view/Hud.js'
+import Sounds from './Sounds.js'
 import { json, addImages, image } from './data.js'
 
 const KEYS = {
@@ -33,6 +34,7 @@ export default class BloodClient extends GameEngine {
   async init () {
     this.view = this.addScene('view', new BuildView({ tiles: this.indexes.tiles, palettes: this.indexes.palettes, image: image(this) }))
     this.hud = new Hud(this)
+    this.sounds = new Sounds(this, this.indexes.sounds)
     this.pointerLook()
     const finder = new ServerFinder({ key: 'blood-server', config: new ServerConfig({ document, title: 'Blood server' }) })
     this.client = new GameClient({ name: localStorage.getItem('blood-name') || 'Caleb', tickTime: 1 / 30 })
@@ -98,10 +100,13 @@ export default class BloodClient extends GameEngine {
     if (i.down('altFire') || this.mouse.alt) buttons |= BUTTON.altFire
     if (i.down('open')) keys |= KEY.action
     for (let n = 1; n <= 10; n++) if (i.pressed('weapon' + n)) newWeapon = n
-    this.client.input({
+    const held = {
       run: run ? 1 : 0, forward: i.axis('back', 'forward') * move, strafe: i.axis('strafeRight', 'strafeLeft') * move,
       ang: Math.round(this.look.ang) & 2047, horiz: Math.round(this.look.horiz), buttons, keys, newWeapon
-    })
+    }
+    // A script driving the page (the checks in tools/) holds keys by setting `forced`
+    if (this.forced) { Object.assign(held, this.forced); if (this.forced.ang !== undefined) this.look.ang = this.forced.ang }
+    this.client.input(held)
     this.view.clock += dt * 120
   }
 
@@ -117,11 +122,20 @@ export default class BloodClient extends GameEngine {
     const you = state.you, was = (previous && previous.you) || you
     if (!you) return
     const lerp = (a, b) => a + (b - a) * t
-    this.view.eye = { x: lerp(was.x, you.x), y: lerp(was.y, you.y), z: lerp(was.z, you.z), ang: this.look.ang, horiz: this.look.horiz }
+    // The view shakes after a shot or a blast, by the server's amount
+    const shake = you.shake ? (Math.random() * 2 - 1) * you.shake / 4 : 0
+    this.view.eye = { x: lerp(was.x, you.x), y: lerp(was.y, you.y), z: lerp(was.z, you.z) + shake, ang: this.look.ang, horiz: you.dead ? 100 : this.look.horiz }
+    // The weapon sways as the player moves (Blood's bob), and takes the light of where the player stands
+    const speed = Math.hypot(you.x - was.x, you.y - was.y)
+    this.bobPhase = (this.bobPhase || 0) + speed / 40
+    const amount = Math.min(1, speed / 150)
+    this.bob = { x: Math.sin(this.bobPhase) * 6 * amount, y: Math.abs(Math.cos(this.bobPhase)) * 6 * amount }
+    const sec = this.world.map.sectors[you.sectnum]
+    this.weaponShade = sec ? sec.floorshade : 0
     this.view.sprites = this.world.sprites(previous, state, t, you.sprite)
   }
 
   drawOver (context) { if (this.hud) this.hud.draw(context) }
 }
 
-Promise.all([json('data/tiles.json'), json('data/palettes.json')]).then(([tiles, palettes]) => new BloodClient({ tiles, palettes }).start())
+Promise.all([json('data/tiles.json'), json('data/palettes.json'), json('data/sounds.json')]).then(([tiles, palettes, sounds]) => new BloodClient({ tiles, palettes, sounds }).start())
